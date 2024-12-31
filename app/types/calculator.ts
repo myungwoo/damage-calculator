@@ -77,6 +77,7 @@ export interface DamageResult {
     hits: {
       hit: number;
       prob: string;
+      accProb: string;
     }[];
   };
 }

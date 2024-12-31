@@ -261,6 +261,7 @@ const calculateHitProbabilities = (
       result.push({
         hit: i + 1,
         prob: current.toFixed(2),
+        accProb: (skillUseProbabilities[i] * 100).toFixed(2),
       });
     }
     prev = skillUseProbabilities[i];

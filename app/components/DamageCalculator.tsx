@@ -683,10 +683,12 @@ export default function DamageCalculator() {
               {damageResult.probabilities.hits.length === 0 && (
                 <h3 className="font-medium">10방을 때려도 못 잡네요 😅</h3>
               )}
-              {damageResult.probabilities.hits.map(({ hit, prob }) => (
+              {damageResult.probabilities.hits.map(({ hit, prob, accProb }) => (
                 <div key={hit}>
                   <h3 className="font-medium">{hit}방컷</h3>
-                  <p>{prob}%</p>
+                  <p>
+                    {prob}% (누적 {accProb}%)
+                  </p>
                 </div>
               ))}
             </div>
