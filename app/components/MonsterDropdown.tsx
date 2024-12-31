@@ -74,8 +74,8 @@ export default function MonsterDropdown({
 
     // 지역 순서대로 정렬
     return Object.entries(groups).sort((a, b) => {
-      const indexA = regionOrder.indexOf(a[0]);
-      const indexB = regionOrder.indexOf(b[0]);
+      const indexA = regionOrder.indexOf(a[0] as Region);
+      const indexB = regionOrder.indexOf(b[0] as Region);
       if (indexA === -1) return 1;
       if (indexB === -1) return -1;
       return indexA - indexB;

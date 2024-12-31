@@ -17,6 +17,42 @@ import {
 } from '../constants/calculator';
 
 const getInitialState = () => {
+  if (typeof window === 'undefined') {
+    return {
+      monster: {
+        level: monsterPresets[0].level,
+        hp: monsterPresets[0].hp,
+        physicalDefense: monsterPresets[0].physicalDefense,
+      },
+      stats: {
+        level: 10,
+        str: 4,
+        dex: 25,
+        luk: 41,
+        additionalStr: 0,
+        additionalDex: 0,
+        additionalLuk: 0,
+      },
+      equipment: {
+        weaponAttack: 10,
+        selectedWeaponId: 'subi',
+        gloveAttack: 0,
+        otherAttack: 0,
+        buff: 0,
+      },
+      skills: {
+        type: 'lucky7' as AttackSkillType,
+        level: 1,
+        criticalThrow: 0,
+        javelin: 0,
+        shadowPartner: 0,
+        shadowPartnerEnabled: false,
+      },
+      selectedMonsterId: monsterPresets[0].id,
+      isCustomMonster: false,
+    };
+  }
+
   // 1번 슬롯(index 0)에 저장된 데이터 확인
   const savedData = localStorage.getItem(`${STORAGE_KEY_PREFIX}0`);
   if (savedData) {
@@ -89,6 +125,8 @@ export const useCalculatorState = () => {
   const [saves, setSaves] = useState<(SaveData | null)[]>(Array(3).fill(null));
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     // Load saved data from localStorage
     const loadedSaves = Array(3)
       .fill(null)
@@ -158,6 +196,8 @@ export const useCalculatorState = () => {
   };
 
   const handleSave = (slot: number) => {
+    if (typeof window === 'undefined') return;
+
     const saveData: SaveData = {
       timestamp: Date.now(),
       monster,
@@ -177,6 +217,8 @@ export const useCalculatorState = () => {
   };
 
   const handleLoad = (slot: number) => {
+    if (typeof window === 'undefined') return;
+
     const saveData = saves[slot];
     if (!saveData) return;
 
@@ -196,6 +238,8 @@ export const useCalculatorState = () => {
   };
 
   const handleDelete = (slot: number) => {
+    if (typeof window === 'undefined') return;
+
     localStorage.removeItem(`${STORAGE_KEY_PREFIX}${slot}`);
     const newSaves = [...saves];
     newSaves[slot] = null;

@@ -9,7 +9,7 @@ import {
   JavelinEffect,
   CriticalThrowEffect,
   ShadowPartnerEffect,
-  SkillType,
+  AttackSkillType,
 } from '../types/calculator';
 import { getSkillEffect } from '../data/skillEffects';
 import { throwingStars } from '../data/weapons';
@@ -73,7 +73,7 @@ const calculateDamageWithModifiers = (
   criticalMultiplier: number | null,
   stats: Stats,
   monster: Monster,
-  skillType: SkillType,
+  skillType: AttackSkillType,
   totalAttack: number
 ) => {
   const levelDifference = Math.max(0, monster.level - stats.level);
@@ -106,7 +106,7 @@ const calculateDamageWithModifiers = (
 };
 
 const calculateHitProbabilities = (
-  skillType: SkillType,
+  skillType: AttackSkillType,
   basicDamage: { min: number; max: number },
   criticalDamage: { min: number; max: number },
   shadowBasic: { min: number; max: number },
