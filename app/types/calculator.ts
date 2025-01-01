@@ -152,6 +152,6 @@ export const isShadowPartnerEffect = (
 export interface MonsterPreset extends Monster {
   id: string;
   name: string;
-  exp: number;
+  exp?: number;
   region: string;
 }
