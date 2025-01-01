@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { DamageResult, AttackSkillType, StatType } from '../types/calculator';
-import { calculateDamage } from '../utils/damageCalculator';
+import {
+  calculateDamage,
+  calculateRequiredHitRatio,
+  calculateHitProbability,
+} from '../utils/damageCalculator';
 import { throwingStars } from '../data/weapons';
 import { REGION_ORDER } from '../constants/calculator';
 import {
@@ -41,9 +45,7 @@ export default function DamageCalculator() {
     shadowBasic: { min: 0, max: 0 },
     shadowCritical: { min: 0, max: 0 },
     totalDamageRange: { min: 0, max: 0 },
-    probabilities: {
-      hits: [],
-    },
+    killProbabilities: [],
     statAttack: { min: 0, max: 0 },
   });
 
@@ -172,6 +174,47 @@ export default function DamageCalculator() {
                     !isCustomMonster ? 'bg-gray-100 cursor-not-allowed' : ''
                   }`}
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  회피율
+                </label>
+                <input
+                  type="number"
+                  value={monster.avoid}
+                  onChange={(e) =>
+                    setMonster((prev) => ({
+                      ...prev,
+                      avoid: Number(e.target.value),
+                    }))
+                  }
+                  disabled={!isCustomMonster}
+                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary ${
+                    !isCustomMonster ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  필요 명중률 / 타격 확률
+                </label>
+                <div className="mt-1 text-md font-medium text-gray-900">
+                  {calculateRequiredHitRatio(
+                    monster.level,
+                    stats.level,
+                    monster.avoid
+                  ).toFixed(2)}{' '}
+                  /{' '}
+                  {(
+                    calculateHitProbability(
+                      stats.hitRatio,
+                      monster.level,
+                      stats.level,
+                      monster.avoid
+                    ) * 100
+                  ).toFixed(2)}
+                  %
+                </div>
               </div>
             </div>
           </div>
@@ -337,6 +380,26 @@ export default function DamageCalculator() {
                     className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm text-gray-500"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  명중률
+                </label>
+                <input
+                  type="number"
+                  value={stats.hitRatio === undefined ? '' : stats.hitRatio}
+                  onChange={(e) =>
+                    setStats((prev) => ({
+                      ...prev,
+                      hitRatio:
+                        e.target.value === ''
+                          ? undefined
+                          : Number(e.target.value),
+                    }))
+                  }
+                  placeholder="명중률을 입력하세요"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                />
               </div>
             </div>
           </div>
@@ -699,10 +762,10 @@ export default function DamageCalculator() {
           <div className="bg-primary/5 p-4 rounded-lg">
             <h2 className="text-xl font-semibold mb-4">확률</h2>
             <div className="space-y-2">
-              {damageResult.probabilities.hits.length === 0 && (
+              {damageResult.killProbabilities.length === 0 && (
                 <h3 className="font-medium">10방을 때려도 못 잡네요 😅</h3>
               )}
-              {damageResult.probabilities.hits.map(({ hit, prob, accProb }) => (
+              {damageResult.killProbabilities.map(({ hit, prob, accProb }) => (
                 <div key={hit}>
                   <h3 className="font-medium">{hit}방컷</h3>
                   <p>

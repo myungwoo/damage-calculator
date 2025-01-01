@@ -7,6 +7,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 1,
     hp: 8,
     physicalDefense: 0,
+    magicalDefense: 0,
+    exp: 3,
+    avoid: 0,
     region: '빅토리아 아일랜드',
   },
   {
@@ -15,6 +18,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 2,
     hp: 15,
     physicalDefense: 0,
+    magicalDefense: 0,
+    exp: 4,
+    avoid: 0,
     region: '빅토리아 아일랜드',
   },
   {
@@ -23,6 +29,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 2,
     hp: 20,
     physicalDefense: 0,
+    magicalDefense: 0,
+    exp: 5,
+    avoid: 0,
     region: '빅토리아 아일랜드',
   },
   {
@@ -31,6 +40,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 4,
     hp: 40,
     physicalDefense: 3,
+    magicalDefense: 10,
+    exp: 8,
+    avoid: 0,
     region: '빅토리아 아일랜드',
   },
   {
@@ -39,6 +51,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 4,
     hp: 40,
     physicalDefense: 3,
+    magicalDefense: 10,
+    exp: 8,
+    avoid: 0,
     region: '빅토리아 아일랜드',
   },
   {
@@ -47,6 +62,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 6,
     hp: 50,
     physicalDefense: 5,
+    magicalDefense: 10,
+    exp: 10,
+    avoid: 1,
     region: '빅토리아 아일랜드',
   },
   {
@@ -55,6 +73,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 7,
     hp: 75,
     physicalDefense: 5,
+    magicalDefense: 20,
+    exp: 15,
+    avoid: 0,
     region: '빅토리아 아일랜드',
   },
   {
@@ -63,6 +84,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 8,
     hp: 80,
     physicalDefense: 0,
+    magicalDefense: 10,
+    exp: 15,
+    avoid: 1,
     region: '빅토리아 아일랜드',
   },
   {
@@ -71,6 +95,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 10,
     hp: 120,
     physicalDefense: 10,
+    magicalDefense: 30,
+    exp: 20,
+    avoid: 2,
     region: '빅토리아 아일랜드',
   },
   {
@@ -79,6 +106,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 10,
     hp: 250,
     physicalDefense: 20,
+    magicalDefense: 10,
+    exp: 18,
+    avoid: 0,
     region: '빅토리아 아일랜드',
   },
   {
@@ -87,6 +117,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 12,
     hp: 200,
     physicalDefense: 10,
+    magicalDefense: 40,
+    exp: 24,
+    avoid: 4,
     region: '빅토리아 아일랜드',
   },
   {
@@ -95,6 +128,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 15,
     hp: 250,
     physicalDefense: 12,
+    magicalDefense: 40,
+    exp: 26,
+    avoid: 5,
     region: '빅토리아 아일랜드',
   },
   {
@@ -103,6 +139,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 15,
     hp: 240,
     physicalDefense: 40,
+    magicalDefense: 50,
+    exp: 26,
+    avoid: 10,
     region: '빅토리아 아일랜드',
   },
   {
@@ -111,6 +150,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 17,
     hp: 300,
     physicalDefense: 30,
+    magicalDefense: 10,
+    exp: 30,
+    avoid: 5,
     region: '빅토리아 아일랜드',
   },
   {
@@ -119,6 +161,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 20,
     hp: 350,
     physicalDefense: 10,
+    magicalDefense: 60,
+    exp: 32,
+    avoid: 7,
     region: '빅토리아 아일랜드',
   },
   {
@@ -127,6 +172,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 20,
     hp: 300,
     physicalDefense: 20,
+    magicalDefense: 20,
+    exp: 33,
+    avoid: 10,
     region: '빅토리아 아일랜드',
   },
   {
@@ -135,6 +183,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 21,
     hp: 285,
     physicalDefense: 30,
+    magicalDefense: 30,
+    exp: 38,
+    avoid: 25,
     region: '빅토리아 아일랜드',
   },
   {
@@ -143,6 +194,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 22,
     hp: 300,
     physicalDefense: 30,
+    magicalDefense: 0,
+    exp: 35,
+    avoid: 7,
     region: '빅토리아 아일랜드',
   },
   {
@@ -151,6 +205,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 22,
     hp: 550,
     physicalDefense: 50,
+    magicalDefense: 20,
+    exp: 38,
+    avoid: 7,
     region: '빅토리아 아일랜드',
   },
   {
@@ -159,6 +216,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 24,
     hp: 500,
     physicalDefense: 20,
+    magicalDefense: 30,
+    exp: 42,
+    avoid: 8,
     region: '빅토리아 아일랜드',
   },
   {
@@ -167,6 +227,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 25,
     hp: 550,
     physicalDefense: 20,
+    magicalDefense: 30,
+    exp: 42,
+    avoid: 8,
     region: '빅토리아 아일랜드',
   },
   {
@@ -175,6 +238,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 27,
     hp: 720,
     physicalDefense: 35,
+    magicalDefense: 70,
+    exp: 50,
+    avoid: 10,
     region: '빅토리아 아일랜드',
   },
   {
@@ -183,6 +249,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 30,
     hp: 800,
     physicalDefense: 85,
+    magicalDefense: 105,
+    exp: 120,
+    avoid: 25,
     region: '빅토리아 아일랜드',
   },
   {
@@ -191,6 +260,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 32,
     hp: 1000,
     physicalDefense: 40,
+    magicalDefense: 40,
+    exp: 60,
+    avoid: 10,
     region: '빅토리아 아일랜드',
   },
   {
@@ -199,6 +271,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 32,
     hp: 1200,
     physicalDefense: 45,
+    magicalDefense: 40,
+    exp: 60,
+    avoid: 12,
     region: '빅토리아 아일랜드',
   },
   {
@@ -207,6 +282,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 35,
     hp: 1250,
     physicalDefense: 45,
+    magicalDefense: 70,
+    exp: 70,
+    avoid: 10,
     region: '빅토리아 아일랜드',
   },
   {
@@ -215,6 +293,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 35,
     hp: 1200,
     physicalDefense: 90,
+    magicalDefense: 90,
+    exp: 70,
+    avoid: 17,
     region: '빅토리아 아일랜드',
   },
   {
@@ -223,6 +304,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 35,
     hp: 1700,
     physicalDefense: 120,
+    magicalDefense: 155,
+    exp: 150,
+    avoid: 27,
     region: '빅토리아 아일랜드',
   },
   {
@@ -231,6 +315,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 37,
     hp: 1950,
     physicalDefense: 100,
+    magicalDefense: 200,
+    exp: 80,
+    avoid: 18,
     region: '빅토리아 아일랜드',
   },
   {
@@ -239,6 +326,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 37,
     hp: 1500,
     physicalDefense: 35,
+    magicalDefense: 40,
+    exp: 77,
+    avoid: 20,
     region: '빅토리아 아일랜드',
   },
   {
@@ -247,6 +337,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 40,
     hp: 2000,
     physicalDefense: 80,
+    magicalDefense: 80,
+    exp: 85,
+    avoid: 15,
     region: '빅토리아 아일랜드',
   },
   {
@@ -255,6 +348,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 40,
     hp: 1800,
     physicalDefense: 70,
+    magicalDefense: 70,
+    exp: 90,
+    avoid: 25,
     region: '빅토리아 아일랜드',
   },
   {
@@ -263,6 +359,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 42,
     hp: 2200,
     physicalDefense: 400,
+    magicalDefense: 400,
+    exp: 99,
+    avoid: 18,
     region: '빅토리아 아일랜드',
   },
   {
@@ -271,6 +370,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 45,
     hp: 2700,
     physicalDefense: 100,
+    magicalDefense: 100,
+    exp: 105,
+    avoid: 18,
     region: '빅토리아 아일랜드',
   },
   {
@@ -279,6 +381,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 45,
     hp: 2750,
     physicalDefense: 350,
+    magicalDefense: 350,
+    exp: 115,
+    avoid: 20,
     region: '빅토리아 아일랜드',
   },
   {
@@ -287,6 +392,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 46,
     hp: 2550,
     physicalDefense: 300,
+    magicalDefense: 300,
+    exp: 110,
+    avoid: 15,
     region: '빅토리아 아일랜드',
   },
   {
@@ -295,6 +403,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 48,
     hp: 2800,
     physicalDefense: 180,
+    magicalDefense: 180,
+    exp: 120,
+    avoid: 20,
     region: '빅토리아 아일랜드',
   },
   {
@@ -303,6 +414,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 48,
     hp: 3000,
     physicalDefense: 120,
+    magicalDefense: 150,
+    exp: 128,
+    avoid: 20,
     region: '빅토리아 아일랜드',
   },
   {
@@ -311,6 +425,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 50,
     hp: 3200,
     physicalDefense: 110,
+    magicalDefense: 150,
+    exp: 135,
+    avoid: 18,
     region: '빅토리아 아일랜드',
   },
   {
@@ -319,6 +436,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 52,
     hp: 3800,
     physicalDefense: 120,
+    magicalDefense: 80,
+    exp: 170,
+    avoid: 20,
     region: '빅토리아 아일랜드',
   },
   {
@@ -327,6 +447,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 55,
     hp: 4000,
     physicalDefense: 130,
+    magicalDefense: 100,
+    exp: 170,
+    avoid: 15,
     region: '빅토리아 아일랜드',
   },
   {
@@ -335,6 +458,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 55,
     hp: 4200,
     physicalDefense: 100,
+    magicalDefense: 200,
+    exp: 170,
+    avoid: 20,
     region: '빅토리아 아일랜드',
   },
   {
@@ -343,6 +469,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 58,
     hp: 4800,
     physicalDefense: 150,
+    magicalDefense: 200,
+    exp: 200,
+    avoid: 18,
     region: '빅토리아 아일랜드',
   },
   {
@@ -351,6 +480,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 60,
     hp: 6000,
     physicalDefense: 190,
+    magicalDefense: 220,
+    exp: 220,
+    avoid: 22,
     region: '빅토리아 아일랜드',
   },
   {
@@ -359,6 +491,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 62,
     hp: 5500,
     physicalDefense: 180,
+    magicalDefense: 130,
+    exp: 240,
+    avoid: 20,
     region: '빅토리아 아일랜드',
   },
   {
@@ -367,6 +502,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 70,
     hp: 15000,
     physicalDefense: 250,
+    magicalDefense: 250,
+    exp: 270,
+    avoid: 15,
     region: '빅토리아 아일랜드',
   },
   {
@@ -375,6 +513,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 75,
     hp: 18000,
     physicalDefense: 550,
+    magicalDefense: 400,
+    exp: 350,
+    avoid: 30,
     region: '빅토리아 아일랜드',
   },
   {
@@ -383,6 +524,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 19,
     hp: 330,
     physicalDefense: 40,
+    magicalDefense: 15,
+    exp: 33,
+    avoid: 10,
     region: '미출시',
   },
   {
@@ -391,6 +535,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 23,
     hp: 500,
     physicalDefense: 30,
+    magicalDefense: 40,
+    exp: 42,
+    avoid: 10,
     region: '미출시',
   },
   {
@@ -399,6 +546,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 24,
     hp: 600,
     physicalDefense: 35,
+    magicalDefense: 40,
+    exp: 45,
+    avoid: 10,
     region: '미출시',
   },
   {
@@ -407,6 +557,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 44,
     hp: 2450,
     physicalDefense: 170,
+    magicalDefense: 190,
+    exp: 107,
+    avoid: 18,
     region: '미출시',
   },
   {
@@ -415,6 +568,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 47,
     hp: 2750,
     physicalDefense: 175,
+    magicalDefense: 195,
+    exp: 117,
+    avoid: 18,
     region: '미출시',
   },
   {
@@ -423,6 +579,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 57,
     hp: 4600,
     physicalDefense: 160,
+    magicalDefense: 160,
+    exp: 190,
+    avoid: 25,
     region: '미출시',
   },
   {
@@ -431,6 +590,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 59,
     hp: 6000,
     physicalDefense: 160,
+    magicalDefense: 220,
+    exp: 210,
+    avoid: 20,
     region: '미출시',
   },
   {
@@ -439,6 +601,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 63,
     hp: 7500,
     physicalDefense: 190,
+    magicalDefense: 230,
+    exp: 240,
+    avoid: 25,
     region: '미출시',
   },
   {
@@ -447,6 +612,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 64,
     hp: 7700,
     physicalDefense: 200,
+    magicalDefense: 230,
+    exp: 250,
+    avoid: 25,
     region: '미출시',
   },
   {
@@ -455,6 +623,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 68,
     hp: 13000,
     physicalDefense: 205,
+    magicalDefense: 250,
+    exp: 265,
+    avoid: 27,
     region: '미출시',
   },
   {
@@ -463,6 +634,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 73,
     hp: 15300,
     physicalDefense: 330,
+    magicalDefense: 300,
+    exp: 315,
+    avoid: 32,
     region: '미출시',
   },
   {
@@ -471,6 +645,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 23,
     hp: 600,
     physicalDefense: 30,
+    magicalDefense: 40,
+    exp: 40,
+    avoid: 8,
     region: '오르비스',
   },
   {
@@ -479,6 +656,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 30,
     hp: 900,
     physicalDefense: 275,
+    magicalDefense: 85,
+    exp: 55,
+    avoid: 12,
     region: '오르비스',
   },
   {
@@ -487,6 +667,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 30,
     hp: 900,
     physicalDefense: 275,
+    magicalDefense: 85,
+    exp: 55,
+    avoid: 12,
     region: '오르비스',
   },
   {
@@ -495,6 +678,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 30,
     hp: 900,
     physicalDefense: 275,
+    magicalDefense: 85,
+    exp: 55,
+    avoid: 12,
     region: '오르비스',
   },
   {
@@ -503,6 +689,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 33,
     hp: 1100,
     physicalDefense: 60,
+    magicalDefense: 80,
+    exp: 65,
+    avoid: 15,
     region: '오르비스',
   },
   {
@@ -511,6 +700,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 33,
     hp: 1100,
     physicalDefense: 60,
+    magicalDefense: 80,
+    exp: 65,
+    avoid: 15,
     region: '오르비스',
   },
   {
@@ -519,6 +711,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 33,
     hp: 1100,
     physicalDefense: 60,
+    magicalDefense: 80,
+    exp: 65,
+    avoid: 15,
     region: '오르비스',
   },
   {
@@ -527,6 +722,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 35,
     hp: 1300,
     physicalDefense: 100,
+    magicalDefense: 100,
+    exp: 72,
+    avoid: 21,
     region: '오르비스',
   },
   {
@@ -535,6 +733,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 42,
     hp: 2100,
     physicalDefense: 120,
+    magicalDefense: 120,
+    exp: 99,
+    avoid: 10,
     region: '오르비스',
   },
   {
@@ -543,6 +744,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 45,
     hp: 2500,
     physicalDefense: 145,
+    magicalDefense: 160,
+    exp: 105,
+    avoid: 24,
     region: '오르비스',
   },
   {
@@ -551,6 +755,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 47,
     hp: 2700,
     physicalDefense: 170,
+    magicalDefense: 220,
+    exp: 115,
+    avoid: 15,
     region: '오르비스',
   },
   {
@@ -559,6 +766,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 52,
     hp: 4000,
     physicalDefense: 125,
+    magicalDefense: 265,
+    exp: 155,
+    avoid: 22,
     region: '오르비스',
   },
   {
@@ -567,6 +777,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 53,
     hp: 4200,
     physicalDefense: 170,
+    magicalDefense: 210,
+    exp: 160,
+    avoid: 25,
     region: '오르비스',
   },
   {
@@ -575,6 +788,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 53,
     hp: 4200,
     physicalDefense: 170,
+    magicalDefense: 210,
+    exp: 160,
+    avoid: 25,
     region: '오르비스',
   },
   {
@@ -583,6 +799,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 53,
     hp: 4200,
     physicalDefense: 170,
+    magicalDefense: 210,
+    exp: 160,
+    avoid: 25,
     region: '오르비스',
   },
   {
@@ -591,6 +810,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 73,
     hp: 15500,
     physicalDefense: 300,
+    magicalDefense: 320,
+    exp: 320,
+    avoid: 28,
     region: '오르비스',
   },
   {
@@ -599,6 +821,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 32,
     hp: 1000,
     physicalDefense: 45,
+    magicalDefense: 70,
+    exp: 60,
+    avoid: 13,
     region: '엘나스',
   },
   {
@@ -607,6 +832,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 33,
     hp: 1100,
     physicalDefense: 60,
+    magicalDefense: 80,
+    exp: 65,
+    avoid: 15,
     region: '엘나스',
   },
   {
@@ -615,6 +843,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 35,
     hp: 1400,
     physicalDefense: 110,
+    magicalDefense: 100,
+    exp: 75,
+    avoid: 18,
     region: '엘나스',
   },
   {
@@ -623,6 +854,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 41,
     hp: 1600,
     physicalDefense: 90,
+    magicalDefense: 110,
+    exp: 95,
+    avoid: 28,
     region: '엘나스',
   },
   {
@@ -631,6 +865,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 43,
     hp: 2300,
     physicalDefense: 290,
+    magicalDefense: 150,
+    exp: 102,
+    avoid: 25,
     region: '엘나스',
   },
   {
@@ -639,6 +876,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 50,
     hp: 3700,
     physicalDefense: 170,
+    magicalDefense: 180,
+    exp: 135,
+    avoid: 25,
     region: '엘나스',
   },
   {
@@ -647,6 +887,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 51,
     hp: 3600,
     physicalDefense: 255,
+    magicalDefense: 205,
+    exp: 142,
+    avoid: 28,
     region: '엘나스',
   },
   {
@@ -655,6 +898,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 55,
     hp: 4600,
     physicalDefense: 120,
+    magicalDefense: 120,
+    exp: 170,
+    avoid: 20,
     region: '엘나스',
   },
   {
@@ -663,6 +909,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 56,
     hp: 4400,
     physicalDefense: 180,
+    magicalDefense: 190,
+    exp: 180,
+    avoid: 27,
     region: '엘나스',
   },
   {
@@ -671,6 +920,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 57,
     hp: 4500,
     physicalDefense: 165,
+    magicalDefense: 180,
+    exp: 190,
+    avoid: 25,
     region: '엘나스',
   },
   {
@@ -679,6 +931,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 57,
     hp: 4500,
     physicalDefense: 165,
+    magicalDefense: 180,
+    exp: 190,
+    avoid: 25,
     region: '엘나스',
   },
   {
@@ -687,6 +942,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 58,
     hp: 5800,
     physicalDefense: 200,
+    magicalDefense: 220,
+    exp: 220,
+    avoid: 25,
     region: '엘나스',
   },
   {
@@ -695,6 +953,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 60,
     hp: 7200,
     physicalDefense: 210,
+    magicalDefense: 225,
+    exp: 220,
+    avoid: 30,
     region: '엘나스',
   },
   {
@@ -703,6 +964,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 64,
     hp: 7800,
     physicalDefense: 220,
+    magicalDefense: 240,
+    exp: 250,
+    avoid: 31,
     region: '엘나스',
   },
   {
@@ -711,6 +975,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 65,
     hp: 11000,
     physicalDefense: 170,
+    magicalDefense: 245,
+    exp: 255,
+    avoid: 24,
     region: '엘나스',
   },
   {
@@ -719,6 +986,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 68,
     hp: 13000,
     physicalDefense: 190,
+    magicalDefense: 270,
+    exp: 265,
+    avoid: 26,
     region: '엘나스',
   },
   {
@@ -727,6 +997,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 72,
     hp: 15200,
     physicalDefense: 320,
+    magicalDefense: 265,
+    exp: 295,
+    avoid: 30,
     region: '엘나스',
   },
   {
@@ -735,6 +1008,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 75,
     hp: 16000,
     physicalDefense: 800,
+    magicalDefense: 290,
+    exp: 350,
+    avoid: 25,
     region: '엘나스',
   },
   {
@@ -743,6 +1019,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 78,
     hp: 20000,
     physicalDefense: 600,
+    magicalDefense: 450,
+    exp: 875,
+    avoid: 30,
     region: '엘나스',
   },
   {
@@ -751,6 +1030,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 80,
     hp: 27000,
     physicalDefense: 650,
+    magicalDefense: 520,
+    exp: 850,
+    avoid: 28,
     region: '엘나스',
   },
   {
@@ -759,6 +1041,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 82,
     hp: 29000,
     physicalDefense: 700,
+    magicalDefense: 500,
+    exp: 1415,
+    avoid: 30,
     region: '엘나스',
   },
   {
@@ -767,6 +1052,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 90,
     hp: 45000,
     physicalDefense: 835,
+    magicalDefense: 505,
+    exp: 1800,
+    avoid: 38,
     region: '엘나스',
   },
   {
@@ -775,6 +1063,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 30,
     hp: 950,
     physicalDefense: 38,
+    magicalDefense: 40,
+    exp: 60,
+    avoid: 12,
     region: '장난감 공장',
   },
   {
@@ -783,6 +1074,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 32,
     hp: 1050,
     physicalDefense: 50,
+    magicalDefense: 70,
+    exp: 65,
+    avoid: 14,
     region: '장난감 공장',
   },
   {
@@ -791,6 +1085,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 34,
     hp: 1200,
     physicalDefense: 70,
+    magicalDefense: 85,
+    exp: 70,
+    avoid: 16,
     region: '장난감 공장',
   },
   {
@@ -799,6 +1096,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 36,
     hp: 1400,
     physicalDefense: 95,
+    magicalDefense: 95,
+    exp: 77,
+    avoid: 16,
     region: '장난감 공장',
   },
   {
@@ -807,6 +1107,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 39,
     hp: 1920,
     physicalDefense: 110,
+    magicalDefense: 130,
+    exp: 92,
+    avoid: 18,
     region: '장난감 공장',
   },
   {
@@ -815,6 +1118,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 41,
     hp: 2000,
     physicalDefense: 190,
+    magicalDefense: 175,
+    exp: 99,
+    avoid: 15,
     region: '장난감 공장',
   },
   {
@@ -823,6 +1129,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 44,
     hp: 2450,
     physicalDefense: 210,
+    magicalDefense: 195,
+    exp: 105,
+    avoid: 18,
     region: '장난감 공장',
   },
   {
@@ -831,6 +1140,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 34,
     hp: 1100,
     physicalDefense: 95,
+    magicalDefense: 90,
+    exp: 70,
+    avoid: 14,
     region: '장난감 공장',
   },
   {
@@ -839,6 +1151,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 40,
     hp: 1900,
     physicalDefense: 160,
+    magicalDefense: 170,
+    exp: 95,
+    avoid: 20,
     region: '장난감 공장',
   },
   {
@@ -847,6 +1162,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 37,
     hp: 1750,
     physicalDefense: 90,
+    magicalDefense: 120,
+    exp: 82,
+    avoid: 20,
     region: '장난감 공장',
   },
   {
@@ -855,6 +1173,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 41,
     hp: 2050,
     physicalDefense: 130,
+    magicalDefense: 160,
+    exp: 99,
+    avoid: 22,
     region: '장난감 공장',
   },
   {
@@ -863,6 +1184,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 46,
     hp: 2600,
     physicalDefense: 170,
+    magicalDefense: 200,
+    exp: 115,
+    avoid: 24,
     region: '장난감 공장',
   },
   {
@@ -871,6 +1195,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 61,
     hp: 7400,
     physicalDefense: 213,
+    magicalDefense: 229,
+    exp: 230,
+    avoid: 23,
     region: '시계탑',
   },
   {
@@ -879,6 +1206,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 66,
     hp: 9400,
     physicalDefense: 180,
+    magicalDefense: 254,
+    exp: 260,
+    avoid: 26,
     region: '시계탑',
   },
   {
@@ -887,6 +1217,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 74,
     hp: 16000,
     physicalDefense: 340,
+    magicalDefense: 330,
+    exp: 340,
+    avoid: 27,
     region: '시계탑',
   },
   {
@@ -895,6 +1228,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 77,
     hp: 19000,
     physicalDefense: 400,
+    magicalDefense: 410,
+    exp: 385,
+    avoid: 28,
     region: '시계탑',
   },
   {
@@ -903,6 +1239,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 83,
     hp: 30000,
     physicalDefense: 710,
+    magicalDefense: 460,
+    exp: 1100,
+    avoid: 27,
     region: '시계탑',
   },
   {
@@ -911,6 +1250,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 87,
     hp: 35000,
     physicalDefense: 775,
+    magicalDefense: 470,
+    exp: 1500,
+    avoid: 28,
     region: '시계탑',
   },
   {
@@ -919,6 +1261,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 93,
     hp: 50000,
     physicalDefense: 830,
+    magicalDefense: 530,
+    exp: 2100,
+    avoid: 37,
     region: '시계탑',
   },
   {
@@ -927,6 +1272,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 98,
     hp: 58000,
     physicalDefense: 845,
+    magicalDefense: 580,
+    exp: 2600,
+    avoid: 38,
     region: '시계탑',
   },
   {
@@ -935,6 +1283,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 108,
     hp: 78000,
     physicalDefense: 900,
+    magicalDefense: 650,
+    exp: 4300,
+    avoid: 37,
     region: '시계탑',
   },
   {
@@ -943,6 +1294,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 63,
     hp: 7600,
     physicalDefense: 190,
+    magicalDefense: 215,
+    exp: 245,
+    avoid: 25,
     region: '시계탑',
   },
   {
@@ -951,6 +1305,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 67,
     hp: 11000,
     physicalDefense: 210,
+    magicalDefense: 250,
+    exp: 265,
+    avoid: 27,
     region: '시계탑',
   },
   {
@@ -959,6 +1316,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 70,
     hp: 15000,
     physicalDefense: 250,
+    magicalDefense: 250,
+    exp: 270,
+    avoid: 26,
     region: '시계탑',
   },
   {
@@ -967,6 +1327,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 76,
     hp: 18000,
     physicalDefense: 380,
+    magicalDefense: 400,
+    exp: 370,
+    avoid: 27,
     region: '시계탑',
   },
   {
@@ -975,6 +1338,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 85,
     hp: 32000,
     physicalDefense: 700,
+    magicalDefense: 465,
+    exp: 1300,
+    avoid: 27,
     region: '시계탑',
   },
   {
@@ -983,6 +1349,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 89,
     hp: 40000,
     physicalDefense: 750,
+    magicalDefense: 480,
+    exp: 1720,
+    avoid: 28,
     region: '시계탑',
   },
   {
@@ -991,6 +1360,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 95,
     hp: 53000,
     physicalDefense: 835,
+    magicalDefense: 530,
+    exp: 2300,
+    avoid: 37,
     region: '시계탑',
   },
   {
@@ -999,6 +1371,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 99,
     hp: 60000,
     physicalDefense: 850,
+    magicalDefense: 570,
+    exp: 2800,
+    avoid: 38,
     region: '시계탑',
   },
   {
@@ -1007,6 +1382,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 108,
     hp: 70000,
     physicalDefense: 850,
+    magicalDefense: 680,
+    exp: 4100,
+    avoid: 38,
     region: '시계탑',
   },
   {
@@ -1015,6 +1393,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 32,
     hp: 1000,
     physicalDefense: 65,
+    magicalDefense: 75,
+    exp: 65,
+    avoid: 13,
     region: '에오스탑',
   },
   {
@@ -1023,6 +1404,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 34,
     hp: 1150,
     physicalDefense: 75,
+    magicalDefense: 75,
+    exp: 70,
+    avoid: 14,
     region: '에오스탑',
   },
   {
@@ -1031,6 +1415,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 23,
     hp: 450,
     physicalDefense: 52,
+    magicalDefense: 65,
+    exp: 42,
+    avoid: 10,
     region: '에오스탑',
   },
   {
@@ -1039,6 +1426,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 28,
     hp: 780,
     physicalDefense: 75,
+    magicalDefense: 75,
+    exp: 55,
+    avoid: 12,
     region: '에오스탑',
   },
   {
@@ -1047,6 +1437,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 30,
     hp: 950,
     physicalDefense: 38,
+    magicalDefense: 40,
+    exp: 60,
+    avoid: 12,
     region: '에오스탑',
   },
   {
@@ -1055,6 +1448,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 31,
     hp: 800,
     physicalDefense: 60,
+    magicalDefense: 50,
+    exp: 62,
+    avoid: 10,
     region: '에오스탑',
   },
   {
@@ -1063,6 +1459,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 36,
     hp: 1350,
     physicalDefense: 85,
+    magicalDefense: 105,
+    exp: 77,
+    avoid: 17,
     region: '에오스탑',
   },
   {
@@ -1071,6 +1470,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 37,
     hp: 1700,
     physicalDefense: 95,
+    magicalDefense: 115,
+    exp: 82,
+    avoid: 18,
     region: '에오스탑',
   },
   {
@@ -1079,6 +1481,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 38,
     hp: 1830,
     physicalDefense: 105,
+    magicalDefense: 125,
+    exp: 85,
+    avoid: 19,
     region: '에오스탑',
   },
   {
@@ -1087,6 +1492,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 35,
     hp: 1300,
     physicalDefense: 100,
+    magicalDefense: 130,
+    exp: 72,
+    avoid: 18,
     region: '에오스탑',
   },
   {
@@ -1095,6 +1503,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 38,
     hp: 1850,
     physicalDefense: 120,
+    magicalDefense: 140,
+    exp: 85,
+    avoid: 14,
     region: '에오스탑',
   },
   {
@@ -1103,6 +1514,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 39,
     hp: 1900,
     physicalDefense: 120,
+    magicalDefense: 130,
+    exp: 85,
+    avoid: 17,
     region: '에오스탑',
   },
   {
@@ -1111,6 +1525,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 42,
     hp: 2400,
     physicalDefense: 110,
+    magicalDefense: 90,
+    exp: 102,
+    avoid: 12,
     region: '에오스탑',
   },
   {
@@ -1119,6 +1536,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 45,
     hp: 2600,
     physicalDefense: 130,
+    magicalDefense: 110,
+    exp: 110,
+    avoid: 14,
     region: '에오스탑',
   },
   {
@@ -1127,6 +1547,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 41,
     hp: 2080,
     physicalDefense: 120,
+    magicalDefense: 120,
+    exp: 99,
+    avoid: 16,
     region: '지구방위본부',
   },
   {
@@ -1135,6 +1558,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 44,
     hp: 2480,
     physicalDefense: 140,
+    magicalDefense: 190,
+    exp: 105,
+    avoid: 18,
     region: '지구방위본부',
   },
   {
@@ -1143,6 +1569,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 46,
     hp: 2600,
     physicalDefense: 160,
+    magicalDefense: 210,
+    exp: 110,
+    avoid: 20,
     region: '지구방위본부',
   },
   {
@@ -1151,6 +1580,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 40,
     hp: 1930,
     physicalDefense: 140,
+    magicalDefense: 160,
+    exp: 95,
+    avoid: 18,
     region: '지구방위본부',
   },
   {
@@ -1159,6 +1591,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 42,
     hp: 2300,
     physicalDefense: 160,
+    magicalDefense: 180,
+    exp: 102,
+    avoid: 20,
     region: '지구방위본부',
   },
   {
@@ -1167,6 +1602,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 45,
     hp: 2550,
     physicalDefense: 180,
+    magicalDefense: 200,
+    exp: 110,
+    avoid: 21,
     region: '지구방위본부',
   },
   {
@@ -1175,6 +1613,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 36,
     hp: 1400,
     physicalDefense: 90,
+    magicalDefense: 85,
+    exp: 78,
+    avoid: 18,
     region: '아랫마을',
   },
   {
@@ -1183,6 +1624,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 45,
     hp: 2600,
     physicalDefense: 100,
+    magicalDefense: 180,
+    exp: 110,
+    avoid: 20,
     region: '아랫마을',
   },
   {
@@ -1191,6 +1635,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 50,
     hp: 3800,
     physicalDefense: 150,
+    magicalDefense: 180,
+    exp: 140,
+    avoid: 28,
     region: '아랫마을',
   },
   {
@@ -1199,6 +1646,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 53,
     hp: 4500,
     physicalDefense: 185,
+    magicalDefense: 215,
+    exp: 165,
+    avoid: 25,
     region: '아랫마을',
   },
   {
@@ -1207,6 +1657,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 56,
     hp: 4500,
     physicalDefense: 150,
+    magicalDefense: 190,
+    exp: 185,
+    avoid: 28,
     region: '아랫마을',
   },
   {
@@ -1215,6 +1668,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 60,
     hp: 7000,
     physicalDefense: 220,
+    magicalDefense: 230,
+    exp: 330,
+    avoid: 25,
     region: '아랫마을',
   },
   {
@@ -1223,6 +1679,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 70,
     hp: 25000,
     physicalDefense: 280,
+    magicalDefense: 280,
+    exp: 400,
+    avoid: 15,
     region: '아랫마을',
   },
   {
@@ -1231,6 +1690,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 70,
     hp: 25000,
     physicalDefense: 280,
+    magicalDefense: 280,
+    exp: 400,
+    avoid: 15,
     region: '아랫마을',
   },
   {
@@ -1239,6 +1701,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 70,
     hp: 25000,
     physicalDefense: 280,
+    magicalDefense: 280,
+    exp: 400,
+    avoid: 15,
     region: '아랫마을',
   },
   {
@@ -1247,6 +1712,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 38,
     hp: 1900,
     physicalDefense: 85,
+    magicalDefense: 100,
+    exp: 90,
+    avoid: 15,
     region: '아랫마을',
   },
   {
@@ -1255,6 +1723,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 36,
     hp: 1430,
     physicalDefense: 90,
+    magicalDefense: 155,
+    exp: 80,
+    avoid: 18,
     region: '아쿠아리움',
   },
   {
@@ -1263,6 +1734,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 38,
     hp: 1850,
     physicalDefense: 90,
+    magicalDefense: 125,
+    exp: 85,
+    avoid: 18,
     region: '아쿠아리움',
   },
   {
@@ -1271,6 +1745,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 40,
     hp: 1900,
     physicalDefense: 130,
+    magicalDefense: 160,
+    exp: 95,
+    avoid: 18,
     region: '아쿠아리움',
   },
   {
@@ -1279,6 +1756,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 40,
     hp: 1910,
     physicalDefense: 140,
+    magicalDefense: 100,
+    exp: 97,
+    avoid: 18,
     region: '아쿠아리움',
   },
   {
@@ -1287,6 +1767,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 42,
     hp: 2300,
     physicalDefense: 130,
+    magicalDefense: 160,
+    exp: 102,
+    avoid: 20,
     region: '아쿠아리움',
   },
   {
@@ -1295,6 +1778,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 43,
     hp: 2400,
     physicalDefense: 140,
+    magicalDefense: 172,
+    exp: 103,
+    avoid: 15,
     region: '아쿠아리움',
   },
   {
@@ -1303,6 +1789,8 @@ export const monsterPresets: MonsterPreset[] = [
     level: 45,
     hp: 2550,
     physicalDefense: 150,
+    magicalDefense: 200,
+    avoid: 20,
     region: '아쿠아리움',
   },
   {
@@ -1311,6 +1799,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 45,
     hp: 7800,
     physicalDefense: 150,
+    magicalDefense: 200,
+    exp: 330,
+    avoid: 20,
     region: '아쿠아리움',
   },
   {
@@ -1319,6 +1810,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 28,
     hp: 740,
     physicalDefense: 35,
+    magicalDefense: 40,
+    exp: 52,
+    avoid: 10,
     region: '아쿠아리움',
   },
   {
@@ -1327,6 +1821,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 29,
     hp: 790,
     physicalDefense: 80,
+    magicalDefense: 85,
+    exp: 58,
+    avoid: 10,
     region: '아쿠아리움',
   },
   {
@@ -1335,6 +1832,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 32,
     hp: 1000,
     physicalDefense: 70,
+    magicalDefense: 80,
+    exp: 65,
+    avoid: 14,
     region: '아쿠아리움',
   },
   {
@@ -1343,6 +1843,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 30,
     hp: 900,
     physicalDefense: 40,
+    magicalDefense: 40,
+    exp: 55,
+    avoid: 12,
     region: '아쿠아리움',
   },
   {
@@ -1351,6 +1854,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 23,
     hp: 500,
     physicalDefense: 35,
+    magicalDefense: 45,
+    exp: 42,
+    avoid: 9,
     region: '아쿠아리움',
   },
   {
@@ -1359,6 +1865,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 25,
     hp: 550,
     physicalDefense: 30,
+    magicalDefense: 40,
+    exp: 42,
+    avoid: 8,
     region: '아쿠아리움',
   },
   {
@@ -1367,6 +1876,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 22,
     hp: 400,
     physicalDefense: 30,
+    magicalDefense: 30,
+    exp: 36,
+    avoid: 7,
     region: '아쿠아리움',
   },
   {
@@ -1375,6 +1887,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 24,
     hp: 500,
     physicalDefense: 20,
+    magicalDefense: 30,
+    exp: 45,
+    avoid: 8,
     region: '아쿠아리움',
   },
   {
@@ -1383,6 +1898,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 85,
     hp: 17000,
     physicalDefense: 645,
+    magicalDefense: 430,
+    exp: 1400,
+    avoid: 29,
     region: '아쿠아리움',
   },
   {
@@ -1391,6 +1909,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 92,
     hp: 42500,
     physicalDefense: 840,
+    magicalDefense: 540,
+    exp: 2000,
+    avoid: 38,
     region: '아쿠아리움',
   },
   {
@@ -1399,6 +1920,8 @@ export const monsterPresets: MonsterPreset[] = [
     level: 90,
     hp: 40500,
     physicalDefense: 840,
+    magicalDefense: 530,
+    avoid: 35,
     region: '아쿠아리움',
   },
   {
@@ -1407,6 +1930,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 100,
     hp: 56000,
     physicalDefense: 850,
+    magicalDefense: 570,
+    exp: 3000,
+    avoid: 38,
     region: '아쿠아리움',
   },
   {
@@ -1415,6 +1941,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 102,
     hp: 58500,
     physicalDefense: 855,
+    magicalDefense: 575,
+    exp: 3100,
+    avoid: 38,
     region: '아쿠아리움',
   },
   {
@@ -1423,6 +1952,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 94,
     hp: 46000,
     physicalDefense: 830,
+    magicalDefense: 525,
+    exp: 2200,
+    avoid: 37,
     region: '아쿠아리움',
   },
   {
@@ -1431,6 +1963,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 97,
     hp: 49000,
     physicalDefense: 830,
+    magicalDefense: 550,
+    exp: 2500,
+    avoid: 37,
     region: '아쿠아리움',
   },
   {
@@ -1439,6 +1974,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 70,
     hp: 14500,
     physicalDefense: 235,
+    magicalDefense: 245,
+    exp: 270,
+    avoid: 25,
     region: '리프레',
   },
   {
@@ -1447,6 +1985,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 74,
     hp: 15500,
     physicalDefense: 285,
+    magicalDefense: 295,
+    exp: 340,
+    avoid: 27,
     region: '리프레',
   },
   {
@@ -1455,6 +1996,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 72,
     hp: 15200,
     physicalDefense: 335,
+    magicalDefense: 265,
+    exp: 295,
+    avoid: 30,
     region: '리프레',
   },
   {
@@ -1463,6 +2007,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 76,
     hp: 18000,
     physicalDefense: 400,
+    magicalDefense: 400,
+    exp: 370,
+    avoid: 27,
     region: '리프레',
   },
   {
@@ -1471,6 +2018,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 78,
     hp: 20000,
     physicalDefense: 650,
+    magicalDefense: 450,
+    exp: 400,
+    avoid: 28,
     region: '리프레',
   },
   {
@@ -1479,6 +2029,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 80,
     hp: 27000,
     physicalDefense: 650,
+    magicalDefense: 450,
+    exp: 850,
+    avoid: 28,
     region: '리프레',
   },
   {
@@ -1487,6 +2040,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 83,
     hp: 30000,
     physicalDefense: 700,
+    magicalDefense: 465,
+    exp: 1100,
+    avoid: 27,
     region: '리프레',
   },
   {
@@ -1495,6 +2051,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 85,
     hp: 32000,
     physicalDefense: 760,
+    magicalDefense: 465,
+    exp: 1420,
+    avoid: 27,
     region: '리프레',
   },
   {
@@ -1503,6 +2062,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 88,
     hp: 37000,
     physicalDefense: 850,
+    magicalDefense: 480,
+    exp: 1620,
+    avoid: 28,
     region: '리프레',
   },
   {
@@ -1511,6 +2073,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 88,
     hp: 37000,
     physicalDefense: 800,
+    magicalDefense: 495,
+    exp: 1600,
+    avoid: 28,
     region: '리프레',
   },
   {
@@ -1519,6 +2084,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 88,
     hp: 37000,
     physicalDefense: 800,
+    magicalDefense: 495,
+    exp: 1600,
+    avoid: 28,
     region: '리프레',
   },
   {
@@ -1527,6 +2095,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 88,
     hp: 37000,
     physicalDefense: 800,
+    magicalDefense: 495,
+    exp: 1600,
+    avoid: 28,
     region: '리프레',
   },
   {
@@ -1535,6 +2106,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 72,
     hp: 15000,
     physicalDefense: 330,
+    magicalDefense: 260,
+    exp: 295,
+    avoid: 25,
     region: '리프레',
   },
   {
@@ -1543,6 +2117,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 76,
     hp: 18000,
     physicalDefense: 400,
+    magicalDefense: 350,
+    exp: 370,
+    avoid: 28,
     region: '리프레',
   },
   {
@@ -1551,6 +2128,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 90,
     hp: 40000,
     physicalDefense: 820,
+    magicalDefense: 480,
+    exp: 1780,
+    avoid: 37,
     region: '리프레',
   },
   {
@@ -1559,6 +2139,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 93,
     hp: 49000,
     physicalDefense: 830,
+    magicalDefense: 500,
+    exp: 2100,
+    avoid: 37,
     region: '리프레',
   },
   {
@@ -1567,6 +2150,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 95,
     hp: 50000,
     physicalDefense: 840,
+    magicalDefense: 550,
+    exp: 2280,
+    avoid: 37,
     region: '리프레',
   },
   {
@@ -1575,6 +2161,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 97,
     hp: 55000,
     physicalDefense: 850,
+    magicalDefense: 570,
+    exp: 2500,
+    avoid: 37,
     region: '리프레',
   },
   {
@@ -1583,6 +2172,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 100,
     hp: 56000,
     physicalDefense: 800,
+    magicalDefense: 500,
+    exp: 3000,
+    avoid: 45,
     region: '리프레',
   },
   {
@@ -1591,6 +2183,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 105,
     hp: 67000,
     physicalDefense: 800,
+    magicalDefense: 500,
+    exp: 3700,
+    avoid: 45,
     region: '리프레',
   },
   {
@@ -1599,6 +2194,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 97,
     hp: 53000,
     physicalDefense: 830,
+    magicalDefense: 550,
+    exp: 2500,
+    avoid: 37,
     region: '리프레',
   },
   {
@@ -1607,6 +2205,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 101,
     hp: 57000,
     physicalDefense: 850,
+    magicalDefense: 570,
+    exp: 3050,
+    avoid: 38,
     region: '리프레',
   },
   {
@@ -1615,6 +2216,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 103,
     hp: 60000,
     physicalDefense: 900,
+    magicalDefense: 580,
+    exp: 3150,
+    avoid: 38,
     region: '리프레',
   },
   {
@@ -1623,6 +2227,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 105,
     hp: 68000,
     physicalDefense: 750,
+    magicalDefense: 680,
+    exp: 3800,
+    avoid: 38,
     region: '리프레',
   },
   {
@@ -1631,6 +2238,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 110,
     hp: 80000,
     physicalDefense: 900,
+    magicalDefense: 600,
+    exp: 4450,
+    avoid: 38,
     region: '리프레',
   },
   {
@@ -1639,6 +2249,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 110,
     hp: 80000,
     physicalDefense: 800,
+    magicalDefense: 700,
+    exp: 4500,
+    avoid: 38,
     region: '리프레',
   },
   {
@@ -1647,6 +2260,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 113,
     hp: 85000,
     physicalDefense: 810,
+    magicalDefense: 710,
+    exp: 4750,
+    avoid: 38,
     region: '리프레',
   },
   {
@@ -1655,6 +2271,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 50,
     hp: 3000,
     physicalDefense: 170,
+    magicalDefense: 200,
+    exp: 135,
+    avoid: 15,
     region: '무릉',
   },
   {
@@ -1663,6 +2282,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 51,
     hp: 3200,
     physicalDefense: 200,
+    magicalDefense: 160,
+    exp: 142,
+    avoid: 18,
     region: '무릉',
   },
   {
@@ -1671,6 +2293,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 40,
     hp: 1900,
     physicalDefense: 135,
+    magicalDefense: 100,
+    exp: 95,
+    avoid: 15,
     region: '무릉',
   },
   {
@@ -1679,6 +2304,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 41,
     hp: 2000,
     physicalDefense: 120,
+    magicalDefense: 150,
+    exp: 99,
+    avoid: 15,
     region: '무릉',
   },
   {
@@ -1687,6 +2315,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 43,
     hp: 2400,
     physicalDefense: 130,
+    magicalDefense: 160,
+    exp: 103,
+    avoid: 15,
     region: '무릉',
   },
   {
@@ -1695,6 +2326,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 45,
     hp: 2550,
     physicalDefense: 170,
+    magicalDefense: 150,
+    exp: 110,
+    avoid: 20,
     region: '무릉',
   },
   {
@@ -1703,6 +2337,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 45,
     hp: 2550,
     physicalDefense: 150,
+    magicalDefense: 160,
+    exp: 110,
+    avoid: 20,
     region: '무릉',
   },
   {
@@ -1711,6 +2348,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 56,
     hp: 4800,
     physicalDefense: 180,
+    magicalDefense: 200,
+    exp: 185,
+    avoid: 18,
     region: '무릉',
   },
   {
@@ -1719,6 +2359,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 60,
     hp: 6500,
     physicalDefense: 200,
+    magicalDefense: 230,
+    exp: 225,
+    avoid: 22,
     region: '무릉',
   },
   {
@@ -1727,6 +2370,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 58,
     hp: 5600,
     physicalDefense: 180,
+    magicalDefense: 210,
+    exp: 205,
+    avoid: 20,
     region: '무릉',
   },
   {
@@ -1735,6 +2381,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 62,
     hp: 7500,
     physicalDefense: 170,
+    magicalDefense: 200,
+    exp: 240,
+    avoid: 25,
     region: '무릉',
   },
   {
@@ -1743,6 +2392,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 55,
     hp: 4500,
     physicalDefense: 150,
+    magicalDefense: 220,
+    exp: 175,
+    avoid: 20,
     region: '무릉',
   },
   {
@@ -1751,6 +2403,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 66,
     hp: 9000,
     physicalDefense: 160,
+    magicalDefense: 200,
+    exp: 255,
+    avoid: 4,
     region: '무릉',
   },
   {
@@ -1759,6 +2414,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 47,
     hp: 2700,
     physicalDefense: 155,
+    magicalDefense: 160,
+    exp: 117,
+    avoid: 18,
     region: '백초마을',
   },
   {
@@ -1767,6 +2425,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 48,
     hp: 2800,
     physicalDefense: 165,
+    magicalDefense: 170,
+    exp: 123,
+    avoid: 20,
     region: '백초마을',
   },
   {
@@ -1775,6 +2436,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 53,
     hp: 4200,
     physicalDefense: 170,
+    magicalDefense: 210,
+    exp: 160,
+    avoid: 16,
     region: '백초마을',
   },
   {
@@ -1783,6 +2447,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 54,
     hp: 4400,
     physicalDefense: 180,
+    magicalDefense: 215,
+    exp: 168,
+    avoid: 18,
     region: '백초마을',
   },
   {
@@ -1791,6 +2458,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 64,
     hp: 7800,
     physicalDefense: 190,
+    magicalDefense: 230,
+    exp: 250,
+    avoid: 25,
     region: '백초마을',
   },
   {
@@ -1799,6 +2469,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 68,
     hp: 12500,
     physicalDefense: 190,
+    magicalDefense: 250,
+    exp: 265,
+    avoid: 26,
     region: '백초마을',
   },
   {
@@ -1807,6 +2480,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 70,
     hp: 15000,
     physicalDefense: 250,
+    magicalDefense: 260,
+    exp: 282,
+    avoid: 26,
     region: '백초마을',
   },
   {
@@ -1815,6 +2491,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 29,
     hp: 780,
     physicalDefense: 40,
+    magicalDefense: 45,
+    exp: 58,
+    avoid: 10,
     region: '아리안트',
   },
   {
@@ -1823,6 +2502,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 30,
     hp: 870,
     physicalDefense: 40,
+    magicalDefense: 40,
+    exp: 60,
+    avoid: 13,
     region: '아리안트',
   },
   {
@@ -1831,6 +2513,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 32,
     hp: 1000,
     physicalDefense: 45,
+    magicalDefense: 40,
+    exp: 60,
+    avoid: 12,
     region: '아리안트',
   },
   {
@@ -1839,6 +2524,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 32,
     hp: 1000,
     physicalDefense: 40,
+    magicalDefense: 40,
+    exp: 62,
+    avoid: 12,
     region: '아리안트',
   },
   {
@@ -1847,6 +2535,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 40,
     hp: 1800,
     physicalDefense: 160,
+    magicalDefense: 160,
+    exp: 95,
+    avoid: 17,
     region: '아리안트',
   },
   {
@@ -1855,6 +2546,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 24,
     hp: 600,
     physicalDefense: 35,
+    magicalDefense: 40,
+    exp: 55,
+    avoid: 10,
     region: '아리안트',
   },
   {
@@ -1863,6 +2557,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 29,
     hp: 780,
     physicalDefense: 40,
+    magicalDefense: 45,
+    exp: 58,
+    avoid: 10,
     region: '아리안트',
   },
   {
@@ -1871,6 +2568,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 22,
     hp: 450,
     physicalDefense: 30,
+    magicalDefense: 30,
+    exp: 37,
+    avoid: 8,
     region: '아리안트',
   },
   {
@@ -1879,6 +2579,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 25,
     hp: 550,
     physicalDefense: 35,
+    magicalDefense: 40,
+    exp: 47,
+    avoid: 9,
     region: '아리안트',
   },
   {
@@ -1887,6 +2590,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 28,
     hp: 750,
     physicalDefense: 40,
+    magicalDefense: 40,
+    exp: 55,
+    avoid: 10,
     region: '아리안트',
   },
   {
@@ -1895,6 +2601,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 23,
     hp: 500,
     physicalDefense: 35,
+    magicalDefense: 40,
+    exp: 42,
+    avoid: 9,
     region: '아리안트',
   },
   {
@@ -1903,6 +2612,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 24,
     hp: 550,
     physicalDefense: 35,
+    magicalDefense: 35,
+    exp: 45,
+    avoid: 9,
     region: '아리안트',
   },
   {
@@ -1911,6 +2623,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 27,
     hp: 700,
     physicalDefense: 35,
+    magicalDefense: 40,
+    exp: 50,
+    avoid: 10,
     region: '아리안트',
   },
   {
@@ -1919,6 +2634,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 20,
     hp: 350,
     physicalDefense: 20,
+    magicalDefense: 20,
+    exp: 32,
+    avoid: 8,
     region: '아리안트',
   },
   {
@@ -1927,6 +2645,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 21,
     hp: 400,
     physicalDefense: 25,
+    magicalDefense: 30,
+    exp: 34,
+    avoid: 9,
     region: '아리안트',
   },
   {
@@ -1935,6 +2656,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 47,
     hp: 2750,
     physicalDefense: 155,
+    magicalDefense: 160,
+    exp: 117,
+    avoid: 18,
     region: '마가티아',
   },
   {
@@ -1943,6 +2667,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 50,
     hp: 3000,
     physicalDefense: 170,
+    magicalDefense: 200,
+    exp: 135,
+    avoid: 15,
     region: '마가티아',
   },
   {
@@ -1951,6 +2678,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 42,
     hp: 2400,
     physicalDefense: 110,
+    magicalDefense: 90,
+    exp: 102,
+    avoid: 12,
     region: '마가티아',
   },
   {
@@ -1959,6 +2689,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 45,
     hp: 2550,
     physicalDefense: 150,
+    magicalDefense: 160,
+    exp: 110,
+    avoid: 20,
     region: '마가티아',
   },
   {
@@ -1967,6 +2700,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 63,
     hp: 7600,
     physicalDefense: 190,
+    magicalDefense: 220,
+    exp: 245,
+    avoid: 999,
     region: '마가티아',
   },
   {
@@ -1975,6 +2711,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 54,
     hp: 4400,
     physicalDefense: 180,
+    magicalDefense: 215,
+    exp: 168,
+    avoid: 18,
     region: '마가티아',
   },
   {
@@ -1983,6 +2722,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 58,
     hp: 5600,
     physicalDefense: 180,
+    magicalDefense: 210,
+    exp: 205,
+    avoid: 20,
     region: '마가티아',
   },
   {
@@ -1991,6 +2733,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 35,
     hp: 1400,
     physicalDefense: 110,
+    magicalDefense: 100,
+    exp: 75,
+    avoid: 18,
     region: '마가티아',
   },
   {
@@ -1999,6 +2744,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 38,
     hp: 1850,
     physicalDefense: 105,
+    magicalDefense: 125,
+    exp: 85,
+    avoid: 18,
     region: '마가티아',
   },
   {
@@ -2007,6 +2755,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 32,
     hp: 1000,
     physicalDefense: 40,
+    magicalDefense: 40,
+    exp: 62,
+    avoid: 12,
     region: '마가티아',
   },
   {
@@ -2015,6 +2766,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 65,
     hp: 11000,
     physicalDefense: 170,
+    magicalDefense: 245,
+    exp: 255,
+    avoid: 24,
     region: '마가티아',
   },
   {
@@ -2023,6 +2777,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 73,
     hp: 15500,
     physicalDefense: 300,
+    magicalDefense: 320,
+    exp: 320,
+    avoid: 28,
     region: '마가티아',
   },
   {
@@ -2031,6 +2788,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 80,
     hp: 27000,
     physicalDefense: 650,
+    magicalDefense: 450,
+    exp: 850,
+    avoid: 28,
     region: '마가티아',
   },
   {
@@ -2039,6 +2799,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 68,
     hp: 13000,
     physicalDefense: 190,
+    magicalDefense: 270,
+    exp: 265,
+    avoid: 26,
     region: '마가티아',
   },
   {
@@ -2047,6 +2810,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 80,
     hp: 24000,
     physicalDefense: 650,
+    magicalDefense: 450,
+    exp: 850,
+    avoid: 30,
     region: '시간의 신전',
   },
   {
@@ -2055,6 +2821,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 91,
     hp: 41000,
     physicalDefense: 650,
+    magicalDefense: 670,
+    exp: 1900,
+    avoid: 37,
     region: '시간의 신전',
   },
   {
@@ -2063,6 +2832,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 94,
     hp: 45000,
     physicalDefense: 660,
+    magicalDefense: 720,
+    exp: 2200,
+    avoid: 37,
     region: '시간의 신전',
   },
   {
@@ -2071,6 +2843,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 98,
     hp: 53000,
     physicalDefense: 870,
+    magicalDefense: 530,
+    exp: 2600,
+    avoid: 37,
     region: '시간의 신전',
   },
   {
@@ -2079,6 +2854,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 101,
     hp: 59000,
     physicalDefense: 910,
+    magicalDefense: 540,
+    exp: 3100,
+    avoid: 37,
     region: '시간의 신전',
   },
   {
@@ -2087,6 +2865,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 106,
     hp: 71000,
     physicalDefense: 690,
+    magicalDefense: 750,
+    exp: 3350,
+    avoid: 37,
     region: '시간의 신전',
   },
   {
@@ -2095,6 +2876,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 109,
     hp: 79000,
     physicalDefense: 700,
+    magicalDefense: 800,
+    exp: 3600,
+    avoid: 38,
     region: '시간의 신전',
   },
   {
@@ -2103,6 +2887,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 113,
     hp: 90000,
     physicalDefense: 940,
+    magicalDefense: 570,
+    exp: 4500,
+    avoid: 39,
     region: '시간의 신전',
   },
   {
@@ -2111,6 +2898,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 116,
     hp: 99000,
     physicalDefense: 990,
+    magicalDefense: 590,
+    exp: 4960,
+    avoid: 40,
     region: '시간의 신전',
   },
   {
@@ -2119,6 +2909,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 121,
     hp: 115000,
     physicalDefense: 740,
+    magicalDefense: 870,
+    exp: 5750,
+    avoid: 41,
     region: '시간의 신전',
   },
   {
@@ -2127,6 +2920,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 124,
     hp: 123000,
     physicalDefense: 760,
+    magicalDefense: 910,
+    exp: 6150,
+    avoid: 43,
     region: '시간의 신전',
   },
   {
@@ -2135,6 +2931,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 128,
     hp: 133000,
     physicalDefense: 1030,
+    magicalDefense: 630,
+    exp: 6670,
+    avoid: 45,
     region: '시간의 신전',
   },
   {
@@ -2143,6 +2942,9 @@ export const monsterPresets: MonsterPreset[] = [
     level: 131,
     hp: 141000,
     physicalDefense: 1060,
+    magicalDefense: 680,
+    exp: 7060,
+    avoid: 47,
     region: '시간의 신전',
   },
 ];

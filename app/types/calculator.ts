@@ -24,6 +24,8 @@ export interface Monster {
   level: number;
   hp: number;
   physicalDefense: number;
+  magicalDefense: number;
+  avoid: number;
 }
 
 export interface Stats {
@@ -34,6 +36,7 @@ export interface Stats {
   additionalStr: number;
   additionalDex: number;
   additionalLuk: number;
+  hitRatio?: number;
 }
 
 export interface Equipment {
@@ -73,13 +76,11 @@ export interface DamageResult {
   shadowBasic: DamageRange;
   shadowCritical: DamageRange;
   totalDamageRange: DamageRange;
-  probabilities: {
-    hits: {
-      hit: number;
-      prob: string;
-      accProb: string;
-    }[];
-  };
+  killProbabilities: {
+    hit: number;
+    prob: string;
+    accProb: string;
+  }[];
 }
 
 // 스킬 효과 인터페이스
@@ -151,5 +152,6 @@ export const isShadowPartnerEffect = (
 export interface MonsterPreset extends Monster {
   id: string;
   name: string;
+  exp: number;
   region: string;
 }

@@ -23,6 +23,8 @@ const getInitialState = () => {
         level: monsterPresets[0].level,
         hp: monsterPresets[0].hp,
         physicalDefense: monsterPresets[0].physicalDefense,
+        magicalDefense: monsterPresets[0].magicalDefense,
+        avoid: monsterPresets[0].avoid,
       },
       stats: {
         level: 10,
@@ -32,6 +34,7 @@ const getInitialState = () => {
         additionalStr: 0,
         additionalDex: 0,
         additionalLuk: 0,
+        hitRatio: undefined,
       },
       equipment: {
         weaponAttack: 10,
@@ -80,6 +83,8 @@ const getInitialState = () => {
       level: monsterPresets[0].level,
       hp: monsterPresets[0].hp,
       physicalDefense: monsterPresets[0].physicalDefense,
+      magicalDefense: monsterPresets[0].magicalDefense,
+      avoid: monsterPresets[0].avoid,
     },
     stats: {
       level: 10,
@@ -89,6 +94,7 @@ const getInitialState = () => {
       additionalStr: 0,
       additionalDex: 0,
       additionalLuk: 0,
+      hitRatio: undefined,
     },
     equipment: {
       weaponAttack: 10,
@@ -152,6 +158,8 @@ export const useCalculatorState = () => {
           level: selectedPreset.level,
           hp: selectedPreset.hp,
           physicalDefense: selectedPreset.physicalDefense,
+          magicalDefense: selectedPreset.magicalDefense,
+          avoid: selectedPreset.avoid,
         });
       }
     }

@@ -51,6 +51,34 @@ export const calculatePureLuk = (
   return Math.max(0, totalPureStats - str - dex - 4); // 4 = INT
 };
 
+export const calculateRequiredHitRatio = (
+  monsterLevel: number,
+  characterLevel: number,
+  monsterAvoid: number
+): number => {
+  return (
+    ((55 + Math.max(0, monsterLevel - characterLevel)) * monsterAvoid) / 15
+  );
+};
+
+export const calculateHitProbability = (
+  hitRatio: number | undefined,
+  monsterLevel: number,
+  characterLevel: number,
+  monsterAvoid: number
+): number => {
+  const effectiveHitRatio = hitRatio ?? 999999;
+  const requiredHitRatio = calculateRequiredHitRatio(
+    monsterLevel,
+    characterLevel,
+    monsterAvoid
+  );
+  return Math.max(
+    0,
+    Math.min(1, (effectiveHitRatio * 2 - requiredHitRatio) / requiredHitRatio)
+  );
+};
+
 const calculateStatAttack = (
   stats: Stats,
   totalAttack: number,
@@ -105,7 +133,7 @@ const calculateDamageWithModifiers = (
   return { min, max };
 };
 
-const calculateHitProbabilities = (
+const calculateKillProbabilitiesWithinNHits = (
   skillType: AttackSkillType,
   basicDamage: { min: number; max: number },
   criticalDamage: { min: number; max: number },
@@ -113,8 +141,18 @@ const calculateHitProbabilities = (
   shadowCritical: { min: number; max: number },
   criticalChance: number,
   monsterHp: number,
+  stats: Stats,
+  monster: Monster,
   maxHits: number = 10
 ) => {
+  // 명중률 계산
+  const hitProb = calculateHitProbability(
+    stats.hitRatio,
+    monster.level,
+    stats.level,
+    monster.avoid
+  );
+
   // 몬스터의 체력이 너무 큰 경우 20000으로 변경
   // 비율에 맞춰서 데미지도 변경
   // 실수 부분 반올림에 따른 오차는 감안해야 함
@@ -180,6 +218,9 @@ const calculateHitProbabilities = (
   //   damage -> 확률
   const singleHitDistMain = new Array(size).fill(0);
 
+  // 명중 실패 확률 추가
+  singleHitDistMain[0] = 1 - hitProb;
+
   const criticalProb = criticalChance / 100;
   {
     let sum = 0;
@@ -194,18 +235,20 @@ const calculateHitProbabilities = (
       const cnt = high - low + 1;
       sum += cnt;
       singleHitDistMain[i] =
-        (cnt * (1 - criticalProb)) /
-        (basicDamage.max - basicDamage.min + 1) /
-        (shadowBasic.max - shadowBasic.min + 1);
+        ((cnt * (1 - criticalProb)) /
+          (basicDamage.max - basicDamage.min + 1) /
+          (shadowBasic.max - shadowBasic.min + 1)) *
+        hitProb;
     }
     const remaining =
       (basicDamage.max - basicDamage.min + 1) *
         (shadowBasic.max - shadowBasic.min + 1) -
       sum;
     singleHitDistMain[monsterHp] =
-      (remaining * (1 - criticalProb)) /
-      (basicDamage.max - basicDamage.min + 1) /
-      (shadowBasic.max - shadowBasic.min + 1);
+      ((remaining * (1 - criticalProb)) /
+        (basicDamage.max - basicDamage.min + 1) /
+        (shadowBasic.max - shadowBasic.min + 1)) *
+      hitProb;
   }
   {
     let sum = 0;
@@ -220,18 +263,20 @@ const calculateHitProbabilities = (
       const cnt = high - low + 1;
       sum += cnt;
       singleHitDistMain[i] +=
-        (cnt * criticalProb) /
-        (criticalDamage.max - criticalDamage.min + 1) /
-        (shadowCritical.max - shadowCritical.min + 1);
+        ((cnt * criticalProb) /
+          (criticalDamage.max - criticalDamage.min + 1) /
+          (shadowCritical.max - shadowCritical.min + 1)) *
+        hitProb;
     }
     const remaining =
       (criticalDamage.max - criticalDamage.min + 1) *
         (shadowCritical.max - shadowCritical.min + 1) -
       sum;
     singleHitDistMain[monsterHp] +=
-      (remaining * criticalProb) /
-      (criticalDamage.max - criticalDamage.min + 1) /
-      (shadowCritical.max - shadowCritical.min + 1);
+      ((remaining * criticalProb) /
+        (criticalDamage.max - criticalDamage.min + 1) /
+        (shadowCritical.max - shadowCritical.min + 1)) *
+      hitProb;
   }
 
   // 럭키 세븐은 2회 타격이 1회 스킬 사용이므로 하나로 합치기
@@ -366,14 +411,16 @@ export const calculateDamage = (
 
   // 확률 계산
   const criticalChance = (criticalSkill as CriticalThrowEffect).criticalChance;
-  const hitProbabilities = calculateHitProbabilities(
+  const killProbabilities = calculateKillProbabilitiesWithinNHits(
     skills.type,
     basicDamage,
     criticalDamage,
     shadowBasic,
     shadowCritical,
     criticalChance,
-    monster.hp
+    monster.hp,
+    stats,
+    monster
   );
 
   return {
@@ -386,8 +433,6 @@ export const calculateDamage = (
       min: totalMin,
       max: totalMax,
     },
-    probabilities: {
-      hits: hitProbabilities,
-    },
+    killProbabilities,
   };
 };
