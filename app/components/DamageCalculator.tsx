@@ -17,6 +17,7 @@ import {
 import { useCalculatorState } from '../hooks/useCalculatorState';
 import MonsterDropdown from './MonsterDropdown';
 import { monsterPresets } from '../data/monsterPresets';
+import NumberInput from './NumberInput';
 
 export default function DamageCalculator() {
   const {
@@ -122,76 +123,60 @@ export default function DamageCalculator() {
                 <label className="block text-sm font-medium text-gray-700">
                   레벨
                 </label>
-                <input
-                  type="number"
+                <NumberInput
                   value={monster.level}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setMonster((prev) => ({
                       ...prev,
-                      level: Number(e.target.value),
+                      level: value ?? 0,
                     }))
                   }
                   disabled={!isCustomMonster}
-                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary ${
-                    !isCustomMonster ? 'bg-gray-100 cursor-not-allowed' : ''
-                  }`}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   HP
                 </label>
-                <input
-                  type="number"
+                <NumberInput
                   value={monster.hp}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setMonster((prev) => ({
                       ...prev,
-                      hp: Number(e.target.value),
+                      hp: value ?? 0,
                     }))
                   }
                   disabled={!isCustomMonster}
-                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary ${
-                    !isCustomMonster ? 'bg-gray-100 cursor-not-allowed' : ''
-                  }`}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   물리 방어력
                 </label>
-                <input
-                  type="number"
+                <NumberInput
                   value={monster.physicalDefense}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setMonster((prev) => ({
                       ...prev,
-                      physicalDefense: Number(e.target.value),
+                      physicalDefense: value ?? 0,
                     }))
                   }
                   disabled={!isCustomMonster}
-                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary ${
-                    !isCustomMonster ? 'bg-gray-100 cursor-not-allowed' : ''
-                  }`}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   회피율
                 </label>
-                <input
-                  type="number"
+                <NumberInput
                   value={monster.avoid}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setMonster((prev) => ({
                       ...prev,
-                      avoid: Number(e.target.value),
+                      avoid: value ?? 0,
                     }))
                   }
                   disabled={!isCustomMonster}
-                  className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary ${
-                    !isCustomMonster ? 'bg-gray-100 cursor-not-allowed' : ''
-                  }`}
                 />
               </div>
               <div>
@@ -228,14 +213,13 @@ export default function DamageCalculator() {
                   레벨
                 </label>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="number"
+                  <NumberInput
                     value={stats.level}
-                    onChange={(e) => {
-                      const newLevel = Number(e.target.value);
-                      handleLevelChange(newLevel - stats.level);
+                    onChange={(value) => {
+                      if (value !== undefined) {
+                        handleLevelChange(value - stats.level);
+                      }
                     }}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                   />
                   <button
                     onClick={() => handleLevelChange(-1)}
@@ -256,32 +240,27 @@ export default function DamageCalculator() {
                   <label className="block text-sm font-medium text-gray-700">
                     STR
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={stats.str}
-                    onChange={(e) =>
-                      handlePureStatChange(
-                        'str' as StatType,
-                        Number(e.target.value)
-                      )
-                    }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                    onChange={(value) => {
+                      if (value !== undefined) {
+                        handlePureStatChange('str' as StatType, value);
+                      }
+                    }}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     추가 STR
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={stats.additionalStr}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       setStats((prev) => ({
                         ...prev,
-                        additionalStr: Number(e.target.value),
+                        additionalStr: value ?? 0,
                       }))
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                   />
                 </div>
                 <div>
@@ -301,32 +280,27 @@ export default function DamageCalculator() {
                   <label className="block text-sm font-medium text-gray-700">
                     DEX
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={stats.dex}
-                    onChange={(e) =>
-                      handlePureStatChange(
-                        'dex' as StatType,
-                        Number(e.target.value)
-                      )
-                    }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                    onChange={(value) => {
+                      if (value !== undefined) {
+                        handlePureStatChange('dex' as StatType, value);
+                      }
+                    }}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     추가 DEX
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={stats.additionalDex}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       setStats((prev) => ({
                         ...prev,
-                        additionalDex: Number(e.target.value),
+                        additionalDex: value ?? 0,
                       }))
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                   />
                 </div>
                 <div>
@@ -357,16 +331,14 @@ export default function DamageCalculator() {
                   <label className="block text-sm font-medium text-gray-700">
                     추가 LUK
                   </label>
-                  <input
-                    type="number"
+                  <NumberInput
                     value={stats.additionalLuk}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       setStats((prev) => ({
                         ...prev,
-                        additionalLuk: Number(e.target.value),
+                        additionalLuk: value ?? 0,
                       }))
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                   />
                 </div>
                 <div>
@@ -385,20 +357,16 @@ export default function DamageCalculator() {
                 <label className="block text-sm font-medium text-gray-700">
                   명중률
                 </label>
-                <input
-                  type="number"
-                  value={stats.hitRatio === undefined ? '' : stats.hitRatio}
-                  onChange={(e) =>
+                <NumberInput
+                  value={stats.hitRatio}
+                  onChange={(value) =>
                     setStats((prev) => ({
                       ...prev,
-                      hitRatio:
-                        e.target.value === ''
-                          ? undefined
-                          : Number(e.target.value),
+                      hitRatio: value,
                     }))
                   }
                   placeholder="명중률을 입력하세요"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                  allowUndefined
                 />
               </div>
             </div>
@@ -412,16 +380,14 @@ export default function DamageCalculator() {
                 <label className="block text-sm font-medium text-gray-700">
                   무기 공격력
                 </label>
-                <input
-                  type="number"
+                <NumberInput
                   value={equipment.weaponAttack}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setEquipment((prev) => ({
                       ...prev,
-                      weaponAttack: Number(e.target.value),
+                      weaponAttack: value ?? 0,
                     }))
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
               <div>
@@ -449,48 +415,42 @@ export default function DamageCalculator() {
                 <label className="block text-sm font-medium text-gray-700">
                   장갑 공격력
                 </label>
-                <input
-                  type="number"
+                <NumberInput
                   value={equipment.gloveAttack}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setEquipment((prev) => ({
                       ...prev,
-                      gloveAttack: Number(e.target.value),
+                      gloveAttack: value ?? 0,
                     }))
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   기타 공격력
                 </label>
-                <input
-                  type="number"
+                <NumberInput
                   value={equipment.otherAttack}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setEquipment((prev) => ({
                       ...prev,
-                      otherAttack: Number(e.target.value),
+                      otherAttack: value ?? 0,
                     }))
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   도핑
                 </label>
-                <input
-                  type="number"
+                <NumberInput
                   value={equipment.buff}
-                  onChange={(e) =>
+                  onChange={(value) =>
                     setEquipment((prev) => ({
                       ...prev,
-                      buff: Number(e.target.value),
+                      buff: value ?? 0,
                     }))
                   }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
               <div>
