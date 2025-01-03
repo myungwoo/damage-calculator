@@ -137,8 +137,7 @@ const calculateKillProbabilitiesWithinNHits = (
   skillType: AttackSkillType,
   basicDamage: { min: number; max: number },
   criticalDamage: { min: number; max: number },
-  shadowBasic: { min: number; max: number },
-  shadowCritical: { min: number; max: number },
+  shadowMultiplier: number,
   criticalChance: number,
   monsterHp: number,
   stats: Stats,
@@ -166,14 +165,6 @@ const calculateKillProbabilitiesWithinNHits = (
     criticalDamage = {
       min: Math.round(criticalDamage.min * ratio),
       max: Math.round(criticalDamage.max * ratio),
-    };
-    shadowBasic = {
-      min: Math.round(shadowBasic.min * ratio),
-      max: Math.round(shadowBasic.max * ratio),
-    };
-    shadowCritical = {
-      min: Math.round(shadowCritical.min * ratio),
-      max: Math.round(shadowCritical.max * ratio),
     };
   }
 
@@ -208,11 +199,7 @@ const calculateKillProbabilitiesWithinNHits = (
   // 1. "한 번의 스킬 시전"으로 발생할 수 있는 데미지의 이산 확률분포를 구한다.
   //    - 본체 Hit 2회 → 각 Hit별로 크리티컬/일반 구분 → 데미지 합
   //    - 쉐도우 파트너 ON 시 파트너 타격 2회가 추가(본체와 동일한 크리티컬 여부),
-  //      단 데미지는 파트너 범위(E-F, G-H)에서 다시 이산 분포 생성.
-
-  // 먼저, 본체 한 번 공격 시 발생 가능한 "단일 히트" 데미지 분포를 구하자.
-  // 크리티컬일 확률: P, 일반일 확률: 1-P
-  // 크리티컬 데미지들은 A~B (정수), 일반 데미지들은 C~D (정수)
+  //      단 데미지는 본체 데미지에 multiplier를 곱한 고정값
 
   // - 단일 히트 분포 (본체)
   //   damage -> 확률
@@ -223,60 +210,37 @@ const calculateKillProbabilitiesWithinNHits = (
 
   const criticalProb = criticalChance / 100;
   {
-    let sum = 0;
+    // 일반 공격 (non-critical)
     for (
-      let i = basicDamage.min + shadowBasic.min;
-      i <= basicDamage.max + shadowBasic.max && i < monsterHp;
-      i++
+      let damage = basicDamage.min;
+      damage <= basicDamage.max && damage <= monsterHp;
+      damage++
     ) {
-      const low = Math.max(i - shadowBasic.max, basicDamage.min);
-      const high = Math.min(i - shadowBasic.min, basicDamage.max);
-      if (low > high) continue;
-      const cnt = high - low + 1;
-      sum += cnt;
-      singleHitDistMain[i] =
-        ((cnt * (1 - criticalProb)) /
-          (basicDamage.max - basicDamage.min + 1) /
-          (shadowBasic.max - shadowBasic.min + 1)) *
+      const totalDamage = Math.min(
+        damage + Math.floor(damage * shadowMultiplier), // shadow damage는 본체 데미지의 고정 비율
+        monsterHp
+      );
+      singleHitDistMain[totalDamage] +=
+        ((1 - criticalProb) / (basicDamage.max - basicDamage.min + 1)) *
         hitProb;
     }
-    const remaining =
-      (basicDamage.max - basicDamage.min + 1) *
-        (shadowBasic.max - shadowBasic.min + 1) -
-      sum;
-    singleHitDistMain[monsterHp] =
-      ((remaining * (1 - criticalProb)) /
-        (basicDamage.max - basicDamage.min + 1) /
-        (shadowBasic.max - shadowBasic.min + 1)) *
-      hitProb;
   }
   {
-    let sum = 0;
+    // 크리티컬 공격
     for (
-      let i = criticalDamage.min + shadowCritical.min;
-      i <= criticalDamage.max + shadowCritical.max && i < monsterHp;
-      i++
+      let damage = criticalDamage.min;
+      damage <= criticalDamage.max && damage <= monsterHp;
+      damage++
     ) {
-      const low = Math.max(i - shadowCritical.max, criticalDamage.min);
-      const high = Math.min(i - shadowCritical.min, criticalDamage.max);
-      if (low > high) continue;
-      const cnt = high - low + 1;
-      sum += cnt;
-      singleHitDistMain[i] +=
-        ((cnt * criticalProb) /
-          (criticalDamage.max - criticalDamage.min + 1) /
-          (shadowCritical.max - shadowCritical.min + 1)) *
+      const totalDamage = Math.min(
+        damage + Math.floor(damage * shadowMultiplier), // shadow damage는 본체 데미지의 고정 비율
+        monsterHp
+      );
+
+      singleHitDistMain[totalDamage] +=
+        (criticalProb / (criticalDamage.max - criticalDamage.min + 1)) *
         hitProb;
     }
-    const remaining =
-      (criticalDamage.max - criticalDamage.min + 1) *
-        (shadowCritical.max - shadowCritical.min + 1) -
-      sum;
-    singleHitDistMain[monsterHp] +=
-      ((remaining * criticalProb) /
-        (criticalDamage.max - criticalDamage.min + 1) /
-        (shadowCritical.max - shadowCritical.min + 1)) *
-      hitProb;
   }
 
   // 럭키 세븐은 2회 타격이 1회 스킬 사용이므로 하나로 합치기
@@ -380,14 +344,15 @@ export const calculateDamage = (
   let totalMin = Math.floor(basicDamage.min * (1 + shadowMultiplier));
   let totalMax = Math.floor(criticalDamage.max * (1 + shadowMultiplier));
 
+  // 쉐도우 파트너 데미지는 본체 데미지의 고정 비율
   const shadowBasic = {
-    min: basicDamage.min * shadowMultiplier,
-    max: basicDamage.max * shadowMultiplier,
+    min: Math.floor(basicDamage.min * shadowMultiplier),
+    max: Math.floor(basicDamage.max * shadowMultiplier),
   };
 
   const shadowCritical = {
-    min: criticalDamage.min * shadowMultiplier,
-    max: criticalDamage.max * shadowMultiplier,
+    min: Math.floor(criticalDamage.min * shadowMultiplier),
+    max: Math.floor(criticalDamage.max * shadowMultiplier),
   };
 
   if (skills.type === 'lucky7') {
@@ -415,8 +380,7 @@ export const calculateDamage = (
     skills.type,
     basicDamage,
     criticalDamage,
-    shadowBasic,
-    shadowCritical,
+    shadowMultiplier,
     criticalChance,
     monster.hp,
     stats,
