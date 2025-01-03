@@ -20,5 +20,6 @@ export const REGION_ORDER = [
   '아리안트',
   '마가티아',
   '시간의 신전',
+  '일본',
   '기타',
 ] as const;
