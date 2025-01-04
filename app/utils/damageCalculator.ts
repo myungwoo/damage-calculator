@@ -224,7 +224,8 @@ const calculateKillProbabilitiesWithinNHits = (
         ((1 - criticalProb) / (basicDamage.max - basicDamage.min + 1)) *
         hitProb;
     }
-    const remaining = basicDamage.max - Math.max(monsterHp+1, basicDamage.min) + 1;
+    const remaining =
+      basicDamage.max - Math.max(monsterHp + 1, basicDamage.min) + 1;
     if (remaining > 0) {
       singleHitDistMain[monsterHp] +=
         ((1 - criticalProb) / (basicDamage.max - basicDamage.min + 1)) *
