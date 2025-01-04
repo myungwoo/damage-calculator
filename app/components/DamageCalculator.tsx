@@ -723,7 +723,7 @@ export default function DamageCalculator() {
             <h2 className="text-xl font-semibold mb-4">확률</h2>
             <div className="space-y-2">
               {damageResult.killProbabilities.length === 0 && (
-                <h3 className="font-medium">10방을 때려도 못 잡네요 😅</h3>
+                <h3 className="font-medium">20방을 때려도 못 잡네요 😅</h3>
               )}
               {damageResult.killProbabilities.map(({ hit, prob, accProb }) => (
                 <div key={hit}>

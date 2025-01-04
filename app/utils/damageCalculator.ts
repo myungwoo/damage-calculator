@@ -142,7 +142,7 @@ const calculateKillProbabilitiesWithinNHits = (
   monsterHp: number,
   stats: Stats,
   monster: Monster,
-  maxHits: number = 10
+  maxHits: number = 20
 ) => {
   // 명중률 계산
   const hitProb = calculateHitProbability(
@@ -224,6 +224,13 @@ const calculateKillProbabilitiesWithinNHits = (
         ((1 - criticalProb) / (basicDamage.max - basicDamage.min + 1)) *
         hitProb;
     }
+    const remaining = basicDamage.max - Math.max(monsterHp+1, basicDamage.min) + 1;
+    if (remaining > 0) {
+      singleHitDistMain[monsterHp] +=
+        ((1 - criticalProb) / (basicDamage.max - basicDamage.min + 1)) *
+        hitProb *
+        remaining;
+    }
   }
   {
     // 크리티컬 공격
@@ -236,10 +243,17 @@ const calculateKillProbabilitiesWithinNHits = (
         damage + Math.floor(damage * shadowMultiplier), // shadow damage는 본체 데미지의 고정 비율
         monsterHp
       );
-
       singleHitDistMain[totalDamage] +=
         (criticalProb / (criticalDamage.max - criticalDamage.min + 1)) *
         hitProb;
+    }
+    const remaining =
+      criticalDamage.max - Math.max(monsterHp + 1, criticalDamage.min) + 1;
+    if (remaining > 0) {
+      singleHitDistMain[monsterHp] +=
+        ((1 - criticalProb) / (criticalDamage.max - criticalDamage.min + 1)) *
+        hitProb *
+        remaining;
     }
   }
 
