@@ -105,8 +105,7 @@ const calculateDamageWithModifiers = (
 ) => {
   const levelDifference = Math.max(0, monster.level - stats.level);
   const levelMultiplier = 1 - 0.01 * levelDifference;
-  const totalMultiplier =
-    skillDamageMultiplier + criticalMultiplier - 1;
+  const totalMultiplier = skillDamageMultiplier + criticalMultiplier - 1;
 
   const { totalLuk } = calculateTotalStats(stats);
 
