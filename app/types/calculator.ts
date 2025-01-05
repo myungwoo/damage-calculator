@@ -55,6 +55,8 @@ export interface Skills {
   javelin: number;
   shadowPartner: number;
   shadowPartnerEnabled: boolean;
+  mapleWarrior: number;
+  mapleWarriorEnabled: boolean;
 }
 
 export interface SaveData {
@@ -114,12 +116,19 @@ export interface ShadowPartnerEffect {
   duration: number;
 }
 
+export interface MapleWarriorEffect {
+  level: number;
+  statBoost: number;
+  duration: number;
+}
+
 export type SkillEffect =
   | Lucky7Effect
   | AvengerEffect
   | CriticalThrowEffect
   | JavelinEffect
-  | ShadowPartnerEffect;
+  | ShadowPartnerEffect
+  | MapleWarriorEffect;
 
 // 타입 가드
 export const isLucky7Effect = (effect: SkillEffect): effect is Lucky7Effect => {
@@ -148,6 +157,12 @@ export const isShadowPartnerEffect = (
   effect: SkillEffect
 ): effect is ShadowPartnerEffect => {
   return 'skillDamage' in effect && 'normalDamage' in effect;
+};
+
+export const isMapleWarriorEffect = (
+  effect: SkillEffect
+): effect is MapleWarriorEffect => {
+  return 'statBoost' in effect;
 };
 
 export interface MonsterPreset extends Monster {

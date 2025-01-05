@@ -27,6 +27,12 @@ interface ShadowPartnerEffect {
   duration: number;
 }
 
+interface MapleWarriorEffect {
+  level: number;
+  statBoost: number;
+  duration: number;
+}
+
 // 럭키 세븐 (1~20레벨)
 export const lucky7Effects: Lucky7Effect[] = [
   { level: 1, damage: 58 },
@@ -180,6 +186,41 @@ export const shadowPartnerEffects: ShadowPartnerEffect[] = [
   { level: 30, normalDamage: 80, skillDamage: 50, duration: 180 },
 ];
 
+// 메이플 용사 (0~30레벨)
+export const mapleWarriorEffects: MapleWarriorEffect[] = [
+  { level: 0, statBoost: 0, duration: 0 },
+  { level: 1, statBoost: 1, duration: 30 },
+  { level: 2, statBoost: 1, duration: 60 },
+  { level: 3, statBoost: 2, duration: 90 },
+  { level: 4, statBoost: 2, duration: 120 },
+  { level: 5, statBoost: 3, duration: 150 },
+  { level: 6, statBoost: 3, duration: 180 },
+  { level: 7, statBoost: 4, duration: 210 },
+  { level: 8, statBoost: 4, duration: 240 },
+  { level: 9, statBoost: 5, duration: 270 },
+  { level: 10, statBoost: 5, duration: 300 },
+  { level: 11, statBoost: 6, duration: 330 },
+  { level: 12, statBoost: 6, duration: 360 },
+  { level: 13, statBoost: 7, duration: 390 },
+  { level: 14, statBoost: 7, duration: 420 },
+  { level: 15, statBoost: 8, duration: 450 },
+  { level: 16, statBoost: 8, duration: 480 },
+  { level: 17, statBoost: 9, duration: 510 },
+  { level: 18, statBoost: 9, duration: 540 },
+  { level: 19, statBoost: 10, duration: 570 },
+  { level: 20, statBoost: 10, duration: 600 },
+  { level: 21, statBoost: 11, duration: 630 },
+  { level: 22, statBoost: 11, duration: 660 },
+  { level: 23, statBoost: 12, duration: 690 },
+  { level: 24, statBoost: 12, duration: 720 },
+  { level: 25, statBoost: 13, duration: 750 },
+  { level: 26, statBoost: 13, duration: 780 },
+  { level: 27, statBoost: 14, duration: 810 },
+  { level: 28, statBoost: 14, duration: 840 },
+  { level: 29, statBoost: 15, duration: 870 },
+  { level: 30, statBoost: 15, duration: 900 },
+];
+
 export const getSkillEffect = (
   skillType: string,
   level: number
@@ -189,6 +230,7 @@ export const getSkillEffect = (
   | CriticalThrowEffect
   | JavelinEffect
   | ShadowPartnerEffect
+  | MapleWarriorEffect
   | null => {
   switch (skillType) {
     case 'lucky7':
@@ -201,6 +243,8 @@ export const getSkillEffect = (
       return javelinEffects[level];
     case 'shadowPartner':
       return shadowPartnerEffects[level];
+    case 'mapleWarrior':
+      return mapleWarriorEffects[level];
     default:
       return null;
   }

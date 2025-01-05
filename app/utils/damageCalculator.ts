@@ -6,14 +6,13 @@ import {
   DamageResult,
   isLucky7Effect,
   isAvengerEffect,
-  JavelinEffect,
-  CriticalThrowEffect,
-  ShadowPartnerEffect,
+  isJavelinEffect,
+  isCriticalThrowEffect,
+  isShadowPartnerEffect,
   AttackSkillType,
 } from '../types/calculator';
 import { getSkillEffect } from '../data/skillEffects';
 import { throwingStars } from '../data/weapons';
-
 import { fftConvolveArrays } from './fft';
 
 export const calculateTotalStats = (
@@ -98,7 +97,7 @@ const calculateStatAttack = (
 const calculateDamageWithModifiers = (
   statAttack: { min: number; max: number },
   skillDamageMultiplier: number,
-  criticalMultiplier: number | null,
+  criticalMultiplier: number,
   stats: Stats,
   monster: Monster,
   skillType: AttackSkillType,
@@ -107,7 +106,7 @@ const calculateDamageWithModifiers = (
   const levelDifference = Math.max(0, monster.level - stats.level);
   const levelMultiplier = 1 - 0.01 * levelDifference;
   const totalMultiplier =
-    skillDamageMultiplier + (criticalMultiplier ? criticalMultiplier : 1) - 1;
+    skillDamageMultiplier + criticalMultiplier - 1;
 
   const { totalLuk } = calculateTotalStats(stats);
 
@@ -299,46 +298,48 @@ export const calculateDamage = (
   equipment: Equipment,
   skills: Skills
 ): DamageResult => {
-  // 스킬 효과 가져오기
-  const mainSkill = getSkillEffect(skills.type, skills.level);
+  // Get skill effects
+  const attackSkill = getSkillEffect(skills.type, skills.level);
   const criticalSkill = getSkillEffect('criticalThrow', skills.criticalThrow);
   const javelinSkill = getSkillEffect('javelin', skills.javelin);
   const shadowSkill = getSkillEffect('shadowPartner', skills.shadowPartner);
 
-  if (!mainSkill || !criticalSkill || !javelinSkill || !shadowSkill) {
+  if (!attackSkill || !criticalSkill || !javelinSkill || !shadowSkill) {
     throw new Error('Failed to get skill effects');
   }
 
-  // 총 공격력 계산
+  // Calculate total attack
   const totalAttack = calculateTotalAttack(equipment);
+  // Calculate stat attack
+  const statAttack = calculateStatAttack(
+    stats,
+    totalAttack,
+    isJavelinEffect(javelinSkill) ? javelinSkill.masteryPercent / 100 : 0.1
+  );
 
-  // 숙련도 계산 (자벨린 마스터리)
-  const masteryMultiplier =
-    (javelinSkill as JavelinEffect).masteryPercent / 100;
-
-  // 스킬 공격력 계산
-  const statAttack = calculateStatAttack(stats, totalAttack, masteryMultiplier);
-
-  // 스킬 데미지 배율 계산
+  // Calculate skill damage multiplier
   let skillDamageMultiplier = 0;
-  if (isLucky7Effect(mainSkill) || isAvengerEffect(mainSkill)) {
-    skillDamageMultiplier = mainSkill.damage / 100;
+  if (isLucky7Effect(attackSkill) || isAvengerEffect(attackSkill)) {
+    skillDamageMultiplier = attackSkill.damage / 100;
   }
 
-  // 기본 데미지 계산
+  // Calculate critical multiplier
+  const criticalMultiplier = isCriticalThrowEffect(criticalSkill)
+    ? criticalSkill.criticalDamage / 100
+    : 1;
+
+  // Calculate basic damage
   const basicDamage = calculateDamageWithModifiers(
     statAttack,
     skillDamageMultiplier,
-    null,
+    1,
     stats,
     monster,
     skills.type,
     totalAttack
   );
 
-  // 크리티컬 데미지 계산
-  const criticalMultiplier =
-    (criticalSkill as CriticalThrowEffect).criticalDamage / 100;
+  // Calculate critical damage
   const criticalDamage = calculateDamageWithModifiers(
     statAttack,
     skillDamageMultiplier,
@@ -349,17 +350,17 @@ export const calculateDamage = (
     totalAttack
   );
 
-  // 쉐도우 파트너 데미지 계산
+  // Calculate shadow partner damage
   let shadowMultiplier = 0;
-  if (skills.shadowPartnerEnabled) {
-    shadowMultiplier = (shadowSkill as ShadowPartnerEffect).skillDamage / 100;
+  if (skills.shadowPartnerEnabled && isShadowPartnerEffect(shadowSkill)) {
+    shadowMultiplier = shadowSkill.skillDamage / 100;
   }
 
-  // 최종 데미지 범위 계산 (방어력과 레벨 차이는 이미 적용됨)
+  // Calculate final damage ranges
   let totalMin = Math.floor(basicDamage.min * (1 + shadowMultiplier));
   let totalMax = Math.floor(criticalDamage.max * (1 + shadowMultiplier));
 
-  // 쉐도우 파트너 데미지는 본체 데미지의 고정 비율
+  // Calculate shadow partner damage ranges
   const shadowBasic = {
     min: Math.floor(basicDamage.min * shadowMultiplier),
     max: Math.floor(basicDamage.max * shadowMultiplier),
@@ -370,33 +371,27 @@ export const calculateDamage = (
     max: Math.floor(criticalDamage.max * shadowMultiplier),
   };
 
+  // Apply Lucky7 double damage
   if (skills.type === 'lucky7') {
     totalMin = totalMin * 2;
     totalMax = totalMax * 2;
   }
 
-  // 모든 데미지 값 버림하여 정수로 만들기
+  // Floor all damage values
   statAttack.min = Math.max(Math.floor(statAttack.min), 0);
   statAttack.max = Math.max(Math.floor(statAttack.max), 0);
   basicDamage.min = Math.max(Math.floor(basicDamage.min), 0);
   basicDamage.max = Math.max(Math.floor(basicDamage.max), 0);
   criticalDamage.min = Math.max(Math.floor(criticalDamage.min), 0);
   criticalDamage.max = Math.max(Math.floor(criticalDamage.max), 0);
-  shadowBasic.min = Math.max(Math.floor(shadowBasic.min), 0);
-  shadowBasic.max = Math.max(Math.floor(shadowBasic.max), 0);
-  shadowCritical.min = Math.max(Math.floor(shadowCritical.min), 0);
-  shadowCritical.max = Math.max(Math.floor(shadowCritical.max), 0);
-  totalMin = Math.max(Math.floor(totalMin), 0);
-  totalMax = Math.max(Math.floor(totalMax), 0);
 
-  // 확률 계산
-  const criticalChance = (criticalSkill as CriticalThrowEffect).criticalChance;
+  // Calculate kill probabilities
   const killProbabilities = calculateKillProbabilitiesWithinNHits(
     skills.type,
     basicDamage,
     criticalDamage,
     shadowMultiplier,
-    criticalChance,
+    isCriticalThrowEffect(criticalSkill) ? criticalSkill.criticalChance : 0,
     monster.hp,
     stats,
     monster
@@ -408,10 +403,7 @@ export const calculateDamage = (
     critical: criticalDamage,
     shadowBasic,
     shadowCritical,
-    totalDamageRange: {
-      min: totalMin,
-      max: totalMax,
-    },
+    totalDamageRange: { min: totalMin, max: totalMax },
     killProbabilities,
   };
 };

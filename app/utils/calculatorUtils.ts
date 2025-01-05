@@ -5,6 +5,7 @@ import {
   isCriticalThrowEffect,
   isJavelinEffect,
   isShadowPartnerEffect,
+  isMapleWarriorEffect,
 } from '../types/calculator';
 
 export const getSkillLevelRange = (skillType: string) => {
@@ -18,6 +19,8 @@ export const getSkillLevelRange = (skillType: string) => {
     case 'javelin':
       return Array.from({ length: 21 }, (_, i) => i);
     case 'shadowPartner':
+      return Array.from({ length: 31 }, (_, i) => i);
+    case 'mapleWarrior':
       return Array.from({ length: 31 }, (_, i) => i);
     default:
       return [];
@@ -52,6 +55,9 @@ export const renderSkillEffect = (skillType: string, level: number) => {
   }
   if (isShadowPartnerEffect(effect)) {
     return `스킬 데미지 ${effect.skillDamage}%, 통상 데미지 ${effect.normalDamage}%, ${effect.duration}초 지속`;
+  }
+  if (isMapleWarriorEffect(effect)) {
+    return `순 스탯 ${effect.statBoost}% 증가, ${effect.duration}초 지속`;
   }
   return null;
 };

@@ -7,9 +7,11 @@ import {
   AttackSkillType,
   SaveData,
   StatType,
+  isMapleWarriorEffect,
 } from '../types/calculator';
 import { monsterPresets } from '../data/monsterPresets';
 import { calculatePureLuk } from '../utils/damageCalculator';
+import { getSkillEffect } from '../data/skillEffects';
 import {
   STORAGE_KEY_PREFIX,
   MIN_LEVEL,
@@ -50,6 +52,8 @@ const getInitialState = () => {
         javelin: 0,
         shadowPartner: 0,
         shadowPartnerEnabled: false,
+        mapleWarrior: 0,
+        mapleWarriorEnabled: false,
       },
       selectedMonsterId: monsterPresets[0].id,
       isCustomMonster: false,
@@ -110,6 +114,8 @@ const getInitialState = () => {
       javelin: 0,
       shadowPartner: 0,
       shadowPartnerEnabled: false,
+      mapleWarrior: 0,
+      mapleWarriorEnabled: false,
     },
     selectedMonsterId: monsterPresets[0].id,
     isCustomMonster: false,
@@ -254,6 +260,89 @@ export const useCalculatorState = () => {
     setSaves(newSaves);
   };
 
+  const handleMapleWarriorToggle = (enabled: boolean) => {
+    const mapleWarriorSkill = getSkillEffect(
+      'mapleWarrior',
+      skills.mapleWarrior
+    );
+    if (!mapleWarriorSkill || !isMapleWarriorEffect(mapleWarriorSkill)) return;
+
+    const statBoost = mapleWarriorSkill.statBoost / 100;
+
+    setStats((prev) => {
+      if (enabled) {
+        // 메이플 용사 활성화: 순수 스탯에 비례해서 추가 스탯 증가
+        const strBoost = Math.floor(prev.str * statBoost);
+        const dexBoost = Math.floor(prev.dex * statBoost);
+        const lukBoost = Math.floor(prev.luk * statBoost);
+        return {
+          ...prev,
+          additionalStr: prev.additionalStr + strBoost,
+          additionalDex: prev.additionalDex + dexBoost,
+          additionalLuk: prev.additionalLuk + lukBoost,
+        };
+      } else {
+        // 메이플 용사 비활성화: 순수 스탯에 비례한 만큼 추가 스탯 감소
+        const strBoost = Math.floor(prev.str * statBoost);
+        const dexBoost = Math.floor(prev.dex * statBoost);
+        const lukBoost = Math.floor(prev.luk * statBoost);
+        return {
+          ...prev,
+          additionalStr: prev.additionalStr - strBoost,
+          additionalDex: prev.additionalDex - dexBoost,
+          additionalLuk: prev.additionalLuk - lukBoost,
+        };
+      }
+    });
+
+    setSkills((prev) => ({
+      ...prev,
+      mapleWarriorEnabled: enabled,
+    }));
+  };
+
+  const handleMapleWarriorLevelChange = (newLevel: number) => {
+    const oldSkill = getSkillEffect('mapleWarrior', skills.mapleWarrior);
+    const newSkill = getSkillEffect('mapleWarrior', newLevel);
+
+    if (
+      !oldSkill ||
+      !newSkill ||
+      !isMapleWarriorEffect(oldSkill) ||
+      !isMapleWarriorEffect(newSkill)
+    )
+      return;
+
+    // 메이플 용사가 활성화된 상태일 때만 스탯 재계산
+    if (skills.mapleWarriorEnabled) {
+      const oldBoost = oldSkill.statBoost / 100;
+      const newBoost = newSkill.statBoost / 100;
+
+      setStats((prev) => {
+        // 기존 증가분을 제거하고 새로운 증가분을 적용
+        const oldStrBoost = Math.floor(prev.str * oldBoost);
+        const oldDexBoost = Math.floor(prev.dex * oldBoost);
+        const oldLukBoost = Math.floor(prev.luk * oldBoost);
+
+        const newStrBoost = Math.floor(prev.str * newBoost);
+        const newDexBoost = Math.floor(prev.dex * newBoost);
+        const newLukBoost = Math.floor(prev.luk * newBoost);
+
+        return {
+          ...prev,
+          additionalStr: prev.additionalStr - oldStrBoost + newStrBoost,
+          additionalDex: prev.additionalDex - oldDexBoost + newDexBoost,
+          additionalLuk: prev.additionalLuk - oldLukBoost + newLukBoost,
+        };
+      });
+    }
+
+    setSkills((prev) => ({
+      ...prev,
+      mapleWarrior: newLevel,
+    }));
+  };
+
   return {
     monster,
     setMonster,
@@ -274,5 +363,7 @@ export const useCalculatorState = () => {
     handleSave,
     handleLoad,
     handleDelete,
+    handleMapleWarriorToggle,
+    handleMapleWarriorLevelChange,
   };
 };
