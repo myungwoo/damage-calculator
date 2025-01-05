@@ -75,10 +75,10 @@ export default function DamageCalculator() {
               <h1 className="text-2xl font-bold text-center">데미지 계산기</h1>
             </div>
             <div className="p-6">
-              <div className="flex justify-end gap-4 mb-8">
+              <div className="flex flex-wrap justify-end gap-2 mb-8">
                 {Array.from({ length: 3 }).map((_, index) => (
-                  <div key={index} className="flex flex-col gap-1">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  <div key={index} className="flex flex-col items-center gap-1">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
                       {saves[index]
                         ? formatSaveDate(saves[index]!.timestamp)
                         : '비어있음'}
@@ -86,25 +86,25 @@ export default function DamageCalculator() {
                     <div className="flex gap-1">
                       <button
                         onClick={() => handleSave(index)}
-                        className="px-3 py-1 bg-primary text-white rounded-md hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                        className="w-12 h-8 bg-primary text-white rounded-md hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                       >
-                        저장 {index + 1}
+                        저장
                       </button>
                       <button
                         onClick={() => handleLoad(index)}
                         disabled={!saves[index]}
-                        className={`px-3 py-1 rounded-md text-sm ${
+                        className={`w-12 h-8 rounded-md text-sm ${
                           saves[index]
                             ? 'bg-primary/10 hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30 focus:outline-none focus:ring-2 focus:ring-primary'
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                         }`}
                       >
-                        불러오기
+                        로드
                       </button>
                       {saves[index] && (
                         <button
                           onClick={() => handleDelete(index)}
-                          className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                          className="w-12 h-8 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                         >
                           삭제
                         </button>
