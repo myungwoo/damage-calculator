@@ -70,7 +70,7 @@ export default function DamageCalculator() {
         </div>
       ) : (
         <>
-          <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-lg">
             <div className="bg-primary text-white p-4 rounded-t-lg">
               <h1 className="text-2xl font-bold text-center">데미지 계산기</h1>
             </div>
@@ -78,7 +78,7 @@ export default function DamageCalculator() {
               <div className="flex justify-end gap-4 mb-8">
                 {Array.from({ length: 3 }).map((_, index) => (
                   <div key={index} className="flex flex-col gap-1">
-                    <div className="text-xs text-gray-500 text-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
                       {saves[index]
                         ? formatSaveDate(saves[index]!.timestamp)
                         : '비어있음'}
@@ -95,8 +95,8 @@ export default function DamageCalculator() {
                         disabled={!saves[index]}
                         className={`px-3 py-1 rounded-md text-sm ${
                           saves[index]
-                            ? 'bg-primary/10 hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary'
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            ? 'bg-primary/10 hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30 focus:outline-none focus:ring-2 focus:ring-primary'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                         }`}
                       >
                         불러오기
@@ -116,7 +116,7 @@ export default function DamageCalculator() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Monster Stats Section */}
-                <div className="bg-primary/5 p-4 rounded-lg">
+                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
                   <h2 className="text-xl font-semibold mb-4">몬스터 정보</h2>
                   <div className="space-y-4">
                     <div className="mb-4">
@@ -132,7 +132,7 @@ export default function DamageCalculator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         레벨
                       </label>
                       <NumberInput
@@ -147,7 +147,7 @@ export default function DamageCalculator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         HP
                       </label>
                       <NumberInput
@@ -162,7 +162,7 @@ export default function DamageCalculator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         물리 방어력
                       </label>
                       <NumberInput
@@ -177,7 +177,7 @@ export default function DamageCalculator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         회피율
                       </label>
                       <NumberInput
@@ -192,10 +192,10 @@ export default function DamageCalculator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         필요 명중률 / 타격 확률
                       </label>
-                      <div className="mt-1 text-md font-medium text-gray-900">
+                      <div className="mt-1 text-md font-medium text-gray-900 dark:text-gray-100">
                         {calculateRequiredHitRatio(
                           monster.level,
                           stats.level,
@@ -217,11 +217,11 @@ export default function DamageCalculator() {
                 </div>
 
                 {/* Character Stats Section */}
-                <div className="bg-primary/5 p-4 rounded-lg">
+                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
                   <h2 className="text-xl font-semibold mb-4">캐릭터 스탯</h2>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         레벨
                       </label>
                       <div className="flex items-center gap-2">
@@ -249,7 +249,7 @@ export default function DamageCalculator() {
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           STR
                         </label>
                         <NumberInput
@@ -262,7 +262,7 @@ export default function DamageCalculator() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           추가 STR
                         </label>
                         <NumberInput
@@ -276,20 +276,20 @@ export default function DamageCalculator() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           총 STR
                         </label>
                         <input
                           type="number"
                           value={stats.str + stats.additionalStr}
                           readOnly
-                          className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm text-gray-500"
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-sm text-gray-500 dark:text-gray-400"
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           DEX
                         </label>
                         <NumberInput
@@ -302,7 +302,7 @@ export default function DamageCalculator() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           추가 DEX
                         </label>
                         <NumberInput
@@ -316,31 +316,31 @@ export default function DamageCalculator() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           총 DEX
                         </label>
                         <input
                           type="number"
                           value={stats.dex + stats.additionalDex}
                           readOnly
-                          className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm text-gray-500"
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-sm text-gray-500 dark:text-gray-400"
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           LUK
                         </label>
                         <input
                           type="number"
                           value={stats.luk}
                           readOnly
-                          className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm text-gray-500"
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-sm text-gray-500 dark:text-gray-400"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           추가 LUK
                         </label>
                         <NumberInput
@@ -354,19 +354,19 @@ export default function DamageCalculator() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           총 LUK
                         </label>
                         <input
                           type="number"
                           value={stats.luk + stats.additionalLuk}
                           readOnly
-                          className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm text-gray-500"
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-sm text-gray-500 dark:text-gray-400"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         명중률
                       </label>
                       <NumberInput
@@ -385,11 +385,11 @@ export default function DamageCalculator() {
                 </div>
 
                 {/* Equipment Section */}
-                <div className="bg-primary/5 p-4 rounded-lg">
+                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
                   <h2 className="text-xl font-semibold mb-4">장비 정보</h2>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         무기 공격력
                       </label>
                       <NumberInput
@@ -403,7 +403,7 @@ export default function DamageCalculator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         표창 선택
                       </label>
                       <select
@@ -414,7 +414,7 @@ export default function DamageCalculator() {
                             selectedWeaponId: e.target.value,
                           }));
                         }}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
                       >
                         {throwingStars.map((star) => (
                           <option key={star.id} value={star.id}>
@@ -424,7 +424,7 @@ export default function DamageCalculator() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         장갑 공격력
                       </label>
                       <NumberInput
@@ -438,7 +438,7 @@ export default function DamageCalculator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         기타 공격력
                       </label>
                       <NumberInput
@@ -452,7 +452,7 @@ export default function DamageCalculator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         도핑
                       </label>
                       <NumberInput
@@ -466,7 +466,7 @@ export default function DamageCalculator() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         공격력 합
                       </label>
                       <input
@@ -481,18 +481,18 @@ export default function DamageCalculator() {
                           equipment.buff
                         }
                         readOnly
-                        className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm text-gray-500"
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-sm text-gray-500 dark:text-gray-400"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Skills Section */}
-                <div className="bg-primary/5 p-4 rounded-lg">
+                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
                   <h2 className="text-xl font-semibold mb-4">스킬 정보</h2>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         스킬 선택
                       </label>
                       <select
@@ -505,17 +505,17 @@ export default function DamageCalculator() {
                             level: 1,
                           }));
                         }}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
                       >
                         <option value="lucky7">럭키 세븐</option>
                         <option value="avenger">어벤져</option>
                       </select>
-                      <span className="text-sm text-gray-500 mt-1 block">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
                         {renderSkillEffect(skills.type, skills.level)}
                       </span>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         스킬 레벨
                       </label>
                       <div className="flex gap-2">
@@ -527,7 +527,7 @@ export default function DamageCalculator() {
                               level: Number(e.target.value),
                             }))
                           }
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
                         >
                           {getSkillLevelRange(skills.type).map((level) => (
                             <option key={level} value={level}>
@@ -547,7 +547,7 @@ export default function DamageCalculator() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         크리티컬 스로우
                       </label>
                       <div className="flex gap-2">
@@ -559,7 +559,7 @@ export default function DamageCalculator() {
                               criticalThrow: Number(e.target.value),
                             }))
                           }
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
                         >
                           {getSkillLevelRange('criticalThrow').map((level) => (
                             <option key={level} value={level}>
@@ -579,7 +579,7 @@ export default function DamageCalculator() {
                           M
                         </button>
                       </div>
-                      <span className="text-sm text-gray-500 mt-1 block">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
                         {renderSkillEffect(
                           'criticalThrow',
                           skills.criticalThrow
@@ -587,7 +587,7 @@ export default function DamageCalculator() {
                       </span>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         자벨린 마스터리
                       </label>
                       <div className="flex gap-2">
@@ -599,7 +599,7 @@ export default function DamageCalculator() {
                               javelin: Number(e.target.value),
                             }))
                           }
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
                         >
                           {getSkillLevelRange('javelin').map((level) => (
                             <option key={level} value={level}>
@@ -616,12 +616,12 @@ export default function DamageCalculator() {
                           M
                         </button>
                       </div>
-                      <span className="text-sm text-gray-500 mt-1 block">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
                         {renderSkillEffect('javelin', skills.javelin)}
                       </span>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         쉐도우 파트너 레벨
                       </label>
                       <div className="flex gap-2">
@@ -633,7 +633,7 @@ export default function DamageCalculator() {
                               shadowPartner: Number(e.target.value),
                             }))
                           }
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
                         >
                           {getSkillLevelRange('shadowPartner').map((level) => (
                             <option key={level} value={level}>
@@ -653,7 +653,7 @@ export default function DamageCalculator() {
                           M
                         </button>
                       </div>
-                      <span className="text-sm text-gray-500 mt-1 block">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
                         {renderSkillEffect(
                           'shadowPartner',
                           skills.shadowPartner
@@ -670,18 +670,18 @@ export default function DamageCalculator() {
                               shadowPartnerEnabled: e.target.checked,
                             }))
                           }
-                          className="rounded border-gray-300 text-primary focus:ring-primary"
+                          className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary dark:bg-gray-700"
                         />
                         <label
                           htmlFor="shadowPartnerEnabled"
-                          className="text-sm font-medium text-gray-700 cursor-pointer"
+                          className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
                         >
                           쉐도우 파트너 사용
                         </label>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         메이플 용사 레벨
                       </label>
                       <div className="flex gap-2">
@@ -692,7 +692,7 @@ export default function DamageCalculator() {
                               Number(e.target.value)
                             )
                           }
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
                         >
                           {getSkillLevelRange('mapleWarrior').map((level) => (
                             <option key={level} value={level}>
@@ -707,7 +707,7 @@ export default function DamageCalculator() {
                           M
                         </button>
                       </div>
-                      <span className="text-sm text-gray-500 mt-1 block">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
                         {renderSkillEffect('mapleWarrior', skills.mapleWarrior)}
                       </span>
                       <div className="flex items-center gap-2 mt-2">
@@ -718,11 +718,11 @@ export default function DamageCalculator() {
                           onChange={(e) =>
                             handleMapleWarriorToggle(e.target.checked)
                           }
-                          className="rounded border-gray-300 text-primary focus:ring-primary"
+                          className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary dark:bg-gray-700"
                         />
                         <label
                           htmlFor="mapleWarriorEnabled"
-                          className="text-sm font-medium text-gray-700 cursor-pointer"
+                          className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
                         >
                           메이플 용사 사용
                         </label>
@@ -732,7 +732,7 @@ export default function DamageCalculator() {
                 </div>
 
                 {/* Results Section */}
-                <div className="bg-primary/5 p-4 rounded-lg">
+                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
                   <h2 className="text-xl font-semibold mb-4">데미지 결과</h2>
                   <div className="space-y-4">
                     <div>
@@ -791,7 +791,7 @@ export default function DamageCalculator() {
                 </div>
 
                 {/* Probabilities Section */}
-                <div className="bg-primary/5 p-4 rounded-lg">
+                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
                   <h2 className="text-xl font-semibold mb-4">확률</h2>
                   <div className="space-y-2">
                     {damageResult.killProbabilities.length === 0 && (

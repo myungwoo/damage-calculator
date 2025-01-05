@@ -152,7 +152,7 @@ export default function MonsterDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-2 text-left border rounded bg-white hover:border-primary focus:border-primary focus:ring-2 focus:ring-primary/50 flex justify-between items-center"
+        className="w-full p-2 text-left border rounded bg-white dark:bg-gray-800 dark:text-gray-300 hover:border-primary focus:border-primary focus:ring-2 focus:ring-primary/50 flex justify-between items-center"
       >
         {isCustomMonster
           ? '직접 입력'
@@ -179,7 +179,7 @@ export default function MonsterDropdown({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg divide-y divide-gray-200"
+          className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg divide-y divide-gray-200 dark:divide-gray-700"
           onKeyDown={handleKeyDown}
         >
           <div className="p-2">
@@ -188,7 +188,7 @@ export default function MonsterDropdown({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="몬스터 검색..."
-              className="w-full p-2 border rounded focus:border-primary focus:ring-2 focus:ring-primary/50"
+              className="w-full p-2 border rounded focus:border-primary focus:ring-2 focus:ring-primary/50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
               autoFocus
             />
           </div>
@@ -197,10 +197,10 @@ export default function MonsterDropdown({
               data-index="0"
               className={`p-2 cursor-pointer ${
                 selectedIndex === 0
-                  ? 'bg-green-50 text-green-700 font-medium'
+                  ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium'
                   : isCustomMonster
-                    ? 'bg-yellow-50 font-medium'
-                    : 'hover:bg-green-50/50'
+                    ? 'bg-yellow-50 dark:bg-yellow-900/30 font-medium'
+                    : 'hover:bg-green-50/50 dark:hover:bg-green-900/20'
               }`}
               onClick={() => handleSelect('custom')}
               onMouseEnter={() => setSelectedIndex(0)}
@@ -209,7 +209,7 @@ export default function MonsterDropdown({
             </div>
             {groupedMonsters.map(([region, monsters], groupIndex) => (
               <div key={region}>
-                <div className="px-2 py-1 bg-yellow-50 font-medium text-sm text-yellow-700">
+                <div className="px-2 py-1 bg-yellow-50 dark:bg-yellow-900/30 font-medium text-sm text-yellow-700 dark:text-yellow-300">
                   {region}
                 </div>
                 {monsters.map((monster, index) => {
@@ -225,9 +225,9 @@ export default function MonsterDropdown({
                       data-index={flatIndex}
                       className={`p-2 cursor-pointer ${
                         selectedIndex === flatIndex
-                          ? 'bg-green-50 text-green-700 font-medium'
-                          : 'hover:bg-green-50/50'
-                      } ${selectedMonsterId === monster.id ? 'bg-yellow-50 font-medium' : ''}`}
+                          ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium'
+                          : 'hover:bg-green-50/50 dark:hover:bg-green-900/20'
+                      } ${selectedMonsterId === monster.id ? 'bg-yellow-50 dark:bg-yellow-900/30 font-medium' : ''}`}
                       onClick={() => handleSelect(monster.id)}
                       onMouseEnter={() => setSelectedIndex(flatIndex)}
                     >

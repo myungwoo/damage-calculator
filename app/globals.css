@@ -10,14 +10,12 @@
   --accent: #FF6B6B;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1a1a1a;
-    --foreground: #f0f8f0;
-    --primary: #388E3C;
-    --secondary: #FFC107;
-    --accent: #E53935;
-  }
+:root.dark {
+  --background: #1a1a1a;
+  --foreground: #f0f8f0;
+  --primary: #388E3C;
+  --secondary: #FFC107;
+  --accent: #E53935;
 }
 
 body {

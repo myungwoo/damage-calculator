@@ -36,8 +36,8 @@ export default function NumberInput({
       onChange={handleChange}
       disabled={disabled}
       placeholder={placeholder}
-      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary ${
-        disabled ? 'bg-gray-100 cursor-not-allowed' : ''
+      className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300 ${
+        disabled ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : ''
       } ${className}`}
     />
   );
