@@ -67,9 +67,14 @@ export default function MonsterDropdown({
       return acc;
     }, {});
 
-    // 각 지역 내에서 레벨 오름차순 정렬
+    // 각 지역 내에서 레벨 오름차순, 같은 레벨일 경우 이름 오름차순으로 정렬
     Object.values(groups).forEach((monsters) => {
-      monsters.sort((a, b) => a.level - b.level);
+      monsters.sort((a, b) => {
+        if (a.level !== b.level) {
+          return a.level - b.level;
+        }
+        return a.name.localeCompare(b.name);
+      });
     });
 
     // 지역 순서대로 정렬
