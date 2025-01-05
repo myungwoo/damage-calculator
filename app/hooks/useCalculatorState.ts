@@ -399,12 +399,34 @@ export const useCalculatorState = () => {
     setIsCustomMonster: (isCustom: boolean) =>
       setState((prev) => ({ ...prev, isCustomMonster: isCustom })),
     stats: state.stats,
-    setStats: (stats: Stats) => setState((prev) => ({ ...prev, stats })),
+    setStats: (statsOrUpdater: Stats | ((prev: Stats) => Stats)) =>
+      setState((prev) => ({
+        ...prev,
+        stats:
+          typeof statsOrUpdater === 'function'
+            ? statsOrUpdater(prev.stats)
+            : statsOrUpdater,
+      })),
     equipment: state.equipment,
-    setEquipment: (equipment: Equipment) =>
-      setState((prev) => ({ ...prev, equipment })),
+    setEquipment: (
+      equipmentOrUpdater: Equipment | ((prev: Equipment) => Equipment)
+    ) =>
+      setState((prev) => ({
+        ...prev,
+        equipment:
+          typeof equipmentOrUpdater === 'function'
+            ? equipmentOrUpdater(prev.equipment)
+            : equipmentOrUpdater,
+      })),
     skills: state.skills,
-    setSkills: (skills: Skills) => setState((prev) => ({ ...prev, skills })),
+    setSkills: (skillsOrUpdater: Skills | ((prev: Skills) => Skills)) =>
+      setState((prev) => ({
+        ...prev,
+        skills:
+          typeof skillsOrUpdater === 'function'
+            ? skillsOrUpdater(prev.skills)
+            : skillsOrUpdater,
+      })),
     saves: state.saves,
     handleMonsterSelect,
     handlePureStatChange,
