@@ -41,6 +41,8 @@ export default function DamageCalculator() {
     handleDelete,
     handleMapleWarriorToggle,
     handleMapleWarriorLevelChange,
+    handleSharpEyesToggle,
+    handleSharpEyesLevelChange,
   } = useCalculatorState();
 
   const [damageResult, setDamageResult] = useState<DamageResult>({
@@ -725,6 +727,52 @@ export default function DamageCalculator() {
                           className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
                         >
                           메이플 용사 사용
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        샤프 아이즈
+                      </label>
+                      <div className="flex gap-2">
+                        <select
+                          value={skills.sharpEyes}
+                          onChange={(e) =>
+                            handleSharpEyesLevelChange(Number(e.target.value))
+                          }
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
+                        >
+                          {getSkillLevelRange('sharpEyes').map((level) => (
+                            <option key={level} value={level}>
+                              {level}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => handleSharpEyesLevelChange(30)}
+                          className="mt-1 px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
+                        >
+                          M
+                        </button>
+                      </div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
+                        {renderSkillEffect('sharpEyes', skills.sharpEyes)}
+                      </span>
+                      <div className="flex items-center gap-2 mt-2">
+                        <input
+                          type="checkbox"
+                          id="sharpEyesEnabled"
+                          checked={skills.sharpEyesEnabled}
+                          onChange={(e) =>
+                            handleSharpEyesToggle(e.target.checked)
+                          }
+                          className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary dark:bg-gray-700"
+                        />
+                        <label
+                          htmlFor="sharpEyesEnabled"
+                          className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                        >
+                          샤프 아이즈 사용
                         </label>
                       </div>
                     </div>

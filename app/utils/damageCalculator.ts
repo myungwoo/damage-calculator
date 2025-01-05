@@ -9,6 +9,7 @@ import {
   isJavelinEffect,
   isCriticalThrowEffect,
   isShadowPartnerEffect,
+  isSharpEyesEffect,
   AttackSkillType,
 } from '../types/calculator';
 import { getSkillEffect } from '../data/skillEffects';
@@ -302,6 +303,7 @@ export const calculateDamage = (
   const criticalSkill = getSkillEffect('criticalThrow', skills.criticalThrow);
   const javelinSkill = getSkillEffect('javelin', skills.javelin);
   const shadowSkill = getSkillEffect('shadowPartner', skills.shadowPartner);
+  const sharpEyesSkill = getSkillEffect('sharpEyes', skills.sharpEyes);
 
   if (!attackSkill || !criticalSkill || !javelinSkill || !shadowSkill) {
     throw new Error('Failed to get skill effects');
@@ -322,10 +324,23 @@ export const calculateDamage = (
     skillDamageMultiplier = attackSkill.damage / 100;
   }
 
-  // Calculate critical multiplier
-  const criticalMultiplier = isCriticalThrowEffect(criticalSkill)
+  // Calculate critical multiplier and chance
+  let criticalMultiplier = isCriticalThrowEffect(criticalSkill)
     ? criticalSkill.criticalDamage / 100
     : 1;
+  let criticalChance = isCriticalThrowEffect(criticalSkill)
+    ? criticalSkill.criticalChance
+    : 0;
+
+  // Apply Sharp Eyes effects
+  if (
+    skills.sharpEyesEnabled &&
+    sharpEyesSkill &&
+    isSharpEyesEffect(sharpEyesSkill)
+  ) {
+    criticalChance += sharpEyesSkill.criticalChance;
+    criticalMultiplier += sharpEyesSkill.damage / 100;
+  }
 
   // Calculate basic damage
   const basicDamage = calculateDamageWithModifiers(
@@ -390,7 +405,7 @@ export const calculateDamage = (
     basicDamage,
     criticalDamage,
     shadowMultiplier,
-    isCriticalThrowEffect(criticalSkill) ? criticalSkill.criticalChance : 0,
+    criticalChance,
     monster.hp,
     stats,
     monster

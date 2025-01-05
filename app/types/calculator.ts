@@ -57,6 +57,8 @@ export interface Skills {
   shadowPartnerEnabled: boolean;
   mapleWarrior: number;
   mapleWarriorEnabled: boolean;
+  sharpEyes: number;
+  sharpEyesEnabled: boolean;
 }
 
 export interface SaveData {
@@ -88,28 +90,33 @@ export interface DamageResult {
 
 // 스킬 효과 인터페이스
 export interface Lucky7Effect {
+  type: 'lucky7';
   level: number;
   damage: number;
 }
 
 export interface AvengerEffect {
+  type: 'avenger';
   level: number;
   damage: number;
   maxTargets: number;
 }
 
 export interface CriticalThrowEffect {
+  type: 'criticalThrow';
   level: number;
   criticalChance: number;
   criticalDamage: number;
 }
 
 export interface JavelinEffect {
+  type: 'javelin';
   level: number;
   masteryPercent: number;
 }
 
 export interface ShadowPartnerEffect {
+  type: 'shadowPartner';
   level: number;
   normalDamage: number;
   skillDamage: number;
@@ -117,9 +124,18 @@ export interface ShadowPartnerEffect {
 }
 
 export interface MapleWarriorEffect {
+  type: 'mapleWarrior';
   level: number;
   statBoost: number;
   duration: number;
+}
+
+export interface SharpEyesEffect {
+  type: 'sharpEyes';
+  level: number;
+  duration: number;
+  criticalChance: number;
+  damage: number;
 }
 
 export type SkillEffect =
@@ -128,41 +144,48 @@ export type SkillEffect =
   | CriticalThrowEffect
   | JavelinEffect
   | ShadowPartnerEffect
-  | MapleWarriorEffect;
+  | MapleWarriorEffect
+  | SharpEyesEffect;
 
 // 타입 가드
 export const isLucky7Effect = (effect: SkillEffect): effect is Lucky7Effect => {
-  return 'damage' in effect && !('maxTargets' in effect);
+  return effect.type === 'lucky7';
 };
 
 export const isAvengerEffect = (
   effect: SkillEffect
 ): effect is AvengerEffect => {
-  return 'damage' in effect && 'maxTargets' in effect;
+  return effect.type === 'avenger';
 };
 
 export const isCriticalThrowEffect = (
   effect: SkillEffect
 ): effect is CriticalThrowEffect => {
-  return 'criticalChance' in effect && 'criticalDamage' in effect;
+  return effect.type === 'criticalThrow';
 };
 
 export const isJavelinEffect = (
   effect: SkillEffect
 ): effect is JavelinEffect => {
-  return 'masteryPercent' in effect;
+  return effect.type === 'javelin';
 };
 
 export const isShadowPartnerEffect = (
   effect: SkillEffect
 ): effect is ShadowPartnerEffect => {
-  return 'skillDamage' in effect && 'normalDamage' in effect;
+  return effect.type === 'shadowPartner';
 };
 
 export const isMapleWarriorEffect = (
   effect: SkillEffect
 ): effect is MapleWarriorEffect => {
-  return 'statBoost' in effect;
+  return effect.type === 'mapleWarrior';
+};
+
+export const isSharpEyesEffect = (
+  effect: SkillEffect
+): effect is SharpEyesEffect => {
+  return effect.type === 'sharpEyes';
 };
 
 export interface MonsterPreset extends Monster {

@@ -52,6 +52,8 @@ const DEFAULT_STATE = {
     shadowPartnerEnabled: false,
     mapleWarrior: 0,
     mapleWarriorEnabled: false,
+    sharpEyes: 0,
+    sharpEyesEnabled: false,
   } as Skills,
   selectedMonsterId: monsterPresets[0].id,
   isCustomMonster: false,
@@ -398,6 +400,26 @@ export const useCalculatorState = () => {
     }));
   };
 
+  const handleSharpEyesToggle = (enabled: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      skills: {
+        ...prev.skills,
+        sharpEyesEnabled: enabled,
+      },
+    }));
+  };
+
+  const handleSharpEyesLevelChange = (newLevel: number) => {
+    setState((prev) => ({
+      ...prev,
+      skills: {
+        ...prev.skills,
+        sharpEyes: newLevel,
+      },
+    }));
+  };
+
   return {
     ...state,
     isLoading,
@@ -447,5 +469,7 @@ export const useCalculatorState = () => {
     handleDelete,
     handleMapleWarriorToggle,
     handleMapleWarriorLevelChange,
+    handleSharpEyesToggle,
+    handleSharpEyesLevelChange,
   };
 };

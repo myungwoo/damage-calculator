@@ -6,6 +6,7 @@ import {
   isJavelinEffect,
   isShadowPartnerEffect,
   isMapleWarriorEffect,
+  isSharpEyesEffect,
 } from '../types/calculator';
 
 export const getSkillLevelRange = (skillType: string) => {
@@ -21,6 +22,8 @@ export const getSkillLevelRange = (skillType: string) => {
     case 'shadowPartner':
       return Array.from({ length: 31 }, (_, i) => i);
     case 'mapleWarrior':
+      return Array.from({ length: 31 }, (_, i) => i);
+    case 'sharpEyes':
       return Array.from({ length: 31 }, (_, i) => i);
     default:
       return [];
@@ -41,14 +44,14 @@ export const renderSkillEffect = (skillType: string, level: number) => {
   const effect = getSkillEffect(skillType, level);
   if (!effect) return null;
 
-  if (isLucky7Effect(effect)) {
-    return `데미지 ${effect.damage}%`;
+  if (isSharpEyesEffect(effect)) {
+    return `크리티컬 확률 +${effect.criticalChance}%, 크리티컬 데미지 +${effect.damage}%, ${effect.duration}초 지속`;
   }
   if (isAvengerEffect(effect)) {
     return `데미지 ${effect.damage}%, 최대 ${effect.maxTargets}명 공격`;
   }
   if (isCriticalThrowEffect(effect)) {
-    return `확률 ${effect.criticalChance}%, 크리 데미지 ${effect.criticalDamage}%`;
+    return `크리티컬 확률 ${effect.criticalChance}%, 크리티컬 데미지 ${effect.criticalDamage}%`;
   }
   if (isJavelinEffect(effect)) {
     return `숙련도 ${effect.masteryPercent}%`;
@@ -58,6 +61,9 @@ export const renderSkillEffect = (skillType: string, level: number) => {
   }
   if (isMapleWarriorEffect(effect)) {
     return `순 스탯 ${effect.statBoost}% 증가, ${effect.duration}초 지속`;
+  }
+  if (isLucky7Effect(effect)) {
+    return `데미지 ${effect.damage}%`;
   }
   return null;
 };
