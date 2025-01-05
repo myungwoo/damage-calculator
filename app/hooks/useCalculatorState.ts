@@ -189,6 +189,34 @@ export const useCalculatorState = () => {
       );
     }
 
+    // 메이플 용사가 활성화된 상태라면 스탯 증가량 재계산
+    if (skills.mapleWarriorEnabled) {
+      const mapleWarriorSkill = getSkillEffect(
+        'mapleWarrior',
+        skills.mapleWarrior
+      );
+      if (mapleWarriorSkill && isMapleWarriorEffect(mapleWarriorSkill)) {
+        const statBoost = mapleWarriorSkill.statBoost / 100;
+
+        // 기존 증가분을 제거하고 새로운 증가분을 적용
+        if (statType === 'str') {
+          const oldBoost = Math.floor(stats.str * statBoost);
+          const newBoost = Math.floor(newValue * statBoost);
+          updates.additionalStr = stats.additionalStr - oldBoost + newBoost;
+        } else if (statType === 'dex') {
+          const oldBoost = Math.floor(stats.dex * statBoost);
+          const newBoost = Math.floor(newValue * statBoost);
+          updates.additionalDex = stats.additionalDex - oldBoost + newBoost;
+        }
+        if (updates.luk !== undefined) {
+          const oldBoost = Math.floor(stats.luk * statBoost);
+          const newBoost = Math.floor(updates.luk * statBoost);
+          updates.additionalLuk = stats.additionalLuk - oldBoost + newBoost;
+          console.log(oldBoost, newBoost);
+        }
+      }
+    }
+
     setStats((prev) => ({
       ...prev,
       ...updates,
@@ -202,10 +230,28 @@ export const useCalculatorState = () => {
     );
     const newLuk = calculatePureLuk(newLevel, stats.str, stats.dex);
 
-    setStats((prev) => ({
-      ...prev,
+    const updates: Partial<Stats> = {
       level: newLevel,
       luk: newLuk,
+    };
+
+    // 메이플 용사가 활성화된 상태라면 LUK 스탯 변화에 따른 증가량 재계산
+    if (skills.mapleWarriorEnabled) {
+      const mapleWarriorSkill = getSkillEffect(
+        'mapleWarrior',
+        skills.mapleWarrior
+      );
+      if (mapleWarriorSkill && isMapleWarriorEffect(mapleWarriorSkill)) {
+        const statBoost = mapleWarriorSkill.statBoost / 100;
+        const oldBoost = Math.floor(stats.luk * statBoost);
+        const newBoost = Math.floor(newLuk * statBoost);
+        updates.additionalLuk = stats.additionalLuk - oldBoost + newBoost;
+      }
+    }
+
+    setStats((prev) => ({
+      ...prev,
+      ...updates,
     }));
   };
 
