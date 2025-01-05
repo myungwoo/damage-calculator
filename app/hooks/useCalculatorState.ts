@@ -65,7 +65,21 @@ const getInitialState = (): State => {
 };
 
 export const useCalculatorState = () => {
-  const [state, setState] = useState<State>(getInitialState);
+  const [state, setState] = useState(getInitialState());
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadInitialState = async () => {
+      setIsLoading(true);
+      try {
+        const savedState = getInitialState();
+        setState(savedState);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadInitialState();
+  }, []);
 
   // localStorage에서 데이터 로드
   useEffect(() => {
@@ -255,27 +269,23 @@ export const useCalculatorState = () => {
   };
 
   const handleLoad = (slot: number) => {
-    if (typeof window === 'undefined') return;
-
-    const saveData = state.saves[slot];
-    if (!saveData) return;
-
-    const matchingPreset = monsterPresets.find(
-      (preset) =>
-        preset.level === saveData.monster.level &&
-        preset.hp === saveData.monster.hp &&
-        preset.physicalDefense === saveData.monster.physicalDefense
-    );
-
-    setState((prev) => ({
-      ...prev,
-      monster: saveData.monster,
-      stats: saveData.stats,
-      equipment: saveData.equipment,
-      skills: saveData.skills,
-      selectedMonsterId: matchingPreset?.id || 'custom',
-      isCustomMonster: !matchingPreset,
-    }));
+    setIsLoading(true);
+    try {
+      const key = `${STORAGE_KEY_PREFIX}${slot}`;
+      const savedData = localStorage.getItem(key);
+      if (savedData) {
+        const parsedData = JSON.parse(savedData) as SaveData;
+        setState((prev) => ({
+          ...prev,
+          monster: parsedData.monster,
+          stats: parsedData.stats,
+          equipment: parsedData.equipment,
+          skills: parsedData.skills,
+        }));
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDelete = (slot: number) => {
@@ -389,16 +399,19 @@ export const useCalculatorState = () => {
   };
 
   return {
-    monster: state.monster,
-    setMonster: (monster: Monster) =>
-      setState((prev) => ({ ...prev, monster })),
+    ...state,
+    isLoading,
     selectedMonsterId: state.selectedMonsterId,
-    setSelectedMonsterId: (monsterId: string) =>
-      setState((prev) => ({ ...prev, selectedMonsterId: monsterId })),
     isCustomMonster: state.isCustomMonster,
-    setIsCustomMonster: (isCustom: boolean) =>
-      setState((prev) => ({ ...prev, isCustomMonster: isCustom })),
-    stats: state.stats,
+    saves: state.saves,
+    setMonster: (monsterOrUpdater: Monster | ((prev: Monster) => Monster)) =>
+      setState((prev) => ({
+        ...prev,
+        monster:
+          typeof monsterOrUpdater === 'function'
+            ? monsterOrUpdater(prev.monster)
+            : monsterOrUpdater,
+      })),
     setStats: (statsOrUpdater: Stats | ((prev: Stats) => Stats)) =>
       setState((prev) => ({
         ...prev,
@@ -407,7 +420,6 @@ export const useCalculatorState = () => {
             ? statsOrUpdater(prev.stats)
             : statsOrUpdater,
       })),
-    equipment: state.equipment,
     setEquipment: (
       equipmentOrUpdater: Equipment | ((prev: Equipment) => Equipment)
     ) =>
@@ -418,7 +430,6 @@ export const useCalculatorState = () => {
             ? equipmentOrUpdater(prev.equipment)
             : equipmentOrUpdater,
       })),
-    skills: state.skills,
     setSkills: (skillsOrUpdater: Skills | ((prev: Skills) => Skills)) =>
       setState((prev) => ({
         ...prev,
@@ -427,7 +438,7 @@ export const useCalculatorState = () => {
             ? skillsOrUpdater(prev.skills)
             : skillsOrUpdater,
       })),
-    saves: state.saves,
+    setState,
     handleMonsterSelect,
     handlePureStatChange,
     handleLevelChange,
