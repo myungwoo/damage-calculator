@@ -72,6 +72,7 @@ export interface SaveData {
 export interface DamageRange {
   min: number;
   max: number;
+  expected?: number;
 }
 
 export interface DamageResult {

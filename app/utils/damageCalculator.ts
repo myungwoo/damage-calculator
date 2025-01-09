@@ -390,12 +390,6 @@ export const calculateDamage = (
     max: Math.floor(criticalDamage.max * shadowMultiplier),
   };
 
-  // Apply Lucky7 double damage
-  if (skills.type === 'lucky7') {
-    totalMin = totalMin * 2;
-    totalMax = totalMax * 2;
-  }
-
   // Floor all damage values
   statAttack.min = Math.max(Math.floor(statAttack.min), 0);
   statAttack.max = Math.max(Math.floor(statAttack.max), 0);
@@ -416,8 +410,26 @@ export const calculateDamage = (
     monster
   );
 
+  // Calculate critical probability
+  const criticalProb =
+    (isCriticalThrowEffect(criticalSkill) ? criticalSkill.criticalChance : 0) /
+    100;
+  const sharpEyesCriticalBonus =
+    skills.sharpEyesEnabled && isSharpEyesEffect(sharpEyesSkill)
+      ? sharpEyesSkill.criticalChance / 100
+      : 0;
+  const totalCriticalProb = Math.min(1, criticalProb + sharpEyesCriticalBonus);
+
+  // Calculate expected damage
+  const expectedBasicDamage = (basicDamage.min + basicDamage.max) / 2;
+  const expectedCriticalDamage = (criticalDamage.min + criticalDamage.max) / 2;
+  let totalExpected = Math.floor(
+    expectedBasicDamage * (1 - totalCriticalProb) +
+      expectedCriticalDamage * totalCriticalProb
+  );
+
   // Calculate HP absorption range for Drain skill
-  let hpAbsorption = { min: 0, max: 0 };
+  let hpAbsorption = { min: 0, max: 0, expected: 0 };
   if (isDrainEffect(attackSkill)) {
     const rawAbsorptionMin = Math.floor(
       (totalMin * attackSkill.absorptionPercent) / 100
@@ -425,10 +437,22 @@ export const calculateDamage = (
     const rawAbsorptionMax = Math.floor(
       (totalMax * attackSkill.absorptionPercent) / 100
     );
+    const expectedAbsorption = Math.floor(
+      (totalExpected * attackSkill.absorptionPercent) / 100
+    );
+
     hpAbsorption = {
       min: Math.min(rawAbsorptionMin, monster.hp),
       max: Math.min(rawAbsorptionMax, monster.hp),
+      expected: Math.min(expectedAbsorption, monster.hp),
     };
+  }
+
+  // Apply Lucky7 double damage
+  if (skills.type === 'lucky7') {
+    totalMin = totalMin * 2;
+    totalMax = totalMax * 2;
+    totalExpected = totalExpected * 2;
   }
 
   return {
@@ -437,7 +461,7 @@ export const calculateDamage = (
     critical: criticalDamage,
     shadowBasic,
     shadowCritical,
-    totalDamageRange: { min: totalMin, max: totalMax },
+    totalDamageRange: { min: totalMin, max: totalMax, expected: totalExpected },
     killProbabilities,
     hpAbsorption,
   };

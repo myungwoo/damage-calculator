@@ -836,6 +836,12 @@ export default function DamageCalculator() {
                         {Math.floor(damageResult.totalDamageRange.min)} ~{' '}
                         {Math.floor(damageResult.totalDamageRange.max)}
                       </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        기댓값:{' '}
+                        {Math.floor(
+                          damageResult.totalDamageRange.expected ?? 0
+                        )}
+                      </p>
                     </div>
                     {skills.type === 'drain' && (
                       <div>
@@ -843,6 +849,10 @@ export default function DamageCalculator() {
                         <p>
                           {Math.floor(damageResult.hpAbsorption.min)} ~{' '}
                           {Math.floor(damageResult.hpAbsorption.max)}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          기댓값:{' '}
+                          {Math.floor(damageResult.hpAbsorption.expected ?? 0)}
                         </p>
                       </div>
                     )}
