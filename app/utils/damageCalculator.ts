@@ -6,6 +6,7 @@ import {
   DamageResult,
   isLucky7Effect,
   isAvengerEffect,
+  isDrainEffect,
   isJavelinEffect,
   isCriticalThrowEffect,
   isShadowPartnerEffect,
@@ -117,7 +118,7 @@ const calculateDamageWithModifiers = (
     baseMax = (totalLuk * 5 * totalAttack) / 100;
     baseMin = (totalLuk * 2.5 * totalAttack) / 100;
   } else {
-    // 어벤져는 스탯 공격력의 영향을 받음
+    // 어벤져와 드레인은 스탯 공격력의 영향을 받음
     baseMax = statAttack.max;
     baseMin = statAttack.min;
   }
@@ -320,7 +321,11 @@ export const calculateDamage = (
 
   // Calculate skill damage multiplier
   let skillDamageMultiplier = 0;
-  if (isLucky7Effect(attackSkill) || isAvengerEffect(attackSkill)) {
+  if (
+    isLucky7Effect(attackSkill) ||
+    isAvengerEffect(attackSkill) ||
+    isDrainEffect(attackSkill)
+  ) {
     skillDamageMultiplier = attackSkill.damage / 100;
   }
 
@@ -411,6 +416,21 @@ export const calculateDamage = (
     monster
   );
 
+  // Calculate HP absorption range for Drain skill
+  let hpAbsorption = { min: 0, max: 0 };
+  if (isDrainEffect(attackSkill)) {
+    const rawAbsorptionMin = Math.floor(
+      (totalMin * attackSkill.absorptionPercent) / 100
+    );
+    const rawAbsorptionMax = Math.floor(
+      (totalMax * attackSkill.absorptionPercent) / 100
+    );
+    hpAbsorption = {
+      min: Math.min(rawAbsorptionMin, monster.hp),
+      max: Math.min(rawAbsorptionMax, monster.hp),
+    };
+  }
+
   return {
     statAttack,
     basic: basicDamage,
@@ -419,5 +439,6 @@ export const calculateDamage = (
     shadowCritical,
     totalDamageRange: { min: totalMin, max: totalMax },
     killProbabilities,
+    hpAbsorption,
   };
 };

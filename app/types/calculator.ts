@@ -1,5 +1,5 @@
 export type StatType = 'str' | 'dex' | 'luk';
-export type AttackSkillType = 'lucky7' | 'avenger';
+export type AttackSkillType = 'lucky7' | 'avenger' | 'drain';
 
 export type Region =
   | '빅토리아 아일랜드'
@@ -86,6 +86,7 @@ export interface DamageResult {
     prob: string;
     accProb: string;
   }[];
+  hpAbsorption: DamageRange;
 }
 
 // 스킬 효과 인터페이스
@@ -138,9 +139,17 @@ export interface SharpEyesEffect {
   damage: number;
 }
 
+export interface DrainEffect {
+  type: 'drain';
+  level: number;
+  damage: number;
+  absorptionPercent: number;
+}
+
 export type SkillEffect =
   | Lucky7Effect
   | AvengerEffect
+  | DrainEffect
   | CriticalThrowEffect
   | JavelinEffect
   | ShadowPartnerEffect
@@ -186,6 +195,10 @@ export const isSharpEyesEffect = (
   effect: SkillEffect
 ): effect is SharpEyesEffect => {
   return effect.type === 'sharpEyes';
+};
+
+export const isDrainEffect = (effect: SkillEffect): effect is DrainEffect => {
+  return effect.type === 'drain';
 };
 
 export interface MonsterPreset extends Monster {

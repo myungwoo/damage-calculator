@@ -53,6 +53,7 @@ export default function DamageCalculator() {
     totalDamageRange: { min: 0, max: 0 },
     killProbabilities: [],
     statAttack: { min: 0, max: 0 },
+    hpAbsorption: { min: 0, max: 0 },
   });
 
   useEffect(() => {
@@ -510,11 +511,9 @@ export default function DamageCalculator() {
                         className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
                       >
                         <option value="lucky7">럭키 세븐</option>
+                        <option value="drain">드레인</option>
                         <option value="avenger">어벤져</option>
                       </select>
-                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
-                        {renderSkillEffect(skills.type, skills.level)}
-                      </span>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -547,6 +546,9 @@ export default function DamageCalculator() {
                           M
                         </button>
                       </div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
+                        {renderSkillEffect(skills.type, skills.level)}
+                      </span>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -835,6 +837,15 @@ export default function DamageCalculator() {
                         {Math.floor(damageResult.totalDamageRange.max)}
                       </p>
                     </div>
+                    {skills.type === 'drain' && (
+                      <div>
+                        <h3 className="font-medium">HP 흡수량 범위</h3>
+                        <p>
+                          {Math.floor(damageResult.hpAbsorption.min)} ~{' '}
+                          {Math.floor(damageResult.hpAbsorption.max)}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

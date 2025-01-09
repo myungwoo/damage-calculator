@@ -47,6 +47,13 @@ interface SharpEyesEffect {
   damage: number;
 }
 
+interface DrainEffect {
+  type: 'drain';
+  level: number;
+  damage: number;
+  absorptionPercent: number;
+}
+
 // 럭키 세븐 (1~20레벨)
 export const lucky7Effects: Lucky7Effect[] = [
   {
@@ -1266,12 +1273,196 @@ export const sharpEyesEffects: SharpEyesEffect[] = [
   },
 ];
 
+export const drainEffects: DrainEffect[] = [
+  {
+    type: 'drain',
+    level: 1,
+    damage: 102,
+    absorptionPercent: 16,
+  },
+  {
+    type: 'drain',
+    level: 2,
+    damage: 104,
+    absorptionPercent: 17,
+  },
+  {
+    type: 'drain',
+    level: 3,
+    damage: 106,
+    absorptionPercent: 18,
+  },
+  {
+    type: 'drain',
+    level: 4,
+    damage: 108,
+    absorptionPercent: 19,
+  },
+  {
+    type: 'drain',
+    level: 5,
+    damage: 110,
+    absorptionPercent: 20,
+  },
+  {
+    type: 'drain',
+    level: 6,
+    damage: 112,
+    absorptionPercent: 21,
+  },
+  {
+    type: 'drain',
+    level: 7,
+    damage: 114,
+    absorptionPercent: 22,
+  },
+  {
+    type: 'drain',
+    level: 8,
+    damage: 116,
+    absorptionPercent: 23,
+  },
+  {
+    type: 'drain',
+    level: 9,
+    damage: 118,
+    absorptionPercent: 24,
+  },
+  {
+    type: 'drain',
+    level: 10,
+    damage: 120,
+    absorptionPercent: 25,
+  },
+  {
+    type: 'drain',
+    level: 11,
+    damage: 122,
+    absorptionPercent: 26,
+  },
+  {
+    type: 'drain',
+    level: 12,
+    damage: 124,
+    absorptionPercent: 27,
+  },
+  {
+    type: 'drain',
+    level: 13,
+    damage: 126,
+    absorptionPercent: 28,
+  },
+  {
+    type: 'drain',
+    level: 14,
+    damage: 128,
+    absorptionPercent: 29,
+  },
+  {
+    type: 'drain',
+    level: 15,
+    damage: 130,
+    absorptionPercent: 30,
+  },
+  {
+    type: 'drain',
+    level: 16,
+    damage: 132,
+    absorptionPercent: 31,
+  },
+  {
+    type: 'drain',
+    level: 17,
+    damage: 134,
+    absorptionPercent: 32,
+  },
+  {
+    type: 'drain',
+    level: 18,
+    damage: 136,
+    absorptionPercent: 33,
+  },
+  {
+    type: 'drain',
+    level: 19,
+    damage: 138,
+    absorptionPercent: 34,
+  },
+  {
+    type: 'drain',
+    level: 20,
+    damage: 140,
+    absorptionPercent: 35,
+  },
+  {
+    type: 'drain',
+    level: 21,
+    damage: 142,
+    absorptionPercent: 36,
+  },
+  {
+    type: 'drain',
+    level: 22,
+    damage: 144,
+    absorptionPercent: 37,
+  },
+  {
+    type: 'drain',
+    level: 23,
+    damage: 146,
+    absorptionPercent: 38,
+  },
+  {
+    type: 'drain',
+    level: 24,
+    damage: 148,
+    absorptionPercent: 39,
+  },
+  {
+    type: 'drain',
+    level: 25,
+    damage: 150,
+    absorptionPercent: 40,
+  },
+  {
+    type: 'drain',
+    level: 26,
+    damage: 152,
+    absorptionPercent: 41,
+  },
+  {
+    type: 'drain',
+    level: 27,
+    damage: 154,
+    absorptionPercent: 42,
+  },
+  {
+    type: 'drain',
+    level: 28,
+    damage: 156,
+    absorptionPercent: 43,
+  },
+  {
+    type: 'drain',
+    level: 29,
+    damage: 158,
+    absorptionPercent: 44,
+  },
+  {
+    type: 'drain',
+    level: 30,
+    damage: 160,
+    absorptionPercent: 45,
+  },
+];
+
 export const getSkillEffect = (
   skillType: string,
   level: number
 ):
   | Lucky7Effect
   | AvengerEffect
+  | DrainEffect
   | CriticalThrowEffect
   | JavelinEffect
   | ShadowPartnerEffect
@@ -1283,6 +1474,8 @@ export const getSkillEffect = (
       return lucky7Effects[level - 1];
     case 'avenger':
       return avengerEffects[level - 1];
+    case 'drain':
+      return drainEffects[level - 1];
     case 'criticalThrow':
       return criticalThrowEffects[level];
     case 'javelin':

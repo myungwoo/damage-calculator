@@ -7,6 +7,7 @@ import {
   isShadowPartnerEffect,
   isMapleWarriorEffect,
   isSharpEyesEffect,
+  isDrainEffect,
 } from '../types/calculator';
 
 export const getSkillLevelRange = (skillType: string) => {
@@ -14,6 +15,8 @@ export const getSkillLevelRange = (skillType: string) => {
     case 'lucky7':
       return Array.from({ length: 20 }, (_, i) => i + 1);
     case 'avenger':
+      return Array.from({ length: 30 }, (_, i) => i + 1);
+    case 'drain':
       return Array.from({ length: 30 }, (_, i) => i + 1);
     case 'criticalThrow':
       return Array.from({ length: 31 }, (_, i) => i);
@@ -49,6 +52,9 @@ export const renderSkillEffect = (skillType: string, level: number) => {
   }
   if (isAvengerEffect(effect)) {
     return `데미지 ${effect.damage}%, 최대 ${effect.maxTargets}명 공격`;
+  }
+  if (isDrainEffect(effect)) {
+    return `데미지 ${effect.damage}%, HP 흡수 ${effect.absorptionPercent}%`;
   }
   if (isCriticalThrowEffect(effect)) {
     return `크리티컬 확률 ${effect.criticalChance}%, 크리티컬 데미지 ${effect.criticalDamage}%`;
