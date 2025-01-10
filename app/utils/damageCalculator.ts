@@ -418,11 +418,12 @@ export const calculateDamage = (
 
   // Calculate critical probability
   const criticalProb = criticalChance / 100;
-  console.log(criticalProb);
 
   // Calculate expected damage
-  const expectedBasicDamage = (basicDamage.min + basicDamage.max) / 2;
-  const expectedCriticalDamage = (criticalDamage.min + criticalDamage.max) / 2;
+  const expectedBasicDamage =
+    ((basicDamage.min + basicDamage.max) / 2) * (1 + shadowMultiplier);
+  const expectedCriticalDamage =
+    ((criticalDamage.min + criticalDamage.max) / 2) * (1 + shadowMultiplier);
   let totalExpected = Math.floor(
     expectedBasicDamage * (1 - criticalProb) +
       expectedCriticalDamage * criticalProb
