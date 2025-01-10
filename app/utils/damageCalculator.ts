@@ -11,6 +11,7 @@ import {
   isCriticalThrowEffect,
   isShadowPartnerEffect,
   isSharpEyesEffect,
+  isTripleThrowEffect,
   AttackSkillType,
 } from '../types/calculator';
 import { getSkillEffect } from '../data/skillEffects';
@@ -113,8 +114,8 @@ const calculateDamageWithModifiers = (
 
   // 스킬별 데미지 계산
   let baseMax, baseMin;
-  if (skillType === 'lucky7') {
-    // 럭키 세븐은 스탯 공격력의 영향을 받지 않음
+  if (skillType === 'lucky7' || skillType === 'tripleThrow') {
+    // 럭키 세븐과 트리플 스로우는 스탯 공격력의 영향을 받지 않음
     baseMax = (totalLuk * 5 * totalAttack) / 100;
     baseMin = (totalLuk * 2.5 * totalAttack) / 100;
   } else {
@@ -258,11 +259,14 @@ const calculateKillProbabilitiesWithinNHits = (
     }
   }
 
-  // 럭키 세븐은 2회 타격이 1회 스킬 사용이므로 하나로 합치기
-  const singleSkillDist =
-    skillType === 'lucky7'
-      ? convolveDistFFT(singleHitDistMain, singleHitDistMain)
-      : singleHitDistMain;
+  let singleSkillDist = singleHitDistMain;
+  // 럭키 세븐은 2회 타격이고, 트리플 스로우는 3회 타격
+  if (skillType === 'lucky7' || skillType === 'tripleThrow') {
+    singleSkillDist = convolveDistFFT(singleSkillDist, singleHitDistMain);
+  }
+  if (skillType === 'tripleThrow') {
+    singleSkillDist = convolveDistFFT(singleSkillDist, singleHitDistMain);
+  }
 
   const skillUseProbabilities = [];
 
@@ -322,9 +326,11 @@ export const calculateDamage = (
   // Calculate skill damage multiplier
   let skillDamageMultiplier = 0;
   if (
-    isLucky7Effect(attackSkill) ||
-    isAvengerEffect(attackSkill) ||
-    isDrainEffect(attackSkill)
+    attackSkill &&
+    (isLucky7Effect(attackSkill) ||
+      isAvengerEffect(attackSkill) ||
+      isDrainEffect(attackSkill) ||
+      isTripleThrowEffect(attackSkill))
   ) {
     skillDamageMultiplier = attackSkill.damage / 100;
   }
@@ -411,21 +417,15 @@ export const calculateDamage = (
   );
 
   // Calculate critical probability
-  const criticalProb =
-    (isCriticalThrowEffect(criticalSkill) ? criticalSkill.criticalChance : 0) /
-    100;
-  const sharpEyesCriticalBonus =
-    skills.sharpEyesEnabled && isSharpEyesEffect(sharpEyesSkill)
-      ? sharpEyesSkill.criticalChance / 100
-      : 0;
-  const totalCriticalProb = Math.min(1, criticalProb + sharpEyesCriticalBonus);
+  const criticalProb = criticalChance / 100;
+  console.log(criticalProb);
 
   // Calculate expected damage
   const expectedBasicDamage = (basicDamage.min + basicDamage.max) / 2;
   const expectedCriticalDamage = (criticalDamage.min + criticalDamage.max) / 2;
   let totalExpected = Math.floor(
-    expectedBasicDamage * (1 - totalCriticalProb) +
-      expectedCriticalDamage * totalCriticalProb
+    expectedBasicDamage * (1 - criticalProb) +
+      expectedCriticalDamage * criticalProb
   );
 
   // Calculate HP absorption range for Drain skill
@@ -453,6 +453,13 @@ export const calculateDamage = (
     totalMin = totalMin * 2;
     totalMax = totalMax * 2;
     totalExpected = totalExpected * 2;
+  }
+
+  // Apply Triple Throw triple damage
+  if (skills.type === 'tripleThrow') {
+    totalMin = totalMin * 3;
+    totalMax = totalMax * 3;
+    totalExpected = totalExpected * 3;
   }
 
   return {

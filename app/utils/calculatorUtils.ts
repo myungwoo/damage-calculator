@@ -8,6 +8,7 @@ import {
   isMapleWarriorEffect,
   isSharpEyesEffect,
   isDrainEffect,
+  isTripleThrowEffect,
 } from '../types/calculator';
 
 export const getSkillLevelRange = (skillType: string) => {
@@ -28,6 +29,8 @@ export const getSkillLevelRange = (skillType: string) => {
       return Array.from({ length: 31 }, (_, i) => i);
     case 'sharpEyes':
       return Array.from({ length: 31 }, (_, i) => i);
+    case 'tripleThrow':
+      return Array.from({ length: 30 }, (_, i) => i + 1);
     default:
       return [];
   }
@@ -69,6 +72,9 @@ export const renderSkillEffect = (skillType: string, level: number) => {
     return `순 스탯 ${effect.statBoost}% 증가, ${effect.duration}초 지속`;
   }
   if (isLucky7Effect(effect)) {
+    return `데미지 ${effect.damage}%`;
+  }
+  if (isTripleThrowEffect(effect)) {
     return `데미지 ${effect.damage}%`;
   }
   return null;

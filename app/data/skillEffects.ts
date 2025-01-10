@@ -54,6 +54,12 @@ interface DrainEffect {
   absorptionPercent: number;
 }
 
+interface TripleThrowEffect {
+  type: 'tripleThrow';
+  level: number;
+  damage: number;
+}
+
 // 럭키 세븐 (1~20레벨)
 export const lucky7Effects: Lucky7Effect[] = [
   {
@@ -1456,6 +1462,160 @@ export const drainEffects: DrainEffect[] = [
   },
 ];
 
+// 트리플 스로우 (1~30레벨)
+export const tripleThrowEffects: TripleThrowEffect[] = [
+  {
+    type: 'tripleThrow',
+    level: 1,
+    damage: 102,
+  },
+  {
+    type: 'tripleThrow',
+    level: 2,
+    damage: 104,
+  },
+  {
+    type: 'tripleThrow',
+    level: 3,
+    damage: 106,
+  },
+  {
+    type: 'tripleThrow',
+    level: 4,
+    damage: 108,
+  },
+  {
+    type: 'tripleThrow',
+    level: 5,
+    damage: 110,
+  },
+  {
+    type: 'tripleThrow',
+    level: 6,
+    damage: 112,
+  },
+  {
+    type: 'tripleThrow',
+    level: 7,
+    damage: 114,
+  },
+  {
+    type: 'tripleThrow',
+    level: 8,
+    damage: 116,
+  },
+  {
+    type: 'tripleThrow',
+    level: 9,
+    damage: 118,
+  },
+  {
+    type: 'tripleThrow',
+    level: 10,
+    damage: 120,
+  },
+  {
+    type: 'tripleThrow',
+    level: 11,
+    damage: 122,
+  },
+  {
+    type: 'tripleThrow',
+    level: 12,
+    damage: 124,
+  },
+  {
+    type: 'tripleThrow',
+    level: 13,
+    damage: 126,
+  },
+  {
+    type: 'tripleThrow',
+    level: 14,
+    damage: 128,
+  },
+  {
+    type: 'tripleThrow',
+    level: 15,
+    damage: 130,
+  },
+  {
+    type: 'tripleThrow',
+    level: 16,
+    damage: 132,
+  },
+  {
+    type: 'tripleThrow',
+    level: 17,
+    damage: 134,
+  },
+  {
+    type: 'tripleThrow',
+    level: 18,
+    damage: 136,
+  },
+  {
+    type: 'tripleThrow',
+    level: 19,
+    damage: 138,
+  },
+  {
+    type: 'tripleThrow',
+    level: 20,
+    damage: 140,
+  },
+  {
+    type: 'tripleThrow',
+    level: 21,
+    damage: 141,
+  },
+  {
+    type: 'tripleThrow',
+    level: 22,
+    damage: 142,
+  },
+  {
+    type: 'tripleThrow',
+    level: 23,
+    damage: 143,
+  },
+  {
+    type: 'tripleThrow',
+    level: 24,
+    damage: 144,
+  },
+  {
+    type: 'tripleThrow',
+    level: 25,
+    damage: 145,
+  },
+  {
+    type: 'tripleThrow',
+    level: 26,
+    damage: 146,
+  },
+  {
+    type: 'tripleThrow',
+    level: 27,
+    damage: 147,
+  },
+  {
+    type: 'tripleThrow',
+    level: 28,
+    damage: 148,
+  },
+  {
+    type: 'tripleThrow',
+    level: 29,
+    damage: 149,
+  },
+  {
+    type: 'tripleThrow',
+    level: 30,
+    damage: 150,
+  },
+];
+
 export const getSkillEffect = (
   skillType: string,
   level: number
@@ -1468,6 +1628,7 @@ export const getSkillEffect = (
   | ShadowPartnerEffect
   | MapleWarriorEffect
   | SharpEyesEffect
+  | TripleThrowEffect
   | null => {
   switch (skillType) {
     case 'lucky7':
@@ -1486,6 +1647,8 @@ export const getSkillEffect = (
       return mapleWarriorEffects[level];
     case 'sharpEyes':
       return sharpEyesEffects[level];
+    case 'tripleThrow':
+      return tripleThrowEffects[level - 1];
     default:
       return null;
   }

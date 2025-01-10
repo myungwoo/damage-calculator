@@ -1,5 +1,5 @@
 export type StatType = 'str' | 'dex' | 'luk';
-export type AttackSkillType = 'lucky7' | 'avenger' | 'drain';
+export type AttackSkillType = 'lucky7' | 'avenger' | 'drain' | 'tripleThrow';
 
 export type Region =
   | '빅토리아 아일랜드'
@@ -147,6 +147,12 @@ export interface DrainEffect {
   absorptionPercent: number;
 }
 
+export interface TripleThrowEffect {
+  type: 'tripleThrow';
+  level: number;
+  damage: number;
+}
+
 export type SkillEffect =
   | Lucky7Effect
   | AvengerEffect
@@ -155,7 +161,8 @@ export type SkillEffect =
   | JavelinEffect
   | ShadowPartnerEffect
   | MapleWarriorEffect
-  | SharpEyesEffect;
+  | SharpEyesEffect
+  | TripleThrowEffect;
 
 // 타입 가드
 export const isLucky7Effect = (effect: SkillEffect): effect is Lucky7Effect => {
@@ -200,6 +207,12 @@ export const isSharpEyesEffect = (
 
 export const isDrainEffect = (effect: SkillEffect): effect is DrainEffect => {
   return effect.type === 'drain';
+};
+
+export const isTripleThrowEffect = (
+  effect: SkillEffect
+): effect is TripleThrowEffect => {
+  return effect.type === 'tripleThrow';
 };
 
 export interface MonsterPreset extends Monster {

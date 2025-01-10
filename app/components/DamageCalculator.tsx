@@ -513,6 +513,7 @@ export default function DamageCalculator() {
                         <option value="lucky7">럭키 세븐</option>
                         <option value="drain">드레인</option>
                         <option value="avenger">어벤져</option>
+                        <option value="tripleThrow">트리플 스로우</option>
                       </select>
                     </div>
                     <div>
