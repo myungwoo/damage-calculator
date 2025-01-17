@@ -350,7 +350,7 @@ export const calculateDamage = (
     isSharpEyesEffect(sharpEyesSkill)
   ) {
     criticalChance += sharpEyesSkill.criticalChance;
-    criticalMultiplier += sharpEyesSkill.damage / 100;
+    criticalMultiplier += (100 + sharpEyesSkill.damage) / 100;
   }
 
   // Calculate basic damage
