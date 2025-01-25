@@ -49,7 +49,8 @@ export const calculatePureLuk = (
   str: number,
   dex: number
 ): number => {
-  const totalPureStats = 20 + level * 5 + (level >= 70 ? 5 : 0);
+  const totalPureStats =
+    20 + level * 5 + (level >= 70 ? 5 : 0) + (level >= 120 ? 5 : 0);
   return Math.max(0, totalPureStats - str - dex - 4); // 4 = INT
 };
 
