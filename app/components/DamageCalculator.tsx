@@ -706,7 +706,7 @@ export default function DamageCalculator() {
                           ))}
                         </select>
                         <button
-                          onClick={() => handleMapleWarriorLevelChange(30)}
+                          onClick={() => handleMapleWarriorLevelChange(20)}
                           className="mt-1 px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
                         >
                           M
