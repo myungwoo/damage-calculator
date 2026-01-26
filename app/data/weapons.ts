@@ -17,4 +17,5 @@ export const throwingStars: Weapon[] = [
   { id: 'thunder', name: '뇌전 수리검', attack: 25 },
   { id: 'ilbi', name: '일비 표창', attack: 27 },
   { id: 'hwabi', name: '화비 표창', attack: 27 },
+  { id: 'balanced-fury', name: '절제된 분노', attack: 29 },
 ];
