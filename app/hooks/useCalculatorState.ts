@@ -12,6 +12,7 @@ import {
 import { monsterPresets } from '../data/monsterPresets';
 import { calculatePureLuk } from '../utils/damageCalculator';
 import { getSkillEffect } from '../data/skillEffects';
+import { DEFAULT_ATTACKS_PER_MINUTE } from '../data/venom';
 import {
   STORAGE_KEY_PREFIX,
   MIN_LEVEL,
@@ -25,6 +26,8 @@ const DEFAULT_STATE = {
     physicalDefense: monsterPresets[0].physicalDefense,
     magicalDefense: monsterPresets[0].magicalDefense,
     avoid: monsterPresets[0].avoid,
+    poisonAttribute: monsterPresets[0].poisonAttribute,
+    isBoss: monsterPresets[0].isBoss,
   } as Monster,
   stats: {
     level: 10,
@@ -54,6 +57,9 @@ const DEFAULT_STATE = {
     mapleWarriorEnabled: false,
     sharpEyes: 0,
     sharpEyesEnabled: false,
+    venom: 0,
+    venomEnabled: false,
+    attacksPerMinute: DEFAULT_ATTACKS_PER_MINUTE,
   } as Skills,
   selectedMonsterId: monsterPresets[0].id,
   isCustomMonster: false,
@@ -113,10 +119,19 @@ export const useCalculatorState = () => {
 
         setState((prev) => ({
           ...prev,
-          monster: parsedData.monster as Monster,
+          // 독 속성 / 보스 여부는 저장 데이터에 없을 수 있으므로 프리셋에서 다시 붙인다.
+          monster: {
+            ...(parsedData.monster as Monster),
+            poisonAttribute: matchingPreset?.poisonAttribute,
+            isBoss: matchingPreset?.isBoss,
+          },
           stats: parsedData.stats as Stats,
           equipment: parsedData.equipment as Equipment,
-          skills: parsedData.skills as Skills,
+          // 예전 저장 데이터에는 베놈 관련 필드가 없으므로 기본값으로 채운다.
+          skills: {
+            ...DEFAULT_STATE.skills,
+            ...(parsedData.skills as Skills),
+          },
           selectedMonsterId: matchingPreset?.id || 'custom',
           isCustomMonster: !matchingPreset,
         }));
@@ -147,6 +162,8 @@ export const useCalculatorState = () => {
             physicalDefense: selectedPreset.physicalDefense,
             magicalDefense: selectedPreset.magicalDefense,
             avoid: selectedPreset.avoid,
+            poisonAttribute: selectedPreset.poisonAttribute,
+            isBoss: selectedPreset.isBoss,
           },
         }));
       }
@@ -282,7 +299,8 @@ export const useCalculatorState = () => {
           monster: parsedData.monster,
           stats: parsedData.stats,
           equipment: parsedData.equipment,
-          skills: parsedData.skills,
+          // 예전 저장 데이터에는 베놈 관련 필드가 없으므로 기본값으로 채운다.
+          skills: { ...DEFAULT_STATE.skills, ...parsedData.skills },
         }));
       }
     } finally {

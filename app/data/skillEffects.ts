@@ -1,8 +1,34 @@
+import { getVenomLevelData, VENOM_MAX_LEVEL } from './venom';
+
 interface Lucky7Effect {
   type: 'lucky7';
   level: number;
   damage: number;
 }
+
+interface VenomEffect {
+  type: 'venom';
+  level: number;
+  prop: number;
+  mad: number;
+  duration: number;
+}
+
+/** 베놈 수치는 규칙적이라 표를 늘어놓지 않고 닫힌 식에서 만들어 쓴다. */
+const venomEffects: VenomEffect[] = Array.from(
+  { length: VENOM_MAX_LEVEL },
+  (_, index) => {
+    const level = index + 1;
+    const data = getVenomLevelData(level)!;
+    return {
+      type: 'venom' as const,
+      level,
+      prop: data.prop,
+      mad: data.mad,
+      duration: data.durationSeconds,
+    };
+  }
+);
 
 interface AvengerEffect {
   type: 'avenger';
@@ -1629,6 +1655,7 @@ export const getSkillEffect = (
   | MapleWarriorEffect
   | SharpEyesEffect
   | TripleThrowEffect
+  | VenomEffect
   | null => {
   switch (skillType) {
     case 'lucky7':
@@ -1649,6 +1676,8 @@ export const getSkillEffect = (
       return sharpEyesEffects[level];
     case 'tripleThrow':
       return tripleThrowEffects[level - 1];
+    case 'venom':
+      return venomEffects[level - 1];
     default:
       return null;
   }

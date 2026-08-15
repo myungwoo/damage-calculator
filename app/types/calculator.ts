@@ -27,6 +27,13 @@ export interface Monster {
   physicalDefense: number;
   magicalDefense: number;
   avoid: number;
+  /**
+   * 독 속성 저항 (원작 Mob.wz elemAttr의 S 항목).
+   * 1 = 무효, 2 = 반감, 3 = 약점. 1과 2에는 베놈이 걸리지 않는다.
+   */
+  poisonAttribute?: number;
+  /** 보스 여부. 보스에게는 베놈이 걸리지 않는다. */
+  isBoss?: boolean;
 }
 
 export interface Stats {
@@ -59,6 +66,14 @@ export interface Skills {
   mapleWarriorEnabled: boolean;
   sharpEyes: number;
   sharpEyesEnabled: boolean;
+  venom: number;
+  venomEnabled: boolean;
+  /**
+   * 분당 공격 횟수.
+   * 베놈은 시간당 1틱씩 들어가므로, 몇 방 안에 몇 틱이 들어가는지 세려면
+   * 공격 주기를 알아야 한다. 베놈을 쓰지 않으면 계산에 영향이 없다.
+   */
+  attacksPerMinute: number;
 }
 
 export interface SaveData {
@@ -88,6 +103,10 @@ export interface DamageResult {
     accProb: string;
   }[];
   hpAbsorption: DamageRange;
+  /** 베놈 1중첩 기준 틱 1회 데미지. 베놈이 적용되지 않으면 null */
+  venomTickDamage: DamageRange | null;
+  /** 베놈이 실제로 계산에 반영됐는지 (보스 / 독 무효·반감이면 false) */
+  venomApplied: boolean;
 }
 
 // 스킬 효과 인터페이스
@@ -153,6 +172,17 @@ export interface TripleThrowEffect {
   damage: number;
 }
 
+export interface VenomEffect {
+  type: 'venom';
+  level: number;
+  /** 타격 1회당 중독 성공 확률 (%) */
+  prop: number;
+  /** 스킬 공격력 (WZ의 mad) */
+  mad: number;
+  /** 중독 지속 시간 (초) */
+  duration: number;
+}
+
 export type SkillEffect =
   | Lucky7Effect
   | AvengerEffect
@@ -162,7 +192,8 @@ export type SkillEffect =
   | ShadowPartnerEffect
   | MapleWarriorEffect
   | SharpEyesEffect
-  | TripleThrowEffect;
+  | TripleThrowEffect
+  | VenomEffect;
 
 // 타입 가드
 export const isLucky7Effect = (effect: SkillEffect): effect is Lucky7Effect => {
@@ -215,7 +246,12 @@ export const isTripleThrowEffect = (
   return effect.type === 'tripleThrow';
 };
 
+export const isVenomEffect = (effect: SkillEffect): effect is VenomEffect => {
+  return effect.type === 'venom';
+};
+
 export interface MonsterPreset extends Monster {
+  /** 원작 Mob.wz의 몹 ID. 유출 파일에서 속성 데이터를 다시 붙일 때 이 값으로 맞춘다. */
   id: string;
   name: string;
   exp?: number;
