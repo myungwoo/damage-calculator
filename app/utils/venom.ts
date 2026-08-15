@@ -187,65 +187,64 @@ export const calculateVenomSurvivals = (
     transition.set(dist, from * stackBins);
   }
 
-  // 3. (남은 틱 수, 누적 스택, 누적 베놈 데미지) 결합분포를 시간순으로 굴린다.
-  const duration = data.durationSeconds;
-  const planes = duration + 1;
-  // 누적 베놈 데미지는 HP를 넘겨 봐야 쓸모가 없고(그 위는 전부 "HP를 채웠다"),
-  // 틱 수 x 최대 스택도 넘을 수 없다. 둘 중 작은 쪽으로 축을 잘라 계산량을 줄인다.
+  // 3. 틱 시각표를 "마지막 중첩 성공 이후 몇 번째 공격인가"로 환산한다.
+  //
+  //    도트 클럭은 자유진행이 아니라 부여 시점에 고정된다. 중첩에 성공할 때마다
+  //    m_tLastUpdateVenom이 그 시각으로 초기화되고, 거기서 1초 간격으로
+  //    지속시간만큼 틱이 들어간다.
+  //
+  //    중첩은 공격할 때만 일어나므로 부여 시각은 항상 공격 시각이다. 덕분에
+  //    "부여 이후 경과한 공격 수"만 상태로 들고 있으면 각 공격 구간에 몇 번의
+  //    틱이 들어가는지가 결정된다. age번째 공격 구간
+  //    [부여 + age * 공격주기, 부여 + (age + 1) * 공격주기)에 들어가는 틱은
+  //    부여 + k * 1초 (k = 1 .. 지속시간) 중 그 구간에 걸리는 것들이다.
+  const period = config.attackPeriodSeconds;
+  const tickCount = Math.round(
+    data.durationSeconds / VENOM_TICK_INTERVAL_SECONDS
+  );
+  // 마지막 틱이 들어가는 구간 다음부터는 베놈이 남아 있지 않다.
+  const maxAge =
+    Math.floor((tickCount * VENOM_TICK_INTERVAL_SECONDS) / period) + 1;
+  const ticksAtAge = new Int32Array(maxAge + 1);
+  for (let tick = 1; tick <= tickCount; tick++) {
+    const time = tick * VENOM_TICK_INTERVAL_SECONDS;
+    const age = Math.floor(time / period + TIME_EPSILON);
+    ticksAtAge[Math.min(age, maxAge)]++;
+  }
+
+  // 4. (부여 이후 경과 공격 수, 누적 스택, 누적 베놈 데미지) 결합분포를 굴린다.
+  //
+  //    누적 베놈 데미지는 HP를 넘겨 봐야 쓸모가 없고(그 위는 전부 "HP를 채웠다"),
+  //    틱 수 x 틱 상한도 넘을 수 없다. 둘 중 작은 쪽으로 축을 잘라 계산량을 줄인다.
   const totalTicks =
-    Math.floor(
-      ((maxUses - 1) * config.attackPeriodSeconds) / VENOM_TICK_INTERVAL_SECONDS
-    ) + 1;
+    Math.floor((maxUses * period) / VENOM_TICK_INTERVAL_SECONDS) + tickCount;
   const wBins =
     Math.min(Math.ceil(monsterHp / unit), totalTicks * Math.max(1, tickCap)) +
     1;
   const planeSize = stackBins * wBins;
-  const index = (remaining: number, stack: number, damage: number) =>
-    remaining * planeSize + stack * wBins + damage;
+  const index = (age: number, stack: number, damage: number) =>
+    age * planeSize + stack * wBins + damage;
 
-  let joint = new Float64Array(planes * planeSize);
-  joint[index(0, 0, 0)] = 1;
-
-  /** 틱 1회: 남은 틱이 있는 상태만 현재 스택만큼 누적하고 남은 틱을 줄인다. */
-  const applyTick = () => {
-    const next = new Float64Array(joint.length);
-    for (let stack = 0; stack < stackBins; stack++) {
-      for (let damage = 0; damage < wBins; damage++) {
-        next[index(0, stack, damage)] += joint[index(0, stack, damage)];
-      }
-    }
-    for (let remaining = 1; remaining <= duration; remaining++) {
-      const nextRemaining = remaining - 1;
-      for (let stack = 0; stack < stackBins; stack++) {
-        // 만료되면 스택도 함께 0으로 돌아간다.
-        const nextStack = nextRemaining === 0 ? 0 : stack;
-        const emitted = Math.min(stack, tickCap);
-        for (let damage = 0; damage < wBins; damage++) {
-          const mass = joint[index(remaining, stack, damage)];
-          if (mass === 0) continue;
-          const nextDamage = Math.min(damage + emitted, wBins - 1);
-          next[index(nextRemaining, nextStack, nextDamage)] += mass;
-        }
-      }
-    }
-    joint = next;
-  };
+  let joint = new Float64Array((maxAge + 1) * planeSize);
+  // 시작 상태는 "베놈이 걸려 있지 않음" = 만료 상태(age = maxAge, 스택 0)
+  joint[index(maxAge, 0, 0)] = 1;
 
   /**
-   * 공격 1회: 중첩에 성공하면 지속시간이 갱신되고, 실패하면 아무것도 바뀌지 않는다.
-   * 성공했을 때의 도착 상태는 남은 틱 수와 무관하게 항상 duration이므로,
-   * 남은 틱 축을 먼저 합쳐 두면 전이 비용을 평면 수만큼 아낄 수 있다.
+   * 공격 1회. 중첩에 성공하면 틱 타이머가 초기화되므로 도착 상태의 경과 공격 수는
+   * 언제나 0이다. 실패하면 아무것도 바뀌지 않는다(지속시간 갱신도 없다).
+   * 도착 상태가 하나로 모이므로 경과 공격 수 축을 먼저 합쳐 두면
+   * 전이 비용을 그 축의 크기만큼 아낄 수 있다.
    */
   const applyAttack = () => {
     const next = new Float64Array(joint.length);
     const merged = new Float64Array(planeSize);
-    for (let remaining = 0; remaining <= duration; remaining++) {
+    for (let age = 0; age <= maxAge; age++) {
       for (let stack = 0; stack < stackBins; stack++) {
         const stay = transition[stack * stackBins + stack];
         for (let damage = 0; damage < wBins; damage++) {
-          const mass = joint[index(remaining, stack, damage)];
+          const mass = joint[index(age, stack, damage)];
           if (mass === 0) continue;
-          next[index(remaining, stack, damage)] += mass * stay;
+          next[index(age, stack, damage)] += mass * stay;
           merged[stack * wBins + damage] += mass;
         }
       }
@@ -258,7 +257,29 @@ export const calculateVenomSurvivals = (
         for (let damage = 0; damage < wBins; damage++) {
           const mass = merged[from * wBins + damage];
           if (mass === 0) continue;
-          next[index(duration, to, damage)] += mass * weight;
+          next[index(0, to, damage)] += mass * weight;
+        }
+      }
+    }
+    joint = next;
+  };
+
+  /** 이번 공격 구간의 틱을 넣고 경과 공격 수를 하나 올린다. */
+  const applyTicksAndAge = () => {
+    const next = new Float64Array(joint.length);
+    for (let age = 0; age <= maxAge; age++) {
+      const ticks = ticksAtAge[age];
+      const nextAge = Math.min(age + 1, maxAge);
+      // 만료되면 누적 스택도 함께 0으로 돌아간다.
+      const expired = nextAge === maxAge;
+      for (let stack = 0; stack < stackBins; stack++) {
+        const emitted = ticks * Math.min(stack, tickCap);
+        const nextStack = expired ? 0 : stack;
+        for (let damage = 0; damage < wBins; damage++) {
+          const mass = joint[index(age, stack, damage)];
+          if (mass === 0) continue;
+          const nextDamage = Math.min(damage + emitted, wBins - 1);
+          next[index(nextAge, nextStack, nextDamage)] += mass;
         }
       }
     }
@@ -268,9 +289,9 @@ export const calculateVenomSurvivals = (
   /** 현재 결합분포에서 누적 베놈 데미지의 생존함수를 뽑는다. */
   const buildSurvival = (): Float64Array => {
     const damageDist = new Float64Array(wBins);
-    for (let remaining = 0; remaining <= duration; remaining++) {
+    for (let age = 0; age <= maxAge; age++) {
       for (let stack = 0; stack < stackBins; stack++) {
-        const offset = index(remaining, stack, 0);
+        const offset = index(age, stack, 0);
         for (let damage = 0; damage < wBins; damage++) {
           damageDist[damage] += joint[offset + damage];
         }
@@ -290,20 +311,11 @@ export const calculateVenomSurvivals = (
   };
 
   const survivals: Float64Array[] = [];
-  let nextTickTime = 0;
   for (let use = 1; use <= maxUses; use++) {
-    const attackTime = (use - 1) * config.attackPeriodSeconds;
-    // 공격보다 앞선 틱을 먼저 소화한다. 같은 시각의 틱은 공격 뒤라 여기서 제외된다.
-    while (nextTickTime < attackTime - TIME_EPSILON) {
-      applyTick();
-      nextTickTime += VENOM_TICK_INTERVAL_SECONDS;
-    }
+    // 이 공격이 들어가기 직전까지 쌓인 베놈 데미지
     survivals.push(buildSurvival());
     applyAttack();
-    if (Math.abs(nextTickTime - attackTime) < TIME_EPSILON) {
-      applyTick();
-      nextTickTime += VENOM_TICK_INTERVAL_SECONDS;
-    }
+    applyTicksAndAge();
   }
   return survivals;
 };
