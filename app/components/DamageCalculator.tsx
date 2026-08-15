@@ -8,7 +8,7 @@ import {
   calculateHitProbability,
 } from '../utils/damageCalculator';
 import { throwingStars } from '../data/weapons';
-import { REGION_ORDER } from '../constants/calculator';
+import { REGION_ORDER, CALCULATION_DEBOUNCE_MS } from '../constants/calculator';
 import {
   getSkillLevelRange,
   formatSaveDate,
@@ -56,13 +56,20 @@ export default function DamageCalculator() {
     hpAbsorption: { min: 0, max: 0 },
   });
 
+  // 방컷 확률 계산은 HP가 큰 몬스터에서 수십 ms가 걸리는 동기 작업이라
+  // 입력할 때마다 바로 돌리면 타이핑이 밀린다. 짧게 디바운스해서
+  // 연속 입력 중에는 마지막 값 한 번만 계산한다.
   useEffect(() => {
-    try {
-      const result = calculateDamage(monster, stats, equipment, skills);
-      setDamageResult(result);
-    } catch (error) {
-      console.error('Failed to calculate damage:', error);
-    }
+    const timer = setTimeout(() => {
+      try {
+        const result = calculateDamage(monster, stats, equipment, skills);
+        setDamageResult(result);
+      } catch (error) {
+        console.error('Failed to calculate damage:', error);
+      }
+    }, CALCULATION_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
   }, [monster, stats, equipment, skills]);
 
   return (

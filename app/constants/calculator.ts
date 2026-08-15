@@ -3,6 +3,9 @@ export const STORAGE_KEY_PREFIX = 'damage-calculator-save-';
 export const MIN_LEVEL = 1;
 export const MAX_LEVEL = 250;
 
+/** 입력 후 방컷 확률을 다시 계산하기까지의 디바운스 시간 (ms) */
+export const CALCULATION_DEBOUNCE_MS = 100;
+
 export const REGION_ORDER = [
   '빅토리아 아일랜드',
   '미출시',
