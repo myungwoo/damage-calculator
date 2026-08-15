@@ -9,6 +9,7 @@ import {
   isSharpEyesEffect,
   isDrainEffect,
   isTripleThrowEffect,
+  isVenomEffect,
 } from '../types/calculator';
 
 export const getSkillLevelRange = (skillType: string) => {
@@ -31,6 +32,8 @@ export const getSkillLevelRange = (skillType: string) => {
       return Array.from({ length: 31 }, (_, i) => i);
     case 'tripleThrow':
       return Array.from({ length: 30 }, (_, i) => i + 1);
+    case 'venom':
+      return Array.from({ length: 31 }, (_, i) => i);
     default:
       return [];
   }
@@ -76,6 +79,9 @@ export const renderSkillEffect = (skillType: string, level: number) => {
   }
   if (isTripleThrowEffect(effect)) {
     return `데미지 ${effect.damage}%`;
+  }
+  if (isVenomEffect(effect)) {
+    return `타격당 중독 ${effect.prop}%, ${effect.duration}초 지속(초당 1틱), 스킬 공격력 ${effect.mad}`;
   }
   return null;
 };

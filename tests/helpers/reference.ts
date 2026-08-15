@@ -129,6 +129,102 @@ export const simulateKillProbabilities = (
   return result;
 };
 
+export interface VenomScenario {
+  /** 베놈 스킬 공격력 (mad) */
+  mad: number;
+  /** 타격 1회당 중독 성공 확률 0~1 */
+  prop: number;
+  /** 중독 지속 시간 (초). 1초에 1틱이므로 곧 부여 1회당 틱 수다. */
+  durationSeconds: number;
+  /** STR + LUK */
+  statSum: number;
+  /** DEX */
+  dex: number;
+  /** 스킬 1회당 베놈 판정 횟수 (쉐도우 파트너 포함) */
+  rollsPerUse: number;
+  /** 공격 1회 주기 (초) */
+  attackPeriodSeconds: number;
+}
+
+/**
+ * 베놈까지 포함한 몬테카를로.
+ *
+ * 유출 코드의 동작을 그대로 흉내 낸다.
+ * - 타격마다 prop 확률로 중독 판정
+ * - 기존 누적 <= 신규 * 2 일 때만 합연산으로 중첩되고 지속시간이 갱신된다
+ * - 도트 클럭은 위상 0으로 1초마다 돌고, 같은 시각이면 공격이 먼저다
+ * - 도트 데미지는 몬스터 HP를 1 미만으로 내리지 못한다
+ */
+export const simulateKillProbabilitiesWithVenom = (
+  s: KillScenario,
+  venom: VenomScenario,
+  trials: number,
+  seed: number
+): number[] => {
+  const maxUses = s.maxUses ?? 20;
+  const random = createRandom(seed);
+  const counts = new Array(maxUses).fill(0);
+  const epsilon = 1e-9;
+
+  const venomBase = Math.floor(venom.statSum * 0.8);
+  const venomDamage = (roll: number) =>
+    Math.floor((venom.mad * (venom.dex + 5 * (venomBase + roll))) / 49);
+
+  for (let trial = 0; trial < trials; trial++) {
+    let hp = s.hp;
+    let stack = 0;
+    let remaining = 0;
+    let nextTick = 0;
+
+    const applyTick = () => {
+      if (remaining > 0) {
+        hp = Math.max(1, hp - stack);
+        remaining--;
+        if (remaining === 0) stack = 0;
+      }
+      nextTick += 1;
+    };
+
+    for (let use = 0; use < maxUses; use++) {
+      const attackTime = use * venom.attackPeriodSeconds;
+      while (nextTick < attackTime - epsilon) applyTick();
+
+      let dealt = 0;
+      for (let hit = 0; hit < s.hits; hit++) {
+        if (random() >= s.hitProb) continue;
+        const range = random() < s.critChance ? s.crit : s.basic;
+        const damage =
+          range.min + Math.floor(random() * (range.max - range.min + 1));
+        dealt += damage + Math.floor(damage * s.shadow);
+      }
+      hp -= dealt;
+      if (hp <= 0) {
+        counts[use]++;
+        break;
+      }
+
+      for (let roll = 0; roll < venom.rollsPerUse; roll++) {
+        if (random() >= venom.prop) continue;
+        const value = venomDamage(Math.floor(random() * venom.statSum));
+        if (stack <= 2 * value) {
+          stack += value;
+          remaining = venom.durationSeconds;
+        }
+      }
+
+      if (Math.abs(nextTick - attackTime) < epsilon) applyTick();
+    }
+  }
+
+  const result: number[] = [];
+  let running = 0;
+  for (let i = 0; i < maxUses; i++) {
+    running += counts[i];
+    result.push(running / trials);
+  }
+  return result;
+};
+
 /** 배포 코드가 돌려주는 결과를 누적 확률 배열(0~1)로 되돌린다. */
 export const toAccumulatedProbabilities = (
   rows: { hit: number; prob: string; accProb: string }[],

@@ -54,6 +54,8 @@ export default function DamageCalculator() {
     killProbabilities: [],
     statAttack: { min: 0, max: 0 },
     hpAbsorption: { min: 0, max: 0 },
+    venomTickDamage: null,
+    venomApplied: false,
   });
 
   // 방컷 확률 계산은 HP가 큰 몬스터에서 수십 ms가 걸리는 동기 작업이라
@@ -786,6 +788,89 @@ export default function DamageCalculator() {
                         </label>
                       </div>
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        베놈
+                      </label>
+                      <div className="flex gap-2">
+                        <select
+                          value={skills.venom}
+                          onChange={(e) =>
+                            setSkills((prev) => ({
+                              ...prev,
+                              venom: Number(e.target.value),
+                            }))
+                          }
+                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
+                        >
+                          {getSkillLevelRange('venom').map((level) => (
+                            <option key={level} value={level}>
+                              {level}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() =>
+                            setSkills((prev) => ({ ...prev, venom: 30 }))
+                          }
+                          className="mt-1 px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
+                        >
+                          M
+                        </button>
+                      </div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
+                        {renderSkillEffect('venom', skills.venom)}
+                      </span>
+                      <div className="flex items-center gap-2 mt-2">
+                        <input
+                          type="checkbox"
+                          id="venomEnabled"
+                          checked={skills.venomEnabled}
+                          onChange={(e) =>
+                            setSkills((prev) => ({
+                              ...prev,
+                              venomEnabled: e.target.checked,
+                            }))
+                          }
+                          className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary dark:bg-gray-700"
+                        />
+                        <label
+                          htmlFor="venomEnabled"
+                          className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                        >
+                          베놈 사용
+                        </label>
+                      </div>
+                      {skills.venomEnabled && skills.venom > 0 && (
+                        <div className="mt-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            분당 공격 횟수
+                          </label>
+                          <NumberInput
+                            value={skills.attacksPerMinute}
+                            onChange={(value) =>
+                              setSkills((prev) => ({
+                                ...prev,
+                                attacksPerMinute: Math.max(1, value ?? 1),
+                              }))
+                            }
+                          />
+                          <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
+                            베놈은 1초마다 도트 데미지가 들어가서, 같은 방수라도
+                            공격 속도에 따라 틱 수가 달라진다
+                          </span>
+                        </div>
+                      )}
+                      {!damageResult.venomApplied &&
+                        skills.venomEnabled &&
+                        skills.venom > 0 && (
+                          <span className="text-sm text-amber-600 dark:text-amber-400 mt-1 block">
+                            {skills.type === 'drain'
+                              ? '드레인에는 베놈이 발동하지 않는다'
+                              : '보스 / 독 무효 · 반감 몬스터에는 베놈이 걸리지 않는다'}
+                          </span>
+                        )}
+                    </div>
                   </div>
                 </div>
 
@@ -851,6 +936,23 @@ export default function DamageCalculator() {
                         )}
                       </p>
                     </div>
+                    {damageResult.venomApplied &&
+                      damageResult.venomTickDamage && (
+                        <div>
+                          <h3 className="font-medium">
+                            베놈 틱 데미지 (1중첩)
+                          </h3>
+                          <p>
+                            {damageResult.venomTickDamage.min} ~{' '}
+                            {damageResult.venomTickDamage.max}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            1초마다 1틱, 중첩되면 합산되어 들어간다. 몹 방어력과
+                            크리티컬의 영향을 받지 않고, 이 데미지만으로는
+                            몬스터를 잡을 수 없다
+                          </p>
+                        </div>
+                      )}
                     {skills.type === 'drain' && (
                       <div>
                         <h3 className="font-medium">HP 흡수량 범위</h3>

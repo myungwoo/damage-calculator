@@ -22,6 +22,16 @@ import {
   nextPowerOfTwo,
   Spectrum,
 } from './fft';
+import {
+  VenomConfig,
+  calculateVenomSurvivals,
+  calculateVenomTickDamage,
+} from './venom';
+import {
+  DEFAULT_ATTACKS_PER_MINUTE,
+  POISON_BLOCKING_ATTRIBUTES,
+  VENOM_EXCLUDED_SKILLS,
+} from '../data/venom';
 
 /**
  * 방컷 확률 계산에 쓰는 몬스터 HP 해상도 상한.
@@ -32,6 +42,10 @@ import {
  * 정확도 손실 없이 쓸 수 있는 가장 큰 값이다.
  */
 export const MAX_HP_RESOLUTION = 16383;
+
+/** 스킬 1회당 본체 타격 수 (럭키 세븐 2, 트리플 스로우 3, 그 외 1) */
+export const getHitCount = (skillType: AttackSkillType): number =>
+  skillType === 'tripleThrow' ? 3 : skillType === 'lucky7' ? 2 : 1;
 
 export const calculateTotalStats = (
   stats: Stats
@@ -163,6 +177,17 @@ const calculateDamageWithModifiers = (
  * "누적 데미지 -> 확률" 배열을 만들고, 몬스터 HP 이상인 누적 데미지를 전부
  * 인덱스 monsterHp(= 사망)로 몰아넣어 흡수 상태로 둔다. 이 분포를 스킬 시전
  * 횟수만큼 컨볼루션하면 dist[monsterHp]가 곧 "N방 안에 죽을 누적 확률"이 된다.
+ *
+ * 베놈을 켜면 여기에 누적 베놈 데미지 W가 더해진다. 베놈은 몬스터를 죽이지
+ * 못하고 HP를 1에서 멈추게 하므로, 실제 사망 조건은
+ *   "누적 공격 데미지 + 누적 베놈 데미지 >= HP" 이면서
+ *   "HP를 넘긴 시점의 공격이 데미지를 1 이상 넣었을 것"
+ * 이 된다. 뒤 조건은 명중률 100%면 항상 참이라 앞 조건만 보면 되고,
+ * 명중률이 낮을 때의 오차는 (1 - 명중률)^타격수로 묶인다.
+ *
+ * 베놈이 굴리는 난수는 공격 데미지 난수와 완전히 독립이라, 누적 베놈 데미지의
+ * 생존함수만 따로 구해 두면 공격 쪽 FFT 파이프라인은 그대로 두고 마지막에
+ * 내적 한 번으로 합류시킬 수 있다.
  */
 export const calculateKillProbabilitiesWithinNHits = (
   skillType: AttackSkillType,
@@ -173,7 +198,8 @@ export const calculateKillProbabilitiesWithinNHits = (
   monsterHp: number,
   stats: Stats,
   monster: Monster,
-  maxHits: number = 20
+  maxHits: number = 20,
+  venomConfig: VenomConfig | null = null
 ) => {
   // 명중률 계산
   const hitProb = calculateHitProbability(
@@ -186,8 +212,10 @@ export const calculateKillProbabilitiesWithinNHits = (
   // 몬스터의 체력이 너무 큰 경우 MAX_HP_RESOLUTION으로 변경
   // 비율에 맞춰서 데미지도 변경
   // 실수 부분 반올림에 따른 오차는 감안해야 함 (실측 최대 0.06%p)
+  let damageScale = 1;
   if (monsterHp > MAX_HP_RESOLUTION) {
     const ratio = MAX_HP_RESOLUTION / monsterHp;
+    damageScale = ratio;
     monsterHp = MAX_HP_RESOLUTION;
     basicDamage = {
       min: Math.round(basicDamage.min * ratio),
@@ -198,6 +226,11 @@ export const calculateKillProbabilitiesWithinNHits = (
       max: Math.round(criticalDamage.max * ratio),
     };
   }
+
+  // 베놈은 축소 후 HP 축 위에서 계산해야 공격 데미지와 눈금이 맞는다.
+  const venomSurvivals = venomConfig
+    ? calculateVenomSurvivals(venomConfig, monsterHp, damageScale, maxHits)
+    : null;
 
   const size = monsterHp + 1;
   // 컨볼루션 결과 길이(2 * size - 1)를 담을 수 있는 FFT 길이.
@@ -305,8 +338,7 @@ export const calculateKillProbabilitiesWithinNHits = (
 
   // 2. 타격 수만큼 단일 히트 분포를 합성해 "스킬 1회" 분포를 만든다.
   //    럭키 세븐은 2회 타격이고, 트리플 스로우는 3회 타격
-  const hitCount =
-    skillType === 'tripleThrow' ? 3 : skillType === 'lucky7' ? 2 : 1;
+  const hitCount = getHitCount(skillType);
 
   const singleHitSpectrum = fftForward(singleHitDistMain, fftSize);
   let singleSkillDist: Float64Array = singleHitDistMain;
@@ -319,17 +351,36 @@ export const calculateKillProbabilitiesWithinNHits = (
   const singleSkillSpectrum =
     hitCount === 1 ? singleHitSpectrum : fftForward(singleSkillDist, fftSize);
 
+  /**
+   * 시전 useIndex + 1회 시점의 사망 확률.
+   * 베놈이 없으면 흡수 상태(dist[monsterHp])가 그대로 답이고,
+   * 있으면 남은 HP를 베놈 누적이 마저 채울 확률을 더한다.
+   */
+  const killProbability = (dist: Float64Array, useIndex: number): number => {
+    const survival = venomSurvivals?.[useIndex];
+    if (!survival) return dist[monsterHp];
+    let total = dist[monsterHp];
+    for (let damage = 0; damage < monsterHp; damage++) {
+      const mass = dist[damage];
+      if (mass === 0) continue;
+      total += mass * survival[monsterHp - damage];
+    }
+    return total;
+  };
+
   const skillUseProbabilities = [];
 
   let distN: Float64Array = singleSkillDist;
-  skillUseProbabilities.push(distN[monsterHp]);
+  skillUseProbabilities.push(killProbability(distN, 0));
 
   while (
     skillUseProbabilities.length < maxHits &&
     skillUseProbabilities[skillUseProbabilities.length - 1] < 0.999999
   ) {
     distN = convolveDistFFT(distN, singleSkillSpectrum);
-    skillUseProbabilities.push(distN[monsterHp]);
+    skillUseProbabilities.push(
+      killProbability(distN, skillUseProbabilities.length)
+    );
   }
 
   let prev = 0;
@@ -464,6 +515,45 @@ export const calculateDamage = (
   let totalMin = basicDamage.min + shadowBasic.min;
   let totalMax = criticalDamage.max + shadowCritical.max;
 
+  // 베놈 설정
+  //
+  // 원작에서 베놈은 표창을 든 나이트로드의 거의 모든 공격에 타격마다 굴러가고,
+  // 쉐도우 파트너 타격도 각각 따로 판정한다. 다만 보스와 독 무효/반감 몬스터에는
+  // 아예 걸리지 않고, 드레인에는 붙지 않는다.
+  //
+  // 명중 실패한 타격도 판정을 굴리는지는 유출 코드로 확정할 수 없다.
+  // 실사용 대부분이 명중률 100%라 단순화를 위해 항상 굴리는 것으로 둔다.
+  const venomBlockedByMonster =
+    monster.isBoss === true ||
+    POISON_BLOCKING_ATTRIBUTES.includes(monster.poisonAttribute ?? 0);
+  const shadowPartnerActive =
+    skills.shadowPartnerEnabled && shadowMultiplier > 0;
+  const { totalStr, totalDex, totalLuk } = calculateTotalStats(stats);
+
+  let venomConfig: VenomConfig | null = null;
+  if (
+    skills.venomEnabled &&
+    skills.venom > 0 &&
+    !VENOM_EXCLUDED_SKILLS.includes(skills.type) &&
+    !venomBlockedByMonster
+  ) {
+    venomConfig = {
+      level: skills.venom,
+      totalStr,
+      totalDex,
+      totalLuk,
+      rollsPerUse: getHitCount(skills.type) * (shadowPartnerActive ? 2 : 1),
+      attackPeriodSeconds:
+        60 / (skills.attacksPerMinute || DEFAULT_ATTACKS_PER_MINUTE),
+    };
+  }
+  const venomTickDamage = venomConfig
+    ? calculateVenomTickDamage(venomConfig)
+    : null;
+  if (!venomTickDamage) {
+    venomConfig = null;
+  }
+
   // Calculate kill probabilities
   const killProbabilities = calculateKillProbabilitiesWithinNHits(
     skills.type,
@@ -473,7 +563,9 @@ export const calculateDamage = (
     criticalChance,
     monster.hp,
     stats,
-    monster
+    monster,
+    20,
+    venomConfig
   );
 
   // Calculate critical probability
@@ -532,5 +624,7 @@ export const calculateDamage = (
     totalDamageRange: { min: totalMin, max: totalMax, expected: totalExpected },
     killProbabilities,
     hpAbsorption,
+    venomTickDamage,
+    venomApplied: venomConfig !== null,
   };
 };

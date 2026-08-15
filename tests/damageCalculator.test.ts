@@ -8,6 +8,7 @@ import {
   MAX_HP_RESOLUTION,
 } from '../app/utils/damageCalculator';
 import { Equipment, Monster, Skills, Stats } from '../app/types/calculator';
+import { DEFAULT_ATTACKS_PER_MINUTE } from '../app/data/venom';
 import {
   KillScenario,
   referenceKillProbabilities,
@@ -373,6 +374,9 @@ describe('calculateDamage', () => {
     mapleWarriorEnabled: false,
     sharpEyes: 30,
     sharpEyesEnabled: false,
+    venom: 0,
+    venomEnabled: false,
+    attacksPerMinute: DEFAULT_ATTACKS_PER_MINUTE,
     ...overrides,
   });
 
