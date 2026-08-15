@@ -13,10 +13,26 @@
 ```
 app/
   components/          # React 컴포넌트
-    DamageCalculator.tsx   # 메인 계산기 컴포넌트
-    MonsterDropdown.tsx    # 몬스터 선택 드롭다운
+    DamageCalculator.tsx   # 레이아웃 오케스트레이터 (헤더 + 입력 2열 + 결과 레일)
+    MonsterDropdown.tsx    # 몬스터 선택 드롭다운 (검색, 지역 그룹, 키보드 조작)
     NumberInput.tsx        # 숫자 입력 컴포넌트
+    SaveSlots.tsx          # 헤더의 저장 슬롯 팝오버
     ThemeToggle.tsx        # 다크/라이트 모드 토글
+    panels/                # 입력 패널
+      MonsterPanel.tsx
+      CharacterPanel.tsx
+      EquipmentPanel.tsx
+      SkillsPanel.tsx
+    results/               # 결과 패널
+      ResultsPanel.tsx
+      KillProbabilityChart.tsx
+    ui/                    # 재사용 프리미티브
+      Card.tsx
+      Field.tsx
+      ReadonlyValue.tsx
+      SegmentedControl.tsx
+      SkillRow.tsx
+      Toggle.tsx
   data/                # 정적 데이터
     monsterPresets.ts      # 몬스터 프리셋 데이터 (id = 원작 Mob.wz 몹 ID)
     skillEffects.ts        # 스킬 효과 데이터
@@ -44,6 +60,52 @@ tests/                 # 유닛 테스트 (node --test)
   venom.test.ts
 public/                # 정적 파일
 ```
+
+## UI 구조
+
+핵심 원칙은 **입력을 만지는 동안 결과가 항상 보여야 한다**는 것이다.
+데미지와 방컷 확률은 값을 하나 바꿀 때마다 확인하는 값이라, 스크롤해서 찾아가야 하면
+계산기로서 제 역할을 못 한다.
+
+- 데스크톱(`lg` 이상): 왼쪽에 입력 2열(몬스터·캐릭터 / 장비·스킬), 오른쪽에
+  `sticky` 결과 레일. 방수가 많아 결과가 화면보다 길어지면 레일 안에서 스크롤한다.
+- 그 아래 너비: 입력이 한 줄로 쌓이고 결과는 하단 고정 바로 접힌다.
+  바에는 방컷 요약과 총 데미지 범위만 띄우고, 누르면 시트로 펼쳐진다.
+
+### 디자인 토큰
+
+색은 전부 `globals.css`의 CSS 변수로 두고 `tailwind.config.ts`에서
+`rgb(var(--x) / <alpha-value>)`로 받는다. 변수 값은 `"R G B"` 형식이어야
+`bg-brand/10` 같은 투명도 유틸리티가 동작한다.
+
+| 토큰 | 쓰임 |
+| --- | --- |
+| `bg` / `card` / `sunken` / `line` | 배경 레이어와 경계선 |
+| `ink` / `muted` | 본문 / 보조 텍스트 |
+| `brand` | 브랜드 색. 기본 강조, 방컷 확률 막대 |
+| `crit` | 크리티컬, 경고 |
+| `venom` | 베놈 관련 값 |
+| `danger` | 삭제, 타격 확률 미달 |
+
+다크 모드는 `:root.dark`에서 같은 변수를 덮어쓴다. 첫 페인트에서 색이 튀지 않도록
+`layout.tsx`의 인라인 스크립트가 하이드레이션 전에 클래스를 붙이고,
+`ThemeToggle`은 그 값을 읽어서 시작한다.
+
+반복되는 조합은 `@layer components`의 `.card` / `.field-input` / `.field-label` /
+`.chip` / `.ghost-button`에 모아 뒀다. 새 입력칸은 이 클래스를 쓴다.
+
+### 컴포넌트 규칙
+
+- **스킬 레벨은 `SkillRow`로 통일한다.** 슬라이더(훑기) + 숫자 입력(정확히 찍기) +
+  M 버튼(만렙)을 같이 준다. 레벨 범위는 `getSkillLevelRange`를 단일 출처로 삼아
+  뽑으므로, 스킬 레벨 상한이 바뀌면 그 함수만 고치면 된다.
+  M 버튼은 항상 그 범위의 최댓값으로 간다(메이플 용사는 30).
+- **선택지가 넷 이하이고 성격이 다른 값은 `SegmentedControl`을 쓴다.**
+  공격 스킬이 여기 해당한다. 후보를 전부 보여줘서 한 번의 클릭으로 바뀐다.
+- **계산으로 정해지는 값은 `ReadonlyValue`로 그린다.** 점선 테두리로 입력칸과
+  구분한다. 총 스탯, 공격력 합, LUK 순 스탯이 여기 해당한다.
+- **방컷 확률 막대의 숫자는 막대 밖 고정 열에 둔다.** 막대 위에 얹으면 채워진 구간과
+  빈 구간에서 대비가 달라져 글자가 읽히지 않는다.
 
 ## 방컷 확률 계산
 

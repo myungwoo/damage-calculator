@@ -1,23 +1,32 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { DamageResult, AttackSkillType, StatType } from '../types/calculator';
-import {
-  calculateDamage,
-  calculateRequiredHitRatio,
-  calculateHitProbability,
-} from '../utils/damageCalculator';
-import { throwingStars } from '../data/weapons';
-import { REGION_ORDER, CALCULATION_DEBOUNCE_MS } from '../constants/calculator';
-import {
-  getSkillLevelRange,
-  formatSaveDate,
-  renderSkillEffect,
-} from '../utils/calculatorUtils';
+import { ChevronUp } from 'lucide-react';
+import { DamageResult } from '../types/calculator';
+import { calculateDamage } from '../utils/damageCalculator';
+import { CALCULATION_DEBOUNCE_MS } from '../constants/calculator';
 import { useCalculatorState } from '../hooks/useCalculatorState';
-import MonsterDropdown from './MonsterDropdown';
 import { monsterPresets } from '../data/monsterPresets';
-import NumberInput from './NumberInput';
+import MonsterPanel from './panels/MonsterPanel';
+import CharacterPanel from './panels/CharacterPanel';
+import EquipmentPanel from './panels/EquipmentPanel';
+import SkillsPanel from './panels/SkillsPanel';
+import ResultsPanel from './results/ResultsPanel';
+import SaveSlots from './SaveSlots';
+import { ThemeToggle } from './ThemeToggle';
+
+const EMPTY_RESULT: DamageResult = {
+  basic: { min: 0, max: 0 },
+  critical: { min: 0, max: 0 },
+  shadowBasic: { min: 0, max: 0 },
+  shadowCritical: { min: 0, max: 0 },
+  totalDamageRange: { min: 0, max: 0 },
+  killProbabilities: [],
+  statAttack: { min: 0, max: 0 },
+  hpAbsorption: { min: 0, max: 0 },
+  venomTickDamage: null,
+  venomApplied: false,
+};
 
 export default function DamageCalculator() {
   const {
@@ -45,18 +54,9 @@ export default function DamageCalculator() {
     handleSharpEyesLevelChange,
   } = useCalculatorState();
 
-  const [damageResult, setDamageResult] = useState<DamageResult>({
-    basic: { min: 0, max: 0 },
-    critical: { min: 0, max: 0 },
-    shadowBasic: { min: 0, max: 0 },
-    shadowCritical: { min: 0, max: 0 },
-    totalDamageRange: { min: 0, max: 0 },
-    killProbabilities: [],
-    statAttack: { min: 0, max: 0 },
-    hpAbsorption: { min: 0, max: 0 },
-    venomTickDamage: null,
-    venomApplied: false,
-  });
+  const [damageResult, setDamageResult] = useState<DamageResult>(EMPTY_RESULT);
+  // 모바일에서는 결과를 하단 시트로 접어 둔다.
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // 프리셋에만 있는 참고용 정보(정확도, 공격력, 속성 등)를 보여주기 위해 찾아 둔다.
   const selectedPreset = isCustomMonster
@@ -83,968 +83,131 @@ export default function DamageCalculator() {
     return () => clearTimeout(timer);
   }, [monster, stats, equipment, skills]);
 
+  const results = <ResultsPanel result={damageResult} skills={skills} />;
+
+  const topHit = damageResult.killProbabilities.find(
+    (entry) => Number(entry.accProb) >= 50
+  );
+
   return (
-    <div className="container mx-auto p-4">
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur">
+        <div className="mx-auto flex max-w-[1480px] items-center justify-between gap-3 px-4 py-3">
+          <div className="min-w-0">
+            <h1 className="truncate text-base font-bold text-ink">
+              메이플랜드 데미지 계산기
+            </h1>
+            <p className="truncate text-xs text-muted">
+              나이트로드 · 허밋 표창 N방컷
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <SaveSlots
+              saves={saves}
+              onSave={handleSave}
+              onLoad={handleLoad}
+              onDelete={handleDelete}
+            />
+            <ThemeToggle />
+          </div>
+        </div>
+      </header>
+
       {isLoading ? (
-        <div className="flex items-center justify-center min-h-[500px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-line border-t-brand" />
         </div>
       ) : (
-        <>
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-lg">
-            <div className="bg-primary text-white p-4 rounded-t-lg">
-              <h1 className="text-2xl font-bold text-center">데미지 계산기</h1>
-            </div>
-            <div className="p-6">
-              <div className="flex flex-wrap justify-end gap-2 mb-8">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <div key={index} className="flex flex-col items-center gap-1">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {saves[index]
-                        ? formatSaveDate(saves[index]!.timestamp)
-                        : '비어있음'}
-                    </div>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => handleSave(index)}
-                        className="w-12 h-8 bg-primary text-white rounded-md hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                      >
-                        저장
-                      </button>
-                      <button
-                        onClick={() => handleLoad(index)}
-                        disabled={!saves[index]}
-                        className={`w-12 h-8 rounded-md text-sm ${
-                          saves[index]
-                            ? 'bg-primary/10 hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30 focus:outline-none focus:ring-2 focus:ring-primary'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                        }`}
-                      >
-                        로드
-                      </button>
-                      {saves[index] && (
-                        <button
-                          onClick={() => handleDelete(index)}
-                          className="w-12 h-8 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
-                        >
-                          삭제
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+        <main className="mx-auto max-w-[1480px] px-4 pb-28 pt-5 lg:pb-10">
+          <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
+            {/* 입력: 왼쪽 열에 몬스터·캐릭터, 오른쪽 열에 장비·스킬 */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-4">
+                <MonsterPanel
+                  monster={monster}
+                  setMonster={setMonster}
+                  stats={stats}
+                  selectedMonsterId={selectedMonsterId}
+                  isCustomMonster={isCustomMonster}
+                  onMonsterSelect={handleMonsterSelect}
+                  selectedPreset={selectedPreset}
+                  venomBlocked={venomBlocked}
+                />
+                <CharacterPanel
+                  stats={stats}
+                  setStats={setStats}
+                  onPureStatChange={handlePureStatChange}
+                  onLevelChange={handleLevelChange}
+                />
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Monster Stats Section */}
-                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
-                  <h2 className="text-xl font-semibold mb-4">몬스터 정보</h2>
-                  <div className="space-y-4">
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">
-                        몬스터
-                      </label>
-                      <MonsterDropdown
-                        selectedMonsterId={selectedMonsterId}
-                        isCustomMonster={isCustomMonster}
-                        monsterPresets={monsterPresets}
-                        onSelect={handleMonsterSelect}
-                        regionOrder={REGION_ORDER}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        레벨
-                      </label>
-                      <NumberInput
-                        value={monster.level}
-                        onChange={(value) =>
-                          setMonster((prev) => ({
-                            ...prev,
-                            level: value ?? 0,
-                          }))
-                        }
-                        disabled={!isCustomMonster}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        HP
-                      </label>
-                      <NumberInput
-                        value={monster.hp}
-                        onChange={(value) =>
-                          setMonster((prev) => ({
-                            ...prev,
-                            hp: value ?? 0,
-                          }))
-                        }
-                        disabled={!isCustomMonster}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        물리 방어력
-                      </label>
-                      <NumberInput
-                        value={monster.physicalDefense}
-                        onChange={(value) =>
-                          setMonster((prev) => ({
-                            ...prev,
-                            physicalDefense: value ?? 0,
-                          }))
-                        }
-                        disabled={!isCustomMonster}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        회피율
-                      </label>
-                      <NumberInput
-                        value={monster.avoid}
-                        onChange={(value) =>
-                          setMonster((prev) => ({
-                            ...prev,
-                            avoid: value ?? 0,
-                          }))
-                        }
-                        disabled={!isCustomMonster}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        필요 명중률 / 타격 확률
-                      </label>
-                      <div className="mt-1 text-md font-medium text-gray-900 dark:text-gray-100">
-                        {calculateRequiredHitRatio(
-                          monster.level,
-                          stats.level,
-                          monster.avoid
-                        ).toFixed(2)}{' '}
-                        /{' '}
-                        {(
-                          calculateHitProbability(
-                            stats.hitRatio,
-                            monster.level,
-                            stats.level,
-                            monster.avoid
-                          ) * 100
-                        ).toFixed(2)}
-                        %
-                      </div>
-                    </div>
-                    {selectedPreset && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          몬스터 정보
-                        </label>
-                        <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 space-y-0.5">
-                          <p>
-                            정확도 {selectedPreset.accuracy} · 공격력{' '}
-                            {selectedPreset.physicalAttack}
-                            {selectedPreset.magicAttack > 0 &&
-                              ` (마법 ${selectedPreset.magicAttack})`}
-                          </p>
-                          <p>넉백 데미지 {selectedPreset.minimumPushDamage}</p>
-                          {(selectedPreset.isBoss ||
-                            selectedPreset.isUndead ||
-                            selectedPreset.elementAttributes) && (
-                            <p>
-                              {[
-                                selectedPreset.isBoss ? '보스' : null,
-                                selectedPreset.isUndead ? '언데드' : null,
-                                selectedPreset.elementAttributes
-                                  ? `속성 ${selectedPreset.elementAttributes}`
-                                  : null,
-                              ]
-                                .filter(Boolean)
-                                .join(' · ')}
-                            </p>
-                          )}
-                          {venomBlocked && (
-                            <p className="text-amber-600 dark:text-amber-400">
-                              {selectedPreset.isBoss
-                                ? '보스라서 베놈이 걸리지 않는다'
-                                : `독 ${
-                                    selectedPreset.poisonAttribute === 1
-                                      ? '무효'
-                                      : '반감'
-                                  }이라 베놈이 걸리지 않는다`}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Character Stats Section */}
-                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
-                  <h2 className="text-xl font-semibold mb-4">캐릭터 스탯</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        레벨
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <NumberInput
-                          value={stats.level}
-                          onChange={(value) => {
-                            if (value !== undefined) {
-                              handleLevelChange(value - stats.level);
-                            }
-                          }}
-                        />
-                        <button
-                          onClick={() => handleLevelChange(-1)}
-                          className="px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                          -
-                        </button>
-                        <button
-                          onClick={() => handleLevelChange(1)}
-                          className="px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          STR
-                        </label>
-                        <NumberInput
-                          value={stats.str}
-                          onChange={(value) => {
-                            if (value !== undefined) {
-                              handlePureStatChange('str' as StatType, value);
-                            }
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          추가 STR
-                        </label>
-                        <NumberInput
-                          value={stats.additionalStr}
-                          onChange={(value) =>
-                            setStats((prev) => ({
-                              ...prev,
-                              additionalStr: value ?? 0,
-                            }))
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          총 STR
-                        </label>
-                        <input
-                          type="number"
-                          value={stats.str + stats.additionalStr}
-                          readOnly
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-sm text-gray-500 dark:text-gray-400"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          DEX
-                        </label>
-                        <NumberInput
-                          value={stats.dex}
-                          onChange={(value) => {
-                            if (value !== undefined) {
-                              handlePureStatChange('dex' as StatType, value);
-                            }
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          추가 DEX
-                        </label>
-                        <NumberInput
-                          value={stats.additionalDex}
-                          onChange={(value) =>
-                            setStats((prev) => ({
-                              ...prev,
-                              additionalDex: value ?? 0,
-                            }))
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          총 DEX
-                        </label>
-                        <input
-                          type="number"
-                          value={stats.dex + stats.additionalDex}
-                          readOnly
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-sm text-gray-500 dark:text-gray-400"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          LUK
-                        </label>
-                        <input
-                          type="number"
-                          value={stats.luk}
-                          readOnly
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-sm text-gray-500 dark:text-gray-400"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          추가 LUK
-                        </label>
-                        <NumberInput
-                          value={stats.additionalLuk}
-                          onChange={(value) =>
-                            setStats((prev) => ({
-                              ...prev,
-                              additionalLuk: value ?? 0,
-                            }))
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          총 LUK
-                        </label>
-                        <input
-                          type="number"
-                          value={stats.luk + stats.additionalLuk}
-                          readOnly
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-sm text-gray-500 dark:text-gray-400"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        명중률
-                      </label>
-                      <NumberInput
-                        value={stats.hitRatio}
-                        onChange={(value) =>
-                          setStats((prev) => ({
-                            ...prev,
-                            hitRatio: value,
-                          }))
-                        }
-                        placeholder="명중률을 입력하세요"
-                        allowUndefined
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Equipment Section */}
-                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
-                  <h2 className="text-xl font-semibold mb-4">장비 정보</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        무기 공격력
-                      </label>
-                      <NumberInput
-                        value={equipment.weaponAttack}
-                        onChange={(value) =>
-                          setEquipment((prev) => ({
-                            ...prev,
-                            weaponAttack: value ?? 0,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        표창 선택
-                      </label>
-                      <select
-                        value={equipment.selectedWeaponId}
-                        onChange={(e) => {
-                          setEquipment((prev) => ({
-                            ...prev,
-                            selectedWeaponId: e.target.value,
-                          }));
-                        }}
-                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
-                      >
-                        {throwingStars.map((star) => (
-                          <option key={star.id} value={star.id}>
-                            {star.name} (공격력: {star.attack})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        장갑 공격력
-                      </label>
-                      <NumberInput
-                        value={equipment.gloveAttack}
-                        onChange={(value) =>
-                          setEquipment((prev) => ({
-                            ...prev,
-                            gloveAttack: value ?? 0,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        기타 공격력
-                      </label>
-                      <NumberInput
-                        value={equipment.otherAttack}
-                        onChange={(value) =>
-                          setEquipment((prev) => ({
-                            ...prev,
-                            otherAttack: value ?? 0,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        도핑
-                      </label>
-                      <NumberInput
-                        value={equipment.buff}
-                        onChange={(value) =>
-                          setEquipment((prev) => ({
-                            ...prev,
-                            buff: value ?? 0,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        공격력 합
-                      </label>
-                      <input
-                        type="number"
-                        value={
-                          equipment.weaponAttack +
-                          (throwingStars.find(
-                            (star) => star.id === equipment.selectedWeaponId
-                          )?.attack || 0) +
-                          equipment.gloveAttack +
-                          equipment.otherAttack +
-                          equipment.buff
-                        }
-                        readOnly
-                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-sm text-gray-500 dark:text-gray-400"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Skills Section */}
-                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
-                  <h2 className="text-xl font-semibold mb-4">스킬 정보</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        스킬 선택
-                      </label>
-                      <select
-                        value={skills.type}
-                        onChange={(e) => {
-                          const newType = e.target.value as AttackSkillType;
-                          setSkills((prev) => ({
-                            ...prev,
-                            type: newType,
-                            level: 1,
-                          }));
-                        }}
-                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
-                      >
-                        <option value="lucky7">럭키 세븐</option>
-                        <option value="drain">드레인</option>
-                        <option value="avenger">어벤져</option>
-                        <option value="tripleThrow">트리플 스로우</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        스킬 레벨
-                      </label>
-                      <div className="flex gap-2">
-                        <select
-                          value={skills.level}
-                          onChange={(e) =>
-                            setSkills((prev) => ({
-                              ...prev,
-                              level: Number(e.target.value),
-                            }))
-                          }
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
-                        >
-                          {getSkillLevelRange(skills.type).map((level) => (
-                            <option key={level} value={level}>
-                              {level}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => {
-                            const maxLevel = skills.type === 'lucky7' ? 20 : 30;
-                            setSkills((prev) => ({ ...prev, level: maxLevel }));
-                          }}
-                          className="mt-1 px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                          M
-                        </button>
-                      </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
-                        {renderSkillEffect(skills.type, skills.level)}
-                      </span>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        크리티컬 스로우
-                      </label>
-                      <div className="flex gap-2">
-                        <select
-                          value={skills.criticalThrow}
-                          onChange={(e) =>
-                            setSkills((prev) => ({
-                              ...prev,
-                              criticalThrow: Number(e.target.value),
-                            }))
-                          }
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
-                        >
-                          {getSkillLevelRange('criticalThrow').map((level) => (
-                            <option key={level} value={level}>
-                              {level}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() =>
-                            setSkills((prev) => ({
-                              ...prev,
-                              criticalThrow: 30,
-                            }))
-                          }
-                          className="mt-1 px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                          M
-                        </button>
-                      </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
-                        {renderSkillEffect(
-                          'criticalThrow',
-                          skills.criticalThrow
-                        )}
-                      </span>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        자벨린 마스터리
-                      </label>
-                      <div className="flex gap-2">
-                        <select
-                          value={skills.javelin}
-                          onChange={(e) =>
-                            setSkills((prev) => ({
-                              ...prev,
-                              javelin: Number(e.target.value),
-                            }))
-                          }
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
-                        >
-                          {getSkillLevelRange('javelin').map((level) => (
-                            <option key={level} value={level}>
-                              {level}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() =>
-                            setSkills((prev) => ({ ...prev, javelin: 20 }))
-                          }
-                          className="mt-1 px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                          M
-                        </button>
-                      </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
-                        {renderSkillEffect('javelin', skills.javelin)}
-                      </span>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        쉐도우 파트너 레벨
-                      </label>
-                      <div className="flex gap-2">
-                        <select
-                          value={skills.shadowPartner}
-                          onChange={(e) =>
-                            setSkills((prev) => ({
-                              ...prev,
-                              shadowPartner: Number(e.target.value),
-                            }))
-                          }
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
-                        >
-                          {getSkillLevelRange('shadowPartner').map((level) => (
-                            <option key={level} value={level}>
-                              {level}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() =>
-                            setSkills((prev) => ({
-                              ...prev,
-                              shadowPartner: 30,
-                            }))
-                          }
-                          className="mt-1 px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                          M
-                        </button>
-                      </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
-                        {renderSkillEffect(
-                          'shadowPartner',
-                          skills.shadowPartner
-                        )}
-                      </span>
-                      <div className="flex items-center gap-2 mt-2">
-                        <input
-                          type="checkbox"
-                          id="shadowPartnerEnabled"
-                          checked={skills.shadowPartnerEnabled}
-                          onChange={(e) =>
-                            setSkills((prev) => ({
-                              ...prev,
-                              shadowPartnerEnabled: e.target.checked,
-                            }))
-                          }
-                          className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary dark:bg-gray-700"
-                        />
-                        <label
-                          htmlFor="shadowPartnerEnabled"
-                          className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
-                        >
-                          쉐도우 파트너 사용
-                        </label>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        메이플 용사 레벨
-                      </label>
-                      <div className="flex gap-2">
-                        <select
-                          value={skills.mapleWarrior}
-                          onChange={(e) =>
-                            handleMapleWarriorLevelChange(
-                              Number(e.target.value)
-                            )
-                          }
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
-                        >
-                          {getSkillLevelRange('mapleWarrior').map((level) => (
-                            <option key={level} value={level}>
-                              {level}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => handleMapleWarriorLevelChange(20)}
-                          className="mt-1 px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                          M
-                        </button>
-                      </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
-                        {renderSkillEffect('mapleWarrior', skills.mapleWarrior)}
-                      </span>
-                      <div className="flex items-center gap-2 mt-2">
-                        <input
-                          type="checkbox"
-                          id="mapleWarriorEnabled"
-                          checked={skills.mapleWarriorEnabled}
-                          onChange={(e) =>
-                            handleMapleWarriorToggle(e.target.checked)
-                          }
-                          className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary dark:bg-gray-700"
-                        />
-                        <label
-                          htmlFor="mapleWarriorEnabled"
-                          className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
-                        >
-                          메이플 용사 사용
-                        </label>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        샤프 아이즈
-                      </label>
-                      <div className="flex gap-2">
-                        <select
-                          value={skills.sharpEyes}
-                          onChange={(e) =>
-                            handleSharpEyesLevelChange(Number(e.target.value))
-                          }
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
-                        >
-                          {getSkillLevelRange('sharpEyes').map((level) => (
-                            <option key={level} value={level}>
-                              {level}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => handleSharpEyesLevelChange(30)}
-                          className="mt-1 px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                          M
-                        </button>
-                      </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
-                        {renderSkillEffect('sharpEyes', skills.sharpEyes)}
-                      </span>
-                      <div className="flex items-center gap-2 mt-2">
-                        <input
-                          type="checkbox"
-                          id="sharpEyesEnabled"
-                          checked={skills.sharpEyesEnabled}
-                          onChange={(e) =>
-                            handleSharpEyesToggle(e.target.checked)
-                          }
-                          className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary dark:bg-gray-700"
-                        />
-                        <label
-                          htmlFor="sharpEyesEnabled"
-                          className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
-                        >
-                          샤프 아이즈 사용
-                        </label>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        베놈
-                      </label>
-                      <div className="flex gap-2">
-                        <select
-                          value={skills.venom}
-                          onChange={(e) =>
-                            setSkills((prev) => ({
-                              ...prev,
-                              venom: Number(e.target.value),
-                            }))
-                          }
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300"
-                        >
-                          {getSkillLevelRange('venom').map((level) => (
-                            <option key={level} value={level}>
-                              {level}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() =>
-                            setSkills((prev) => ({ ...prev, venom: 30 }))
-                          }
-                          className="mt-1 px-3 py-2 bg-primary/10 rounded-md hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                          M
-                        </button>
-                      </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
-                        {renderSkillEffect('venom', skills.venom)}
-                      </span>
-                      <div className="flex items-center gap-2 mt-2">
-                        <input
-                          type="checkbox"
-                          id="venomEnabled"
-                          checked={skills.venomEnabled}
-                          onChange={(e) =>
-                            setSkills((prev) => ({
-                              ...prev,
-                              venomEnabled: e.target.checked,
-                            }))
-                          }
-                          className="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary dark:bg-gray-700"
-                        />
-                        <label
-                          htmlFor="venomEnabled"
-                          className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
-                        >
-                          베놈 사용
-                        </label>
-                      </div>
-                      {skills.venomEnabled && skills.venom > 0 && (
-                        <div className="mt-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            분당 공격 횟수
-                          </label>
-                          <NumberInput
-                            value={skills.attacksPerMinute}
-                            onChange={(value) =>
-                              setSkills((prev) => ({
-                                ...prev,
-                                attacksPerMinute: Math.max(1, value ?? 1),
-                              }))
-                            }
-                          />
-                          <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 block">
-                            베놈은 1초마다 도트 데미지가 들어가서, 같은 방수라도
-                            공격 속도에 따라 틱 수가 달라진다
-                          </span>
-                        </div>
-                      )}
-                      {!damageResult.venomApplied &&
-                        skills.venomEnabled &&
-                        skills.venom > 0 && (
-                          <span className="text-sm text-amber-600 dark:text-amber-400 mt-1 block">
-                            {skills.type === 'drain'
-                              ? '드레인에는 베놈이 발동하지 않는다'
-                              : '보스 / 독 무효 · 반감 몬스터에는 베놈이 걸리지 않는다'}
-                          </span>
-                        )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Results Section */}
-                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
-                  <h2 className="text-xl font-semibold mb-4">데미지 결과</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-medium">스탯 공격력</h3>
-                      <p>최대: {Math.floor(damageResult.statAttack.max)}</p>
-                      <p>최소: {Math.floor(damageResult.statAttack.min)}</p>
-                    </div>
-                    <div>
-                      <h3 className="font-medium">
-                        기본
-                        {skills.shadowPartnerEnabled && skills.shadowPartner > 0
-                          ? '(+쉐파)'
-                          : ''}
-                      </h3>
-                      <p>
-                        최대: {Math.floor(damageResult.basic.max)}
-                        {skills.shadowPartnerEnabled &&
-                          skills.shadowPartner > 0 &&
-                          ` (+${Math.floor(damageResult.shadowBasic.max)})`}
-                      </p>
-                      <p>
-                        최소: {Math.floor(damageResult.basic.min)}
-                        {skills.shadowPartnerEnabled &&
-                          skills.shadowPartner > 0 &&
-                          ` (+${Math.floor(damageResult.shadowBasic.min)})`}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="font-medium">
-                        크리티컬
-                        {skills.shadowPartnerEnabled && skills.shadowPartner > 0
-                          ? '(+쉐파)'
-                          : ''}
-                      </h3>
-                      <p>
-                        최대: {Math.floor(damageResult.critical.max)}
-                        {skills.shadowPartnerEnabled &&
-                          skills.shadowPartner > 0 &&
-                          ` (+${Math.floor(damageResult.shadowCritical.max)})`}
-                      </p>
-                      <p>
-                        최소: {Math.floor(damageResult.critical.min)}
-                        {skills.shadowPartnerEnabled &&
-                          skills.shadowPartner > 0 &&
-                          ` (+${Math.floor(damageResult.shadowCritical.min)})`}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="font-medium">총 데미지 범위</h3>
-                      <p>
-                        {Math.floor(damageResult.totalDamageRange.min)} ~{' '}
-                        {Math.floor(damageResult.totalDamageRange.max)}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        기댓값:{' '}
-                        {Math.floor(
-                          damageResult.totalDamageRange.expected ?? 0
-                        )}
-                      </p>
-                    </div>
-                    {damageResult.venomApplied &&
-                      damageResult.venomTickDamage && (
-                        <div>
-                          <h3 className="font-medium">
-                            베놈 틱 데미지 (1중첩)
-                          </h3>
-                          <p>
-                            {damageResult.venomTickDamage.min} ~{' '}
-                            {damageResult.venomTickDamage.max}
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            1초마다 1틱, 중첩되면 합산되어 들어간다. 몹 방어력과
-                            크리티컬의 영향을 받지 않고, 이 데미지만으로는
-                            몬스터를 잡을 수 없다
-                          </p>
-                        </div>
-                      )}
-                    {skills.type === 'drain' && (
-                      <div>
-                        <h3 className="font-medium">HP 흡수량 범위</h3>
-                        <p>
-                          {Math.floor(damageResult.hpAbsorption.min)} ~{' '}
-                          {Math.floor(damageResult.hpAbsorption.max)}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          기댓값:{' '}
-                          {Math.floor(damageResult.hpAbsorption.expected ?? 0)}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Probabilities Section */}
-                <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
-                  <h2 className="text-xl font-semibold mb-4">확률</h2>
-                  <div className="space-y-2">
-                    {damageResult.killProbabilities.length === 0 && (
-                      <h3 className="font-medium">
-                        20방을 때려도 못 잡네요 😅
-                      </h3>
-                    )}
-                    {damageResult.killProbabilities.map(
-                      ({ hit, prob, accProb }) => (
-                        <div key={hit}>
-                          <h3 className="font-medium">{hit}방컷</h3>
-                          <p>
-                            {prob}% (누적 {accProb}%)
-                          </p>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
+              <div className="flex flex-col gap-4">
+                <EquipmentPanel
+                  equipment={equipment}
+                  setEquipment={setEquipment}
+                />
+                <SkillsPanel
+                  skills={skills}
+                  setSkills={setSkills}
+                  onMapleWarriorToggle={handleMapleWarriorToggle}
+                  onMapleWarriorLevelChange={handleMapleWarriorLevelChange}
+                  onSharpEyesToggle={handleSharpEyesToggle}
+                  onSharpEyesLevelChange={handleSharpEyesLevelChange}
+                  venomApplied={damageResult.venomApplied}
+                />
               </div>
             </div>
+
+            {/* 결과는 데스크톱에서 항상 붙어 있게 한다. 입력을 만지면서 바로 확인해야 하는 값이다. */}
+            {/* 결과가 화면보다 길어지면(방수가 많을 때) 패널 안에서 스크롤한다. */}
+            <aside className="thin-scroll hidden lg:sticky lg:top-[4.75rem] lg:block lg:max-h-[calc(100vh-5.75rem)] lg:overflow-y-auto">
+              {results}
+            </aside>
           </div>
-        </>
+        </main>
+      )}
+
+      {/* 모바일 결과 시트 */}
+      {!isLoading && (
+        <div className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
+          {sheetOpen && (
+            <div className="thin-scroll max-h-[70vh] overflow-auto border-t border-line bg-bg px-3 pb-3 pt-3">
+              {results}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setSheetOpen((prev) => !prev)}
+            aria-expanded={sheetOpen}
+            className="flex w-full items-center justify-between gap-3 border-t border-line bg-card px-4 py-3 shadow-pop"
+          >
+            <span className="flex items-baseline gap-2">
+              <span className="text-lg font-extrabold tabular-nums text-brand">
+                {topHit
+                  ? `${topHit.hit}방컷`
+                  : damageResult.killProbabilities.length > 0
+                    ? `${damageResult.killProbabilities.at(-1)?.hit}방+`
+                    : '20방 초과'}
+              </span>
+              <span className="text-xs tabular-nums text-muted">
+                {Math.floor(damageResult.totalDamageRange.min).toLocaleString(
+                  'ko-KR'
+                )}{' '}
+                ~{' '}
+                {Math.floor(damageResult.totalDamageRange.max).toLocaleString(
+                  'ko-KR'
+                )}
+              </span>
+            </span>
+            <span className="flex items-center gap-1 text-xs font-medium text-muted">
+              {sheetOpen ? '접기' : '결과 보기'}
+              <ChevronUp
+                className={`h-4 w-4 transition-transform ${
+                  sheetOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </span>
+          </button>
+        </div>
       )}
     </div>
   );

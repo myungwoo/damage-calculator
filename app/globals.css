@@ -2,26 +2,182 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * 색은 전부 CSS 변수로 두고 tailwind.config.ts에서 rgb(var(--x) / <alpha-value>)로 받는다.
+ * 값이 "R G B" 형태여야 투명도 유틸리티(bg-brand/20)가 동작한다.
+ */
 :root {
-  --background: #f0f8f0;
-  --foreground: #1a1a1a;
-  --primary: #4CAF50;
-  --secondary: #FFD700;
-  --accent: #FF6B6B;
+  --bg: 244 246 249;
+  --card: 255 255 255;
+  --sunken: 240 243 247;
+  --line: 224 229 236;
+  --ink: 16 23 36;
+  --muted: 104 116 136;
+  --brand: 13 148 106;
+  --crit: 202 106 8;
+  --venom: 124 58 237;
+  --danger: 220 60 60;
+  --shadow-color: 16 23 36;
 }
 
 :root.dark {
-  --background: #1a1a1a;
-  --foreground: #f0f8f0;
-  --primary: #388E3C;
-  --secondary: #FFC107;
-  --accent: #E53935;
+  --bg: 9 11 16;
+  --card: 19 23 32;
+  --sunken: 27 32 43;
+  --line: 44 51 65;
+  --ink: 228 233 241;
+  --muted: 143 154 173;
+  --brand: 45 212 156;
+  --crit: 251 176 64;
+  --venom: 167 139 250;
+  --danger: 248 113 113;
+  --shadow-color: 0 0 0;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  background-image: linear-gradient(to bottom right, rgba(76, 175, 80, 0.1), rgba(255, 215, 0, 0.1));
-  font-family: Arial, Helvetica, sans-serif;
-  min-height: 100vh;
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: rgb(var(--bg));
+    color: rgb(var(--ink));
+    min-height: 100vh;
+  }
+
+  /* 은은한 광원 두 개로 평평한 배경에 깊이만 준다. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        60rem 40rem at 12% -10%,
+        rgb(var(--brand) / 0.1),
+        transparent 60%
+      ),
+      radial-gradient(
+        50rem 36rem at 92% 4%,
+        rgb(var(--venom) / 0.07),
+        transparent 60%
+      );
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--brand));
+    outline-offset: 2px;
+  }
+
+  /* 숫자가 흔들리지 않게 표 형태 숫자를 기본으로 쓴다. */
+  input[type='text'],
+  input[type='number'] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+@layer components {
+  .field-input {
+    @apply w-full rounded-lg border border-line bg-sunken px-3 py-2 text-sm text-ink
+      transition-colors placeholder:text-muted/70
+      hover:border-brand/50 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25;
+  }
+
+  .field-input:disabled {
+    @apply cursor-not-allowed border-line/60 bg-line/25 text-muted;
+  }
+
+  .field-label {
+    @apply block text-[0.7rem] font-semibold uppercase tracking-wider text-muted;
+  }
+
+  .card {
+    @apply rounded-2xl border border-line bg-card shadow-card;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-line bg-sunken px-2.5 py-1
+      text-xs font-medium text-muted;
+  }
+
+  .ghost-button {
+    @apply inline-flex items-center justify-center rounded-lg border border-line bg-sunken
+      text-sm font-medium text-ink transition-colors
+      hover:border-brand/50 hover:bg-brand/10 hover:text-brand
+      disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line
+      disabled:hover:bg-sunken disabled:hover:text-ink;
+  }
+}
+
+/* 스킬 레벨 슬라이더. 채워진 구간은 컴포넌트에서 인라인 배경으로 그린다. */
+input[type='range'].level-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type='range'].level-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgb(var(--brand));
+  border: 2px solid rgb(var(--card));
+  box-shadow: 0 1px 4px rgb(var(--shadow-color) / 0.35);
+  cursor: pointer;
+}
+
+input[type='range'].level-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgb(var(--brand));
+  border: 2px solid rgb(var(--card));
+  cursor: pointer;
+}
+
+input[type='range'].level-range:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 몬스터 목록처럼 내부 스크롤이 생기는 영역용 얇은 스크롤바 */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--line)) transparent;
+}
+
+.thin-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.thin-scroll::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--line));
+  border-radius: 999px;
+}
+
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

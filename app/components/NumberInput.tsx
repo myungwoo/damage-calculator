@@ -7,6 +7,10 @@ interface NumberInputProps {
   placeholder?: string;
   className?: string;
   allowUndefined?: boolean;
+  id?: string;
+  ariaLabel?: string;
+  /** 입력칸 오른쪽 안쪽에 붙는 단위 표시 (예: %, 회) */
+  suffix?: string;
 }
 
 export default function NumberInput({
@@ -16,6 +20,9 @@ export default function NumberInput({
   placeholder,
   className = '',
   allowUndefined = false,
+  id,
+  ariaLabel,
+  suffix,
 }: NumberInputProps) {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/^0+/, '');
@@ -30,15 +37,23 @@ export default function NumberInput({
   };
 
   return (
-    <input
-      type="text"
-      value={value === undefined ? '' : value}
-      onChange={handleChange}
-      disabled={disabled}
-      placeholder={placeholder}
-      className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary dark:bg-gray-700 dark:text-gray-300 ${
-        disabled ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : ''
-      } ${className}`}
-    />
+    <div className="relative">
+      <input
+        id={id}
+        aria-label={ariaLabel}
+        type="text"
+        inputMode="numeric"
+        value={value === undefined ? '' : value}
+        onChange={handleChange}
+        disabled={disabled}
+        placeholder={placeholder}
+        className={`field-input tabular-nums ${suffix ? 'pr-8' : ''} ${className}`}
+      />
+      {suffix && (
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted">
+          {suffix}
+        </span>
+      )}
+    </div>
   );
 }
