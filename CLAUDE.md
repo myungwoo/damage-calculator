@@ -34,14 +34,39 @@ app/
   page.tsx             # 메인 페이지
   layout.tsx           # 레이아웃
   globals.css          # 전역 스타일
+tests/                 # 유닛 테스트 (node --test)
+  helpers/
+    reference.ts           # 방컷 확률 참조 구현 (O(n^2) DP, 몬테카를로)
+  damageCalculator.test.ts
+  fft.test.ts
 public/                # 정적 파일
 ```
+
+## 방컷 확률 계산
+
+`damageCalculator.ts`의 `calculateKillProbabilitiesWithinNHits`가 핵심이다.
+"누적 데미지 -> 확률" 배열을 만들고 몬스터 HP를 흡수 상태로 둔 뒤,
+스킬 1회 분포를 FFT로 반복 컨볼루션해 `dist[HP]`(= N방 안에 죽을 누적 확률)를 읽는다.
+
+계산에 반영한 게임 스펙:
+- 다단히트(럭키 세븐 2타, 트리플 스로우 3타)의 명중 판정은 타격별로 독립
+- 쉐도우 파트너는 본체 데미지 확정 후 그 고정 비율(만렙 50%, 내림)을 그대로 따라간다
+  (크리티컬 여부도 본체를 따르므로 따로 굴리지 않는다)
+- 럭키 세븐과 트리플 스로우는 표창 숙련도를 무시하고 LUK만으로 데미지가 정해진다
+- 크리티컬 데미지는 합연산이지만, 샤프 아이즈만 "크리티컬 데미지 40% 증가"가
+  +40%p가 아니라 +140%p로 적용된다
+
+HP가 `MAX_HP_RESOLUTION`(16383)을 넘으면 HP와 데미지를 같은 비율로 축소해 계산한다.
+이 값은 FFT 길이가 32768을 넘지 않는 최대치이며, 축소로 생기는 오차는 실측 0.1%p 이하다.
+표시용 데미지 범위는 반드시 내림한 정수 데미지에서 유도해 확률 계산과 어긋나지 않게 한다.
 
 ## 개발 규칙
 
 ### 코드 스타일
-- 들여쓰기: 탭
-- 세미콜론: 생략
+`eslint.config.mjs`의 prettier 설정을 따른다.
+- 들여쓰기: 스페이스 2칸
+- 세미콜론: 사용
+- 따옴표: 작은따옴표
 - 주석: 한국어로 작성
 
 ### 문서 유지보수
@@ -81,4 +106,9 @@ npm run dev      # 개발 서버 실행 (포트 3000)
 npm run build    # 프로덕션 빌드
 npm run lint     # ESLint 검사
 npm run lint:fix # ESLint 자동 수정
+npm test         # 유닛 테스트 (tsconfig.test.json으로 컴파일 후 node --test)
 ```
+
+테스트는 별도 러너 의존성 없이 `tsc -p tsconfig.test.json`으로 `.test-build`에 컴파일한 뒤
+Node 내장 테스트 러너로 실행한다. 방컷 확률은 배포 코드와 독립적으로 작성한
+참조 DP, 몬테카를로 시뮬레이션과 대조해 검증한다.
