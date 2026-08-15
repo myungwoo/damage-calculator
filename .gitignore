@@ -42,3 +42,7 @@ next-env.d.ts
 
 # test build output
 /.test-build
+
+# Claude Code
+.claude/settings.local.json
+.claude/worktrees/
