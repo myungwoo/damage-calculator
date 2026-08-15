@@ -2,7 +2,7 @@ import { MonsterPreset } from '../types/calculator';
 
 export const monsterPresets: MonsterPreset[] = [
   {
-    id: 'monster_1',
+    id: '100100',
     name: '달팽이',
     level: 1,
     hp: 8,
@@ -13,7 +13,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_2',
+    id: '100101',
     name: '파란 달팽이',
     level: 2,
     hp: 15,
@@ -24,7 +24,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_3',
+    id: '120100',
     name: '스포아',
     level: 2,
     hp: 20,
@@ -35,7 +35,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_4',
+    id: '130100',
     name: '스텀프',
     level: 4,
     hp: 40,
@@ -46,7 +46,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_5',
+    id: '130101',
     name: '빨간 달팽이',
     level: 4,
     hp: 40,
@@ -57,7 +57,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_6',
+    id: '210100',
     name: '슬라임',
     level: 6,
     hp: 50,
@@ -68,7 +68,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_7',
+    id: '1210100',
     name: '돼지',
     level: 7,
     hp: 75,
@@ -79,7 +79,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_8',
+    id: '1210102',
     name: '주황버섯',
     level: 8,
     hp: 80,
@@ -90,7 +90,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_9',
+    id: '1210101',
     name: '리본돼지',
     level: 10,
     hp: 120,
@@ -101,7 +101,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_10',
+    id: '1110101',
     name: '다크 스텀프',
     level: 10,
     hp: 250,
@@ -112,7 +112,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_11',
+    id: '1120100',
     name: '옥토퍼스',
     level: 12,
     hp: 200,
@@ -123,7 +123,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_12',
+    id: '1110100',
     name: '초록 버섯',
     level: 15,
     hp: 250,
@@ -131,10 +131,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 40,
     exp: 26,
     avoid: 5,
+    poisonAttribute: 1,
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_13',
+    id: '1210103',
     name: '버블링',
     level: 15,
     hp: 240,
@@ -145,7 +146,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_14',
+    id: '1130100',
     name: '엑스텀프',
     level: 17,
     hp: 300,
@@ -156,7 +157,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_15',
+    id: '2220100',
     name: '파란 버섯',
     level: 20,
     hp: 350,
@@ -167,7 +168,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_16',
+    id: '2300100',
     name: '스티지',
     level: 20,
     hp: 300,
@@ -178,7 +179,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_17',
+    id: '2130103',
     name: '주니어 네키',
     level: 21,
     hp: 285,
@@ -189,7 +190,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_18',
+    id: '2110200',
     name: '뿔버섯',
     level: 22,
     hp: 300,
@@ -200,7 +201,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_19',
+    id: '2130100',
     name: '다크 엑스텀프',
     level: 22,
     hp: 550,
@@ -211,7 +212,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_20',
+    id: '2230101',
     name: '좀비버섯',
     level: 24,
     hp: 500,
@@ -222,7 +223,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_21',
+    id: '2230102',
     name: '와일드보어',
     level: 25,
     hp: 550,
@@ -233,7 +234,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_22',
+    id: '2230100',
     name: '이블아이',
     level: 27,
     hp: 720,
@@ -244,7 +245,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_23',
+    id: '3000001',
     name: '페어리',
     level: 30,
     hp: 800,
@@ -255,7 +256,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_24',
+    id: '3210100',
     name: '파이어보어',
     level: 32,
     hp: 1000,
@@ -266,7 +267,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_25',
+    id: '3110100',
     name: '리게이터',
     level: 32,
     hp: 1200,
@@ -277,7 +278,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_26',
+    id: '3230100',
     name: '커즈아이',
     level: 35,
     hp: 1250,
@@ -285,10 +286,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 70,
     exp: 70,
     avoid: 10,
+    poisonAttribute: 2,
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_27',
+    id: '3230101',
     name: '주니어 레이스',
     level: 35,
     hp: 1200,
@@ -299,7 +301,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_28',
+    id: '3230300',
     name: '주니어 부기',
     level: 35,
     hp: 1700,
@@ -310,7 +312,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_29',
+    id: '3230102',
     name: '로랑',
     level: 37,
     hp: 1950,
@@ -321,7 +323,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_30',
+    id: '3210800',
     name: '루팡',
     level: 37,
     hp: 1500,
@@ -332,7 +334,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_31',
+    id: '4230100',
     name: '콜드아이',
     level: 40,
     hp: 2000,
@@ -343,7 +345,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_32',
+    id: '4230101',
     name: '좀비 루팡',
     level: 40,
     hp: 1800,
@@ -354,7 +356,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_33',
+    id: '4230103',
     name: '아이언 호그',
     level: 42,
     hp: 2200,
@@ -365,7 +367,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_34',
+    id: '4130100',
     name: '카파 드레이크',
     level: 45,
     hp: 2700,
@@ -376,7 +378,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_35',
+    id: '4230400',
     name: '아이언보어',
     level: 45,
     hp: 2750,
@@ -387,7 +389,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_36',
+    id: '4130101',
     name: '엄티',
     level: 46,
     hp: 2550,
@@ -398,7 +400,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_37',
+    id: '4230102',
     name: '레이스',
     level: 48,
     hp: 2800,
@@ -409,7 +411,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_38',
+    id: '4230104',
     name: '클랑',
     level: 48,
     hp: 3000,
@@ -420,7 +422,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_39',
+    id: '5130100',
     name: '드레이크',
     level: 50,
     hp: 3200,
@@ -431,7 +433,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_40',
+    id: '5130103',
     name: '크로코',
     level: 52,
     hp: 3800,
@@ -442,7 +444,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_41',
+    id: '5130101',
     name: '스톤골렘',
     level: 55,
     hp: 4000,
@@ -453,7 +455,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_42',
+    id: '5300100',
     name: '멜러디',
     level: 55,
     hp: 4200,
@@ -464,7 +466,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_43',
+    id: '5130102',
     name: '다크 스톤골렘',
     level: 58,
     hp: 4800,
@@ -475,7 +477,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_44',
+    id: '6130100',
     name: '레드 드레이크',
     level: 60,
     hp: 6000,
@@ -486,7 +488,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_45',
+    id: '6230100',
     name: '와일드카고',
     level: 62,
     hp: 5500,
@@ -497,7 +499,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_46',
+    id: '7130100',
     name: '타우로마시스',
     level: 70,
     hp: 15000,
@@ -505,10 +507,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 250,
     exp: 270,
     avoid: 15,
+    poisonAttribute: 1,
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_47',
+    id: '7130101',
     name: '타우로스피어',
     level: 75,
     hp: 18000,
@@ -516,10 +519,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 400,
     exp: 350,
     avoid: 30,
+    poisonAttribute: 1,
     region: '빅토리아 아일랜드',
   },
   {
-    id: 'monster_48',
+    id: '1140100',
     name: '고스텀프',
     level: 19,
     hp: 330,
@@ -530,7 +534,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '미출시',
   },
   {
-    id: 'monster_49',
+    id: '2230110',
     name: '우드 마스크',
     level: 23,
     hp: 500,
@@ -541,7 +545,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '미출시',
   },
   {
-    id: 'monster_50',
+    id: '2230111',
     name: '스톤 마스크',
     level: 24,
     hp: 600,
@@ -552,7 +556,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '미출시',
   },
   {
-    id: 'monster_51',
+    id: '4230125',
     name: '스켈독',
     level: 44,
     hp: 2450,
@@ -563,7 +567,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '미출시',
   },
   {
-    id: 'monster_52',
+    id: '4230126',
     name: '머미독',
     level: 47,
     hp: 2750,
@@ -574,7 +578,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '미출시',
   },
   {
-    id: 'monster_53',
+    id: '5150001',
     name: '스켈레톤 사병',
     level: 57,
     hp: 4600,
@@ -585,7 +589,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '미출시',
   },
   {
-    id: 'monster_54',
+    id: '5150000',
     name: '믹스골렘',
     level: 59,
     hp: 6000,
@@ -596,7 +600,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '미출시',
   },
   {
-    id: 'monster_55',
+    id: '6230602',
     name: '스켈레톤 장교',
     level: 63,
     hp: 7500,
@@ -607,7 +611,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '미출시',
   },
   {
-    id: 'monster_56',
+    id: '6230600',
     name: '아이스 드레이크',
     level: 64,
     hp: 7700,
@@ -618,7 +622,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '미출시',
   },
   {
-    id: 'monster_57',
+    id: '6230601',
     name: '다크 드레이크',
     level: 68,
     hp: 13000,
@@ -629,7 +633,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '미출시',
   },
   {
-    id: 'monster_58',
+    id: '7130103',
     name: '스켈레톤 지휘관',
     level: 73,
     hp: 15300,
@@ -637,10 +641,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 300,
     exp: 315,
     avoid: 32,
+    poisonAttribute: 1,
     region: '미출시',
   },
   {
-    id: 'monster_59',
+    id: '5200000',
     name: '주니어 스톤볼',
     level: 23,
     hp: 600,
@@ -651,7 +656,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_60',
+    id: '3000000',
     name: '스톤볼',
     level: 30,
     hp: 900,
@@ -662,7 +667,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_61',
+    id: '5200001',
     name: '아이스 스톤볼',
     level: 30,
     hp: 900,
@@ -673,7 +678,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_62',
+    id: '5200002',
     name: '파이어 스톤볼',
     level: 30,
     hp: 900,
@@ -684,7 +689,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_63',
+    id: '3210200',
     name: '주니어 샐리온',
     level: 33,
     hp: 1100,
@@ -695,7 +700,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_64',
+    id: '3210201',
     name: '주니어 라이오너',
     level: 33,
     hp: 1100,
@@ -706,7 +711,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_65',
+    id: '3210202',
     name: '주니어 그류핀',
     level: 33,
     hp: 1100,
@@ -717,7 +722,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_66',
+    id: '3230200',
     name: '스타픽시',
     level: 35,
     hp: 1300,
@@ -728,7 +733,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_67',
+    id: '4230105',
     name: '네펜데스',
     level: 42,
     hp: 2100,
@@ -739,7 +744,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_68',
+    id: '4230106',
     name: '루나픽시',
     level: 45,
     hp: 2500,
@@ -750,7 +755,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_69',
+    id: '4130102',
     name: '다크 네펜데스',
     level: 47,
     hp: 2700,
@@ -761,7 +766,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_70',
+    id: '5120000',
     name: '러스터픽시',
     level: 52,
     hp: 4000,
@@ -772,7 +777,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_71',
+    id: '5120001',
     name: '샐리온',
     level: 53,
     hp: 4200,
@@ -783,7 +788,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_72',
+    id: '5120002',
     name: '라이오너',
     level: 53,
     hp: 4200,
@@ -794,7 +799,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_73',
+    id: '5120003',
     name: '그류핀',
     level: 53,
     hp: 4200,
@@ -805,7 +810,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '오르비스',
   },
   {
-    id: 'monster_74',
+    id: '7130000',
     name: '루이넬',
     level: 73,
     hp: 15500,
@@ -813,10 +818,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 320,
     exp: 320,
     avoid: 28,
+    poisonAttribute: 1,
     region: '오르비스',
   },
   {
-    id: 'monster_75',
+    id: '5300000',
     name: '리티',
     level: 32,
     hp: 1000,
@@ -827,7 +833,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_76',
+    id: '5300001',
     name: '다크 리티',
     level: 33,
     hp: 1100,
@@ -838,7 +844,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_77',
+    id: '5400000',
     name: '주니어 페페',
     level: 35,
     hp: 1400,
@@ -849,7 +855,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_78',
+    id: '4230107',
     name: '플라이아이',
     level: 41,
     hp: 1600,
@@ -860,7 +866,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_79',
+    id: '4230108',
     name: '주니어 불독',
     level: 43,
     hp: 2300,
@@ -871,7 +877,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_80',
+    id: '5100000',
     name: '주니어 예티',
     level: 50,
     hp: 3700,
@@ -882,7 +888,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_81',
+    id: '5100002',
     name: '파이어봄',
     level: 51,
     hp: 3600,
@@ -893,7 +899,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_82',
+    id: '5130104',
     name: '헥터',
     level: 55,
     hp: 4600,
@@ -904,7 +910,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_83',
+    id: '5130105',
     name: '다크 주니어 예티',
     level: 56,
     hp: 4400,
@@ -915,7 +921,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_84',
+    id: '5130107',
     name: '쿨리 좀비',
     level: 57,
     hp: 4500,
@@ -923,10 +929,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 180,
     exp: 190,
     avoid: 25,
+    poisonAttribute: 1,
     region: '엘나스',
   },
   {
-    id: 'monster_85',
+    id: '5130108',
     name: '마이너 좀비',
     level: 57,
     hp: 4500,
@@ -934,10 +941,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 180,
     exp: 190,
     avoid: 25,
+    poisonAttribute: 1,
     region: '엘나스',
   },
   {
-    id: 'monster_86',
+    id: '5140000',
     name: '화이트팽',
     level: 58,
     hp: 5800,
@@ -948,7 +956,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_87',
+    id: '6130102',
     name: '페페',
     level: 60,
     hp: 7200,
@@ -959,7 +967,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_88',
+    id: '6230200',
     name: '다크 페페',
     level: 64,
     hp: 7800,
@@ -970,7 +978,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_89',
+    id: '6300000',
     name: '예티',
     level: 65,
     hp: 11000,
@@ -981,7 +989,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_90',
+    id: '6400000',
     name: '다크 예티',
     level: 68,
     hp: 13000,
@@ -992,7 +1000,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_91',
+    id: '7130001',
     name: '불독',
     level: 72,
     hp: 15200,
@@ -1003,7 +1011,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_92',
+    id: '7130200',
     name: '웨어울프',
     level: 75,
     hp: 16000,
@@ -1014,7 +1022,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_93',
+    id: '7130102',
     name: '예티와 페페',
     level: 78,
     hp: 20000,
@@ -1025,7 +1033,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_94',
+    id: '8140000',
     name: '라이칸스로프',
     level: 80,
     hp: 27000,
@@ -1036,7 +1044,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_95',
+    id: '8140100',
     name: '다크 예티와 페페',
     level: 82,
     hp: 29000,
@@ -1047,7 +1055,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_96',
+    id: '8140500',
     name: '파이어독',
     level: 90,
     hp: 45000,
@@ -1058,7 +1066,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '엘나스',
   },
   {
-    id: 'monster_97',
+    id: '3000005',
     name: '브라운테니',
     level: 30,
     hp: 950,
@@ -1069,7 +1077,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_98',
+    id: '3110101',
     name: '핑크테니',
     level: 32,
     hp: 1050,
@@ -1080,7 +1088,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_99',
+    id: '3210204',
     name: '더키 패밀리',
     level: 34,
     hp: 1200,
@@ -1091,7 +1099,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_100',
+    id: '3210203',
     name: '팬더테니',
     level: 36,
     hp: 1400,
@@ -1102,7 +1110,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_101',
+    id: '3230305',
     name: '장난감 목마',
     level: 39,
     hp: 1920,
@@ -1113,7 +1121,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_102',
+    id: '4230111',
     name: '로보토이',
     level: 41,
     hp: 2000,
@@ -1124,7 +1132,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_103',
+    id: '4230112',
     name: '마스터 로보',
     level: 44,
     hp: 2450,
@@ -1135,7 +1143,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_104',
+    id: '3210207',
     name: '티키',
     level: 34,
     hp: 1100,
@@ -1146,7 +1154,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_105',
+    id: '4230113',
     name: '틱톡',
     level: 40,
     hp: 1900,
@@ -1157,7 +1165,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_106',
+    id: '3230306',
     name: '크로노스',
     level: 37,
     hp: 1750,
@@ -1168,7 +1176,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_107',
+    id: '4230114',
     name: '플래툰 크로노스',
     level: 41,
     hp: 2050,
@@ -1179,7 +1187,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_108',
+    id: '4230115',
     name: '마스터 크로노스',
     level: 46,
     hp: 2600,
@@ -1190,7 +1198,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '장난감 공장',
   },
   {
-    id: 'monster_109',
+    id: '6130200',
     name: '버피',
     level: 61,
     hp: 7400,
@@ -1201,7 +1209,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_110',
+    id: '6230300',
     name: '레이지 버피',
     level: 66,
     hp: 9400,
@@ -1212,7 +1220,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_111',
+    id: '6300100',
     name: '버푼',
     level: 74,
     hp: 16000,
@@ -1223,7 +1231,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_112',
+    id: '6400100',
     name: '딥 버푼',
     level: 77,
     hp: 19000,
@@ -1234,7 +1242,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_113',
+    id: '7140000',
     name: '파이렛',
     level: 83,
     hp: 30000,
@@ -1245,7 +1253,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_114',
+    id: '7160000',
     name: '듀얼 파이렛',
     level: 87,
     hp: 35000,
@@ -1256,7 +1264,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_115',
+    id: '8141000',
     name: '바이킹',
     level: 93,
     hp: 50000,
@@ -1267,7 +1275,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_116',
+    id: '8141100',
     name: '기간틱 바이킹',
     level: 98,
     hp: 58000,
@@ -1278,7 +1286,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_117',
+    id: '8160000',
     name: '게이트 키퍼',
     level: 108,
     hp: 78000,
@@ -1289,7 +1297,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_118',
+    id: '6230400',
     name: '소울테니',
     level: 63,
     hp: 7600,
@@ -1300,7 +1308,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_119',
+    id: '6230500',
     name: '마스터 소울테니',
     level: 67,
     hp: 11000,
@@ -1311,7 +1319,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_120',
+    id: '8140200',
     name: '클라크',
     level: 70,
     hp: 15000,
@@ -1322,7 +1330,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_121',
+    id: '8140300',
     name: '다크 클라크',
     level: 76,
     hp: 18000,
@@ -1333,7 +1341,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_122',
+    id: '7130010',
     name: '데스테니',
     level: 85,
     hp: 32000,
@@ -1344,7 +1352,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_123',
+    id: '7130300',
     name: '마스터 데스테니',
     level: 89,
     hp: 40000,
@@ -1355,7 +1363,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_124',
+    id: '8142000',
     name: '팬텀워치',
     level: 95,
     hp: 53000,
@@ -1366,7 +1374,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_125',
+    id: '8143000',
     name: 'G.팬텀워치',
     level: 99,
     hp: 60000,
@@ -1377,7 +1385,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_126',
+    id: '8170000',
     name: '타나토스',
     level: 108,
     hp: 70000,
@@ -1388,7 +1396,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시계탑',
   },
   {
-    id: 'monster_127',
+    id: '3110102',
     name: '라츠',
     level: 32,
     hp: 1000,
@@ -1399,7 +1407,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_128',
+    id: '3210205',
     name: '블랙 라츠',
     level: 34,
     hp: 1150,
@@ -1410,7 +1418,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_129',
+    id: '2230103',
     name: '트릭스터',
     level: 23,
     hp: 450,
@@ -1421,7 +1429,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_130',
+    id: '2230104',
     name: '그린 트릭스터',
     level: 28,
     hp: 780,
@@ -1429,10 +1437,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 75,
     exp: 55,
     avoid: 12,
+    poisonAttribute: 1,
     region: '에오스탑',
   },
   {
-    id: 'monster_131',
+    id: '3230400',
     name: '북치는 토끼',
     level: 30,
     hp: 950,
@@ -1443,7 +1452,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_132',
+    id: '3230307',
     name: '처프',
     level: 31,
     hp: 800,
@@ -1454,7 +1463,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_133',
+    id: '3210206',
     name: '치크세이버',
     level: 36,
     hp: 1350,
@@ -1465,7 +1474,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_134',
+    id: '3230303',
     name: '핑크세이버',
     level: 37,
     hp: 1700,
@@ -1476,7 +1485,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_135',
+    id: '3230304',
     name: '스카이세이버',
     level: 38,
     hp: 1830,
@@ -1487,7 +1496,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_136',
+    id: '3230302',
     name: '블록퍼스 ',
     level: 35,
     hp: 1300,
@@ -1498,7 +1507,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_137',
+    id: '3230103',
     name: '킹 블록퍼스',
     level: 38,
     hp: 1850,
@@ -1509,7 +1518,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_138',
+    id: '3230308',
     name: '트위터',
     level: 39,
     hp: 1900,
@@ -1520,7 +1529,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_139',
+    id: '4230109',
     name: '블록골렘',
     level: 42,
     hp: 2400,
@@ -1531,7 +1540,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_140',
+    id: '4230110',
     name: '킹 블록골렘',
     level: 45,
     hp: 2600,
@@ -1542,7 +1551,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '에오스탑',
   },
   {
-    id: 'monster_141',
+    id: '4230119',
     name: '마티안',
     level: 41,
     hp: 2080,
@@ -1553,7 +1562,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '지구방위본부',
   },
   {
-    id: 'monster_142',
+    id: '4230120',
     name: '플라티안',
     level: 44,
     hp: 2480,
@@ -1564,7 +1573,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '지구방위본부',
   },
   {
-    id: 'monster_143',
+    id: '4230121',
     name: '메카티안',
     level: 46,
     hp: 2600,
@@ -1575,7 +1584,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '지구방위본부',
   },
   {
-    id: 'monster_144',
+    id: '4230116',
     name: '바나드 그레이',
     level: 40,
     hp: 1930,
@@ -1586,7 +1595,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '지구방위본부',
   },
   {
-    id: 'monster_145',
+    id: '4230117',
     name: '제타 그레이',
     level: 42,
     hp: 2300,
@@ -1597,7 +1606,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '지구방위본부',
   },
   {
-    id: 'monster_146',
+    id: '4230118',
     name: '울트라 그레이',
     level: 45,
     hp: 2550,
@@ -1608,7 +1617,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '지구방위본부',
   },
   {
-    id: 'monster_147',
+    id: '3210208',
     name: '레츠',
     level: 36,
     hp: 1400,
@@ -1619,7 +1628,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아랫마을',
   },
   {
-    id: 'monster_148',
+    id: '4230300',
     name: '월묘',
     level: 45,
     hp: 2600,
@@ -1630,7 +1639,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아랫마을',
   },
   {
-    id: 'monster_149',
+    id: '5100003',
     name: '호돌이',
     level: 50,
     hp: 3800,
@@ -1641,7 +1650,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아랫마을',
   },
   {
-    id: 'monster_150',
+    id: '5100005',
     name: '호걸',
     level: 53,
     hp: 4500,
@@ -1652,7 +1661,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아랫마을',
   },
   {
-    id: 'monster_151',
+    id: '5100004',
     name: '삼미호',
     level: 56,
     hp: 4500,
@@ -1663,7 +1672,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아랫마을',
   },
   {
-    id: 'monster_152',
+    id: '6130202',
     name: '깨비',
     level: 60,
     hp: 7000,
@@ -1674,7 +1683,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아랫마을',
   },
   {
-    id: 'monster_153',
+    id: '7130400',
     name: '노란 왕도깨비',
     level: 70,
     hp: 25000,
@@ -1682,10 +1691,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 280,
     exp: 400,
     avoid: 15,
+    isBoss: true,
     region: '아랫마을',
   },
   {
-    id: 'monster_154',
+    id: '7130401',
     name: '파란 왕도깨비',
     level: 70,
     hp: 25000,
@@ -1693,10 +1703,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 280,
     exp: 400,
     avoid: 15,
+    isBoss: true,
     region: '아랫마을',
   },
   {
-    id: 'monster_155',
+    id: '7130402',
     name: '초록 왕도깨비',
     level: 70,
     hp: 25000,
@@ -1704,10 +1715,12 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 280,
     exp: 400,
     avoid: 15,
+    poisonAttribute: 1,
+    isBoss: true,
     region: '아랫마을',
   },
   {
-    id: 'monster_156',
+    id: '9410006',
     name: '옐로우 버블티',
     level: 38,
     hp: 1900,
@@ -1715,10 +1728,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 100,
     exp: 90,
     avoid: 15,
+    poisonAttribute: 3,
     region: '아랫마을',
   },
   {
-    id: 'monster_157',
+    id: '3210450',
     name: '스쿠버 페페',
     level: 36,
     hp: 1430,
@@ -1729,7 +1743,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아쿠아리움',
   },
   {
-    id: 'monster_158',
+    id: '3230405',
     name: '주니어 씰',
     level: 38,
     hp: 1850,
@@ -1740,7 +1754,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아쿠아리움',
   },
   {
-    id: 'monster_159',
+    id: '4230200',
     name: '푸퍼',
     level: 40,
     hp: 1900,
@@ -1748,10 +1762,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 160,
     exp: 95,
     avoid: 18,
+    poisonAttribute: 3,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_160',
+    id: '4230201',
     name: '포이즌 푸퍼',
     level: 40,
     hp: 1910,
@@ -1759,10 +1774,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 100,
     exp: 97,
     avoid: 18,
+    poisonAttribute: 2,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_161',
+    id: '4230124',
     name: '프리져',
     level: 42,
     hp: 2300,
@@ -1773,7 +1789,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아쿠아리움',
   },
   {
-    id: 'monster_162',
+    id: '4230123',
     name: '스파커',
     level: 43,
     hp: 2400,
@@ -1784,17 +1800,18 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아쿠아리움',
   },
   {
-    id: 'monster_163',
+    id: '4220001',
     name: '세르프',
     level: 45,
     hp: 2550,
     physicalDefense: 150,
     magicalDefense: 200,
     avoid: 20,
+    isBoss: true,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_164',
+    id: '4220000',
     name: '세르프',
     level: 45,
     hp: 7800,
@@ -1802,10 +1819,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 200,
     exp: 330,
     avoid: 20,
+    isBoss: true,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_165',
+    id: '2230109',
     name: '버블피쉬',
     level: 28,
     hp: 740,
@@ -1813,10 +1831,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 40,
     exp: 52,
     avoid: 10,
+    poisonAttribute: 3,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_166',
+    id: '2230200',
     name: '플라워 피쉬',
     level: 29,
     hp: 790,
@@ -1824,10 +1843,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 85,
     exp: 58,
     avoid: 10,
+    poisonAttribute: 2,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_167',
+    id: '3230104',
     name: '마스크피쉬',
     level: 32,
     hp: 1000,
@@ -1838,7 +1858,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아쿠아리움',
   },
   {
-    id: 'monster_168',
+    id: '3000006',
     name: '크립',
     level: 30,
     hp: 900,
@@ -1846,10 +1866,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 40,
     exp: 55,
     avoid: 12,
+    poisonAttribute: 3,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_169',
+    id: '2230105',
     name: '씨클',
     level: 23,
     hp: 500,
@@ -1857,10 +1878,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 45,
     exp: 42,
     avoid: 9,
+    poisonAttribute: 3,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_170',
+    id: '2230106',
     name: '씨코',
     level: 25,
     hp: 550,
@@ -1868,10 +1890,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 40,
     exp: 42,
     avoid: 8,
+    poisonAttribute: 3,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_171',
+    id: '2230108',
     name: '핀붐',
     level: 22,
     hp: 400,
@@ -1882,7 +1905,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아쿠아리움',
   },
   {
-    id: 'monster_172',
+    id: '2230107',
     name: '크라피',
     level: 24,
     hp: 500,
@@ -1890,10 +1913,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 30,
     exp: 45,
     avoid: 8,
+    poisonAttribute: 3,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_173',
+    id: '7130020',
     name: '망둥이',
     level: 85,
     hp: 17000,
@@ -1904,7 +1928,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아쿠아리움',
   },
   {
-    id: 'monster_174',
+    id: '8140600',
     name: '본피쉬',
     level: 92,
     hp: 42500,
@@ -1915,17 +1939,18 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아쿠아리움',
   },
   {
-    id: 'monster_175',
+    id: '8140555',
     name: '폭렬 망둥이집',
     level: 90,
     hp: 40500,
     physicalDefense: 840,
     magicalDefense: 530,
     avoid: 35,
+    poisonAttribute: 2,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_176',
+    id: '8150100',
     name: '샤크',
     level: 100,
     hp: 56000,
@@ -1936,7 +1961,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아쿠아리움',
   },
   {
-    id: 'monster_177',
+    id: '8150101',
     name: '콜드샤크',
     level: 102,
     hp: 58500,
@@ -1947,7 +1972,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아쿠아리움',
   },
   {
-    id: 'monster_178',
+    id: '8141300',
     name: '스퀴드',
     level: 94,
     hp: 46000,
@@ -1955,10 +1980,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 525,
     exp: 2200,
     avoid: 37,
+    poisonAttribute: 2,
     region: '아쿠아리움',
   },
   {
-    id: 'monster_179',
+    id: '8142100',
     name: '리셀스퀴드',
     level: 97,
     hp: 49000,
@@ -1969,7 +1995,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아쿠아리움',
   },
   {
-    id: 'monster_180',
+    id: '7130500',
     name: '레쉬',
     level: 70,
     hp: 14500,
@@ -1977,10 +2003,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 245,
     exp: 270,
     avoid: 25,
+    poisonAttribute: 3,
     region: '리프레',
   },
   {
-    id: 'monster_181',
+    id: '7130501',
     name: '다크 레쉬',
     level: 74,
     hp: 15500,
@@ -1988,10 +2015,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 295,
     exp: 340,
     avoid: 27,
+    poisonAttribute: 2,
     region: '리프레',
   },
   {
-    id: 'monster_182',
+    id: '7130002',
     name: '비틀',
     level: 72,
     hp: 15200,
@@ -2002,7 +2030,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_183',
+    id: '7130003',
     name: '듀얼 비틀',
     level: 76,
     hp: 18000,
@@ -2013,7 +2041,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_184',
+    id: '7130004',
     name: '헹키',
     level: 78,
     hp: 20000,
@@ -2021,10 +2049,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 450,
     exp: 400,
     avoid: 28,
+    poisonAttribute: 3,
     region: '리프레',
   },
   {
-    id: 'monster_185',
+    id: '8140001',
     name: '하프',
     level: 80,
     hp: 27000,
@@ -2032,10 +2061,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 450,
     exp: 850,
     avoid: 28,
+    poisonAttribute: 3,
     region: '리프레',
   },
   {
-    id: 'monster_186',
+    id: '8140002',
     name: '블러드 하프',
     level: 83,
     hp: 30000,
@@ -2046,7 +2076,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_187',
+    id: '8140110',
     name: '버크',
     level: 85,
     hp: 32000,
@@ -2057,7 +2087,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_188',
+    id: '8140111',
     name: '듀얼 버크',
     level: 88,
     hp: 37000,
@@ -2065,10 +2095,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 480,
     exp: 1620,
     avoid: 28,
+    poisonAttribute: 2,
     region: '리프레',
   },
   {
-    id: 'monster_189',
+    id: '8140101',
     name: '검은 켄타우로스',
     level: 88,
     hp: 37000,
@@ -2079,7 +2110,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_190',
+    id: '8140102',
     name: '붉은 켄타우로스',
     level: 88,
     hp: 37000,
@@ -2090,7 +2121,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_191',
+    id: '8140103',
     name: '푸른 켄타우로스',
     level: 88,
     hp: 37000,
@@ -2101,7 +2132,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_192',
+    id: '7130600',
     name: '호브',
     level: 72,
     hp: 15000,
@@ -2109,10 +2140,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 260,
     exp: 295,
     avoid: 25,
+    poisonAttribute: 3,
     region: '리프레',
   },
   {
-    id: 'monster_193',
+    id: '7130601',
     name: '핀호브',
     level: 76,
     hp: 18000,
@@ -2120,10 +2152,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 350,
     exp: 370,
     avoid: 28,
+    poisonAttribute: 2,
     region: '리프레',
   },
   {
-    id: 'monster_194',
+    id: '8140700',
     name: '블루 드래곤터틀',
     level: 90,
     hp: 40000,
@@ -2134,7 +2167,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_195',
+    id: '8140701',
     name: '레드 드래곤터틀',
     level: 93,
     hp: 49000,
@@ -2145,7 +2178,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_196',
+    id: '8140702',
     name: '리스톤',
     level: 95,
     hp: 50000,
@@ -2153,10 +2186,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 550,
     exp: 2280,
     avoid: 37,
+    poisonAttribute: 3,
     region: '리프레',
   },
   {
-    id: 'monster_197',
+    id: '8140703',
     name: '브레스톤',
     level: 97,
     hp: 55000,
@@ -2167,7 +2201,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_198',
+    id: '8150200',
     name: '그린코니언',
     level: 100,
     hp: 56000,
@@ -2175,10 +2209,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 500,
     exp: 3000,
     avoid: 45,
+    poisonAttribute: 2,
     region: '리프레',
   },
   {
-    id: 'monster_199',
+    id: '8150201',
     name: '다크코니언',
     level: 105,
     hp: 67000,
@@ -2186,10 +2221,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 500,
     exp: 3700,
     avoid: 45,
+    poisonAttribute: 2,
     region: '리프레',
   },
   {
-    id: 'monster_200',
+    id: '8150300',
     name: '레드 와이번',
     level: 97,
     hp: 53000,
@@ -2200,7 +2236,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_201',
+    id: '8150301',
     name: '블루 와이번',
     level: 101,
     hp: 57000,
@@ -2211,7 +2247,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_202',
+    id: '8150302',
     name: '다크 와이번',
     level: 103,
     hp: 60000,
@@ -2222,7 +2258,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_203',
+    id: '8190000',
     name: '뉴트주니어',
     level: 105,
     hp: 68000,
@@ -2233,7 +2269,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_204',
+    id: '8190002',
     name: '네스트 골렘',
     level: 110,
     hp: 80000,
@@ -2244,7 +2280,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_205',
+    id: '8190003',
     name: '스켈레곤',
     level: 110,
     hp: 80000,
@@ -2255,7 +2291,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_206',
+    id: '8190004',
     name: '스켈로스',
     level: 113,
     hp: 85000,
@@ -2266,7 +2302,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '리프레',
   },
   {
-    id: 'monster_207',
+    id: '5120503',
     name: '훈련용 짚인형',
     level: 50,
     hp: 3000,
@@ -2277,7 +2313,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_208',
+    id: '5120504',
     name: '훈련용 나무인형',
     level: 51,
     hp: 3200,
@@ -2288,7 +2324,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_209',
+    id: '4230500',
     name: '별다람쥐',
     level: 40,
     hp: 1900,
@@ -2299,7 +2335,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_210',
+    id: '4230501',
     name: '호저',
     level: 41,
     hp: 2000,
@@ -2310,7 +2346,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_211',
+    id: '4230502',
     name: '흑저',
     level: 43,
     hp: 2400,
@@ -2321,7 +2357,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_212',
+    id: '4230503',
     name: '청화사',
     level: 45,
     hp: 2550,
@@ -2332,7 +2368,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_213',
+    id: '4230504',
     name: '홍화사',
     level: 45,
     hp: 2550,
@@ -2343,7 +2379,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_214',
+    id: '5120500',
     name: '달곰',
     level: 56,
     hp: 4800,
@@ -2354,7 +2390,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_215',
+    id: '6130203',
     name: '판다곰',
     level: 60,
     hp: 6500,
@@ -2365,7 +2401,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_216',
+    id: '5120505',
     name: '천록',
     level: 58,
     hp: 5600,
@@ -2373,10 +2409,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 210,
     exp: 205,
     avoid: 20,
+    poisonAttribute: 3,
     region: '무릉',
   },
   {
-    id: 'monster_217',
+    id: '6130207',
     name: '원공',
     level: 62,
     hp: 7500,
@@ -2387,7 +2424,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_218',
+    id: '5120506',
     name: '비급',
     level: 55,
     hp: 4500,
@@ -2398,7 +2435,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_219',
+    id: '6130209',
     name: '묘선',
     level: 66,
     hp: 9000,
@@ -2409,7 +2446,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '무릉',
   },
   {
-    id: 'monster_220',
+    id: '4230505',
     name: '단지',
     level: 47,
     hp: 2700,
@@ -2420,7 +2457,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '백초마을',
   },
   {
-    id: 'monster_221',
+    id: '4230506',
     name: '삼단지',
     level: 48,
     hp: 2800,
@@ -2431,7 +2468,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '백초마을',
   },
   {
-    id: 'monster_222',
+    id: '5120501',
     name: '도라지',
     level: 53,
     hp: 4200,
@@ -2442,7 +2479,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '백초마을',
   },
   {
-    id: 'monster_223',
+    id: '5120502',
     name: '늙은 도라지',
     level: 54,
     hp: 4400,
@@ -2453,7 +2490,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '백초마을',
   },
   {
-    id: 'monster_224',
+    id: '6130204',
     name: '게비알',
     level: 64,
     hp: 7800,
@@ -2464,7 +2501,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '백초마을',
   },
   {
-    id: 'monster_225',
+    id: '6130208',
     name: '크루',
     level: 68,
     hp: 12500,
@@ -2475,7 +2512,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '백초마을',
   },
   {
-    id: 'monster_226',
+    id: '7130104',
     name: '캡틴',
     level: 70,
     hp: 15000,
@@ -2486,7 +2523,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '백초마을',
   },
   {
-    id: 'monster_227',
+    id: '2100108',
     name: '미요캐츠',
     level: 29,
     hp: 780,
@@ -2497,7 +2534,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_228',
+    id: '3100102',
     name: '키요',
     level: 30,
     hp: 870,
@@ -2508,7 +2545,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_229',
+    id: '3100101',
     name: '모래난쟁이',
     level: 32,
     hp: 1000,
@@ -2519,7 +2556,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_230',
+    id: '3110301',
     name: '붉은 모래난쟁이',
     level: 32,
     hp: 1000,
@@ -2530,7 +2567,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_231',
+    id: '4230600',
     name: '모래거인',
     level: 40,
     hp: 1800,
@@ -2541,7 +2578,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_232',
+    id: '2110300',
     name: '모래 두더지',
     level: 24,
     hp: 600,
@@ -2552,7 +2589,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_233',
+    id: '2110301',
     name: '스콜피언',
     level: 29,
     hp: 780,
@@ -2563,7 +2600,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_234',
+    id: '2100102',
     name: '주니어 카투스',
     level: 22,
     hp: 450,
@@ -2574,7 +2611,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_235',
+    id: '2100103',
     name: '카투스',
     level: 25,
     hp: 550,
@@ -2585,7 +2622,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_236',
+    id: '2100104',
     name: '로얄 카투스',
     level: 28,
     hp: 750,
@@ -2596,7 +2633,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_237',
+    id: '2100105',
     name: '벨라모아',
     level: 23,
     hp: 500,
@@ -2604,10 +2641,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 40,
     exp: 42,
     avoid: 9,
+    poisonAttribute: 2,
     region: '아리안트',
   },
   {
-    id: 'monster_238',
+    id: '2100106',
     name: '귀마개 프릴드',
     level: 24,
     hp: 550,
@@ -2618,7 +2656,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_239',
+    id: '2100107',
     name: '목도리 프릴드',
     level: 27,
     hp: 700,
@@ -2629,7 +2667,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_240',
+    id: '2100100',
     name: '흰 모래토끼',
     level: 20,
     hp: 350,
@@ -2640,7 +2678,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_241',
+    id: '2100101',
     name: '갈색 모래토끼',
     level: 21,
     hp: 400,
@@ -2651,7 +2689,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '아리안트',
   },
   {
-    id: 'monster_242',
+    id: '4110302',
     name: '미스릴 뮤테',
     level: 47,
     hp: 2750,
@@ -2662,7 +2700,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_243',
+    id: '5110300',
     name: '강화된 미스릴 뮤테',
     level: 50,
     hp: 3000,
@@ -2673,7 +2711,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_244',
+    id: '4110300',
     name: '아이언 뮤테',
     level: 42,
     hp: 2400,
@@ -2684,7 +2722,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_245',
+    id: '4110301',
     name: '강화된 아이언 뮤테',
     level: 45,
     hp: 2550,
@@ -2695,7 +2733,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_246',
+    id: '6090004',
     name: '루루모',
     level: 63,
     hp: 7600,
@@ -2703,10 +2741,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 220,
     exp: 245,
     avoid: 999,
+    isBoss: true,
     region: '마가티아',
   },
   {
-    id: 'monster_247',
+    id: '5110301',
     name: '로이드',
     level: 54,
     hp: 4400,
@@ -2717,7 +2756,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_248',
+    id: '5110302',
     name: '네오 휴로이드',
     level: 58,
     hp: 5600,
@@ -2728,7 +2767,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_249',
+    id: '3110302',
     name: '루모',
     level: 35,
     hp: 1400,
@@ -2739,7 +2778,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_250',
+    id: '3110303',
     name: '트리플 루모',
     level: 38,
     hp: 1850,
@@ -2750,7 +2789,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_251',
+    id: '3110300',
     name: '큐브슬라임',
     level: 32,
     hp: 1000,
@@ -2761,7 +2800,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_252',
+    id: '6110300',
     name: '호문',
     level: 65,
     hp: 11000,
@@ -2772,7 +2811,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_253',
+    id: '7110301',
     name: '호문클루 ',
     level: 73,
     hp: 15500,
@@ -2783,7 +2822,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_254',
+    id: '8110300',
     name: '호문스큘러',
     level: 80,
     hp: 27000,
@@ -2794,7 +2833,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_255',
+    id: '6110301',
     name: '사이티',
     level: 68,
     hp: 13000,
@@ -2805,7 +2844,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '마가티아',
   },
   {
-    id: 'monster_256',
+    id: '8200000',
     name: '시간의 눈',
     level: 80,
     hp: 24000,
@@ -2816,7 +2855,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시간의 신전',
   },
   {
-    id: 'monster_257',
+    id: '8200001',
     name: '추억의 사제',
     level: 91,
     hp: 41000,
@@ -2824,10 +2863,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 670,
     exp: 1900,
     avoid: 37,
+    poisonAttribute: 2,
     region: '시간의 신전',
   },
   {
-    id: 'monster_258',
+    id: '8200002',
     name: '추억의 신관',
     level: 94,
     hp: 45000,
@@ -2835,10 +2875,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 720,
     exp: 2200,
     avoid: 37,
+    poisonAttribute: 2,
     region: '시간의 신전',
   },
   {
-    id: 'monster_259',
+    id: '8200003',
     name: '추억의 수호병',
     level: 98,
     hp: 53000,
@@ -2846,10 +2887,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 530,
     exp: 2600,
     avoid: 37,
+    poisonAttribute: 2,
     region: '시간의 신전',
   },
   {
-    id: 'monster_260',
+    id: '8200004',
     name: '추억의 수호대장',
     level: 101,
     hp: 59000,
@@ -2857,10 +2899,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 540,
     exp: 3100,
     avoid: 37,
+    poisonAttribute: 2,
     region: '시간의 신전',
   },
   {
-    id: 'monster_261',
+    id: '8200005',
     name: '후회의 사제',
     level: 106,
     hp: 71000,
@@ -2871,7 +2914,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시간의 신전',
   },
   {
-    id: 'monster_262',
+    id: '8200006',
     name: '후회의 신관',
     level: 109,
     hp: 79000,
@@ -2882,7 +2925,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시간의 신전',
   },
   {
-    id: 'monster_263',
+    id: '8200007',
     name: '후회의 수호병',
     level: 113,
     hp: 90000,
@@ -2893,7 +2936,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시간의 신전',
   },
   {
-    id: 'monster_264',
+    id: '8200008',
     name: '후회의 수호대장',
     level: 116,
     hp: 99000,
@@ -2904,7 +2947,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '시간의 신전',
   },
   {
-    id: 'monster_265',
+    id: '8200009',
     name: '망각의 사제',
     level: 121,
     hp: 115000,
@@ -2912,10 +2955,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 870,
     exp: 5750,
     avoid: 41,
+    poisonAttribute: 3,
     region: '시간의 신전',
   },
   {
-    id: 'monster_266',
+    id: '8200010',
     name: '망각의 신관',
     level: 124,
     hp: 123000,
@@ -2923,10 +2967,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 910,
     exp: 6150,
     avoid: 43,
+    poisonAttribute: 3,
     region: '시간의 신전',
   },
   {
-    id: 'monster_267',
+    id: '8200011',
     name: '망각의 수호병',
     level: 128,
     hp: 133000,
@@ -2934,10 +2979,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 630,
     exp: 6670,
     avoid: 45,
+    poisonAttribute: 3,
     region: '시간의 신전',
   },
   {
-    id: 'monster_268',
+    id: '8200012',
     name: '망각의 수호대장',
     level: 131,
     hp: 141000,
@@ -2945,10 +2991,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicalDefense: 680,
     exp: 7060,
     avoid: 47,
+    poisonAttribute: 3,
     region: '시간의 신전',
   },
   {
-    id: 'monster_269',
+    id: '9400000',
     name: '까마귀',
     level: 25,
     hp: 550,
@@ -2959,7 +3006,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '일본',
   },
   {
-    id: 'monster_270',
+    id: '9400011',
     name: '제등귀신',
     level: 40,
     hp: 1920,
@@ -2970,7 +3017,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '일본',
   },
   {
-    id: 'monster_271',
+    id: '9400004',
     name: '큰 구름여우',
     level: 45,
     hp: 2600,
@@ -2981,7 +3028,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '일본',
   },
   {
-    id: 'monster_272',
+    id: '9400012',
     name: '물도깨비',
     level: 60,
     hp: 7100,
@@ -2992,7 +3039,7 @@ export const monsterPresets: MonsterPreset[] = [
     region: '일본',
   },
   {
-    id: 'monster_273',
+    id: '9400003',
     name: '망령',
     level: 60,
     hp: 7100,
