@@ -144,6 +144,8 @@ export interface VenomScenario {
   rollsPerUse: number;
   /** 공격 1회 주기 (초) */
   attackPeriodSeconds: number;
+  /** 틱 1회에 들어갈 수 있는 최대 도트 데미지 */
+  tickDamageCap: number;
 }
 
 /**
@@ -153,6 +155,7 @@ export interface VenomScenario {
  * - 타격마다 prop 확률로 중독 판정
  * - 기존 누적 <= 신규 * 2 일 때만 합연산으로 중첩되고 지속시간이 갱신된다
  * - 도트 클럭은 위상 0으로 1초마다 돌고, 같은 시각이면 공격이 먼저다
+ * - 틱 1회에 들어가는 데미지는 상한에서 잘린다 (중첩 판정에는 상한을 쓰지 않는다)
  * - 도트 데미지는 몬스터 HP를 1 미만으로 내리지 못한다
  */
 export const simulateKillProbabilitiesWithVenom = (
@@ -178,7 +181,7 @@ export const simulateKillProbabilitiesWithVenom = (
 
     const applyTick = () => {
       if (remaining > 0) {
-        hp = Math.max(1, hp - stack);
+        hp = Math.max(1, hp - Math.min(stack, venom.tickDamageCap));
         remaining--;
         if (remaining === 0) stack = 0;
       }

@@ -45,6 +45,19 @@ export const VENOM_EXCLUDED_SKILLS: AttackSkillType[] = ['drain'];
 /** 몬스터 도트 데미지 클럭 주기 (초) */
 export const VENOM_TICK_INTERVAL_SECONDS = 1;
 
+/**
+ * 틱 1회에 들어갈 수 있는 최대 도트 데미지.
+ *
+ * 원작 유출 코드에는 이런 상한이 없다. nVenom_은 int이고 중첩 누적에 제한이 없다.
+ * 메이플랜드 실측에서 30000을 넘는 도트 데미지가 들어가지 않는 것이 확인돼
+ * 메이플랜드 고유 사양으로 보고 반영한다.
+ *
+ * 중첩 판정(기존 <= 신규 * 2)에는 상한을 적용하지 않는다.
+ * 상한이 내부 누적값까지 자르는지 실제로 들어가는 데미지만 자르는지는
+ * 확인되지 않았고, 후자가 더 자연스러운 구현이라 그쪽으로 뒀다.
+ */
+export const VENOM_TICK_DAMAGE_CAP = 30000;
+
 /** 기본 공격 속도 (분당 공격 횟수). 트리플 스로우 기준값이다. */
 export const DEFAULT_ATTACKS_PER_MINUTE = 100;
 

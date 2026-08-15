@@ -11,7 +11,10 @@ import {
 } from '../app/utils/venom';
 import { getVenomLevelData } from '../app/data/venom';
 import { Equipment, Monster, Skills, Stats } from '../app/types/calculator';
-import { DEFAULT_ATTACKS_PER_MINUTE } from '../app/data/venom';
+import {
+  DEFAULT_ATTACKS_PER_MINUTE,
+  VENOM_TICK_DAMAGE_CAP,
+} from '../app/data/venom';
 import {
   KillScenario,
   VenomScenario,
@@ -89,6 +92,56 @@ describe('베놈 틱 데미지', () => {
     );
   });
 
+  it('메이플랜드 틱 데미지 상한에서 잘린다', () => {
+    // 상한이 없다면 최대 4만이 넘게 나오는 스펙
+    const config: VenomConfig = {
+      level: 30,
+      totalStr: 30,
+      totalDex: 300,
+      totalLuk: 3000,
+      rollsPerUse: 6,
+      attackPeriodSeconds: 0.6,
+    };
+    const statSum = 30 + 3000;
+    const base = Math.floor(statSum * 0.8);
+    const uncapped = Math.floor((60 * (300 + 5 * (base + statSum - 1))) / 49);
+    assert.ok(
+      uncapped > VENOM_TICK_DAMAGE_CAP,
+      '상한이 걸리지 않는 스펙이라 검증이 안 된다'
+    );
+
+    const range = calculateVenomTickDamage(config);
+    assert.ok(range);
+    assert.equal(range.max, VENOM_TICK_DAMAGE_CAP);
+  });
+
+  it('누적 베놈 데미지는 틱 수 x 상한을 넘지 않는다', () => {
+    const config: VenomConfig = {
+      level: 30,
+      totalStr: 30,
+      totalDex: 300,
+      totalLuk: 3000,
+      rollsPerUse: 6,
+      attackPeriodSeconds: 1,
+    };
+    const maxUses = 10;
+    const hp = 2000000;
+    const survivals = calculateVenomSurvivals(config, hp, 1, maxUses)!;
+    assert.ok(survivals);
+    // 공격 k 직전까지의 틱 수는 k - 1회다 (주기 1초, 위상 0)
+    for (let use = 1; use <= maxUses; use++) {
+      const limit = (use - 1) * VENOM_TICK_DAMAGE_CAP;
+      const survival = survivals[use - 1];
+      if (limit + 1 <= hp) {
+        assert.equal(
+          survival[limit + 1],
+          0,
+          `${use}방 시점에 ${limit}을 넘는 누적 베놈 데미지가 나왔다`
+        );
+      }
+    }
+  });
+
   it('스탯이 0이면 계산하지 않는다', () => {
     const config: VenomConfig = {
       level: 30,
@@ -153,6 +206,24 @@ const VENOM_CASES: VenomCase[] = [
     },
   },
   {
+    name: '트리플 스로우 + 베놈 30 (틱 상한에 걸리는 고스펙)',
+    hp: 150000,
+    basic: { min: 2000, max: 4000 },
+    crit: { min: 4000, max: 8000 },
+    critChance: 40,
+    shadow: 0.5,
+    hits: 3,
+    skillType: 'tripleThrow',
+    venom: {
+      level: 30,
+      totalStr: 20,
+      totalDex: 150,
+      totalLuk: 1200,
+      rollsPerUse: 6,
+      attackPeriodSeconds: 0.6,
+    },
+  },
+  {
     name: '럭키 세븐 + 베놈 21 (쉐도우 파트너 없음)',
     hp: 9000,
     basic: { min: 250, max: 500 },
@@ -207,6 +278,7 @@ const runVenomEngine = (c: VenomCase) => {
     dex: c.venom.totalDex,
     rollsPerUse: c.venom.rollsPerUse,
     attackPeriodSeconds: c.venom.attackPeriodSeconds,
+    tickDamageCap: VENOM_TICK_DAMAGE_CAP,
   };
   return { rows, scenario, venomScenario };
 };
