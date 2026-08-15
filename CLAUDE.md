@@ -171,13 +171,33 @@ GMS/KMS 버전 차이가 있을 수 있으니 수치는 항상 교차검증한�
 | [`CMob__OnMobStatChangeSkill.txt`](https://drive.google.com/file/d/1AipXS7vutfhrNALtJxvTcQjBZgvIrgQU/view) | 몹 상태이상 스킬 전반 | 브라질(BMS) 빅뱅 전 공식 서버를 IDA로 디컴파일한 **진짜 넥슨 코드**. 베놈·쇼다운·닌자 앰부시·독 안개 등의 적용 조건과 공식이 전부 들어 있다. 신뢰도 최상 |
 | [tnsc4502/mnwvs077](https://github.com/tnsc4502/mnwvs077) | 도트 틱 처리, 공격 처리 흐름 | 원작 v0.77 구조를 그대로 옮긴 C++ 재구현. `WvsGame/Mob.cpp`의 `UpdateMobStatChange`가 1초 틱과 HP 하한 1을, `WvsGame/LifePool.cpp`의 `ApplyUserAttack`이 베놈이 붙는 스킬 목록을 보여준다. **재구현이라 세부는 원본과 다를 수 있다**(중첩 조건이 원본과 다르게 단순화돼 있음) |
 | [67-6f-64/Rebirth95.Server](https://github.com/67-6f-64/Rebirth95.Server) | 대조용 | v95 기반 C# 재구현. 도트 틱을 몹 단위 자유진행 1초 클럭으로 돌린다. mnwvs077과 구조가 달라 두 방식을 비교할 때 쓴다 |
-| [akhuting/gms083](https://github.com/akhuting/gms083) | WZ 원본 데이터 | GMS v83의 `wz/Skill.wz/*.img.xml`, `wz/Mob.wz/*.img.xml`. 스킬 레벨별 수치(`mad`/`prop`/`time`)와 몹 속성(`elemAttr`, `boss`)의 1차 출처 |
-| [Sajandora/Mapleland-Discord-InfoBot](https://github.com/Sajandora/Mapleland-Discord-InfoBot) | 한글 몹 이름 ↔ 몹 ID | `data/mobs.json`. WZ는 영문명이라 프리셋(한글명)과 몹 ID를 잇는 데 필요하다 |
+| [mrzhqiang/ms079](https://github.com/mrzhqiang/ms079) | **몹 WZ 데이터 1차 출처** | v0.79 기준 `wz/Mob.wz/*.img.xml`. 메이플랜드와 가장 가까운 버전이라 몹 수치는 여기를 먼저 본다. v083이 틀린 사례가 있다(루루모 HP를 v083은 760만으로 적지만 v079와 실제 메랜은 7600) |
+| [akhuting/gms083](https://github.com/akhuting/gms083) | 스킬 WZ 데이터, 영문 몹 이름 | GMS v83의 `wz/Skill.wz/*.img.xml`(베놈 `mad`/`prop`/`time`의 출처)과 `wz/String.wz/Mob.img.xml`(영문명, 몹 ID 검증용) |
+| [Sajandora/Mapleland-Discord-InfoBot](https://github.com/Sajandora/Mapleland-Discord-InfoBot) | 한글 몹 이름 ↔ 몹 ID | `data/mobs.json`. WZ는 영문명이라 프리셋(한글명)과 몹 ID를 잇는 데 필요하다. 메이플랜드에 실제로 있는 몹 목록 역할도 한다 |
+| [maplestory.io](https://maplestory.io/api/GMS/83/mob/100100) | 몹 출현 맵 | `foundAt`이 몹이 나오는 맵 ID 목록을 준다. 프리셋의 `region`을 채울 때 썼다 |
 
 몹 속성 참고:
 - `elemAttr`는 `"I2F3"` 같은 문자열이고, 속성 인덱스 4(문자 `S`)가 독이다.
+  문자는 P 물리 / I 냉기 / F 불 / L 전기 / S 독 / H 성 / D 암.
 - 값은 1 = 무효, 2 = 반감, 3 = 약점. 베놈은 1과 2에서 걸리지 않는다(약점이어도 증폭은 없다).
 - `monsterPresets.ts`의 `id`가 곧 Mob.wz 몹 ID라 나중에 속성 데이터를 다시 붙일 수 있다.
+
+## 몬스터 프리셋 데이터
+
+`id`는 원작 Mob.wz 몹 ID다. 한글 이름으로 몹 ID를 찾고 레벨/HP로 교차검증해서 붙였다.
+
+**레벨 / HP / 방어력 / 회피 / 경험치는 원작 WZ로 덮어쓰지 않는다.**
+이 값들은 메이플랜드 실측 기준이고, 원작과 다른 몹이 17종 있다.
+루루모처럼 원작 데이터 쪽이 이상한 경우도 있어서 프리셋 값을 우선한다.
+원작과 다른 항목은 `git log`에서 프리셋 커밋 메시지에 정리해 뒀다.
+
+반대로 아래 항목은 계산에 쓰이지 않거나 실측이 어려워 v079 WZ 값을 그대로 쓴다.
+`accuracy`, `physicalAttack`, `magicAttack`, `minimumPushDamage`,
+`isUndead`, `elementAttributes`, `poisonAttribute`, `isBoss`.
+
+`region`은 몹의 출현 맵(maplestory.io `foundAt`)을 기존 프리셋의 지역 라벨과 대조해
+정했다. 출현 맵 정보가 없는 몹(주로 소환형 보스)은 추정하지 않고 `'기타'`로 뒀다.
+잘못된 지역보다 `'기타'`가 낫다고 보고 내린 선택이라, 확인되는 대로 채워 넣으면 된다.
 
 ## 개발 규칙
 
