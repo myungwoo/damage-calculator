@@ -5,6 +5,7 @@ import { ChevronUp } from 'lucide-react';
 import { DamageResult } from '../types/calculator';
 import { calculateDamage } from '../utils/damageCalculator';
 import { CALCULATION_DEBOUNCE_MS } from '../constants/calculator';
+import { findHeadlineKill } from '../utils/calculatorUtils';
 import { useCalculatorState } from '../hooks/useCalculatorState';
 import { monsterPresets } from '../data/monsterPresets';
 import MonsterPanel from './panels/MonsterPanel';
@@ -85,9 +86,7 @@ export default function DamageCalculator() {
 
   const results = <ResultsPanel result={damageResult} skills={skills} />;
 
-  const topHit = damageResult.killProbabilities.find(
-    (entry) => Number(entry.accProb) >= 50
-  );
+  const headline = findHeadlineKill(damageResult.killProbabilities);
 
   return (
     <div className="min-h-screen">
@@ -182,11 +181,11 @@ export default function DamageCalculator() {
           >
             <span className="flex items-baseline gap-2">
               <span className="text-lg font-extrabold tabular-nums text-brand">
-                {topHit
-                  ? `${topHit.hit}방컷`
-                  : damageResult.killProbabilities.length > 0
-                    ? `${damageResult.killProbabilities.at(-1)?.hit}방+`
-                    : '20방 초과'}
+                {!headline.entry
+                  ? '20방 초과'
+                  : headline.reliable
+                    ? `${headline.entry.hit}방컷`
+                    : `${headline.entry.hit}방+`}
               </span>
               <span className="text-xs tabular-nums text-muted">
                 {Math.floor(damageResult.totalDamageRange.min).toLocaleString(

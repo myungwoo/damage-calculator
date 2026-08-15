@@ -1,4 +1,6 @@
 import { getSkillEffect } from '../data/skillEffects';
+import { HEADLINE_KILL_THRESHOLD } from '../constants/calculator';
+import { DamageResult } from '../types/calculator';
 import {
   isLucky7Effect,
   isAvengerEffect,
@@ -37,6 +39,25 @@ export const getSkillLevelRange = (skillType: string) => {
     default:
       return [];
   }
+};
+
+/**
+ * 결과 상단과 모바일 하단 바에 크게 띄울 방수를 고른다.
+ *
+ * 누적 확률이 `HEADLINE_KILL_THRESHOLD`를 처음 넘는 방수를 쓰고, 20방 안에서
+ * 그 선을 못 넘으면 마지막 방수를 대신 준다(`reliable: false`). 두 화면이 서로
+ * 다른 숫자를 띄우지 않도록 기준을 여기 한 곳에 둔다.
+ */
+export const findHeadlineKill = (
+  killProbabilities: DamageResult['killProbabilities']
+) => {
+  const reliable = killProbabilities.find(
+    (entry) => Number(entry.accProb) >= HEADLINE_KILL_THRESHOLD
+  );
+  return {
+    entry: reliable ?? killProbabilities[killProbabilities.length - 1],
+    reliable: reliable !== undefined,
+  };
 };
 
 export const formatSaveDate = (timestamp: number) => {

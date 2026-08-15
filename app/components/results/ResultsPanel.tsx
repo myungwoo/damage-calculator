@@ -1,6 +1,8 @@
 import { ReactNode } from 'react';
 import { Droplet, HeartPulse, Target, Zap } from 'lucide-react';
 import { DamageRange, DamageResult, Skills } from '../../types/calculator';
+import { HEADLINE_KILL_THRESHOLD } from '../../constants/calculator';
+import { findHeadlineKill } from '../../utils/calculatorUtils';
 import KillProbabilityChart from './KillProbabilityChart';
 
 interface ResultsPanelProps {
@@ -77,12 +79,10 @@ function StatLine({
 export default function ResultsPanel({ result, skills }: ResultsPanelProps) {
   const shadowActive = skills.shadowPartnerEnabled && skills.shadowPartner > 0;
 
-  // 히어로 숫자는 "누적 확률이 처음 50%를 넘는 방수"로 잡는다.
-  // 사람들이 실제로 알고 싶어 하는 "몇 방컷이냐"에 가장 가까운 값이다.
-  const median =
-    result.killProbabilities.find((entry) => Number(entry.accProb) >= 50) ??
-    result.killProbabilities[result.killProbabilities.length - 1];
-  const medianIsHalf = median !== undefined && Number(median.accProb) >= 50;
+  // 사람들이 실제로 알고 싶어 하는 "몇 방컷이냐"를 크게 띄운다. 기준은 findHeadlineKill 참고.
+  const { entry: headline, reliable } = findHeadlineKill(
+    result.killProbabilities
+  );
 
   return (
     <div className="card overflow-hidden">
@@ -97,25 +97,27 @@ export default function ResultsPanel({ result, skills }: ResultsPanelProps) {
         {/* 방컷 요약 */}
         <div
           className={`rounded-2xl border px-4 py-3 ${
-            median ? 'border-brand/30 bg-brand/10' : 'border-crit/30 bg-crit/10'
+            headline
+              ? 'border-brand/30 bg-brand/10'
+              : 'border-crit/30 bg-crit/10'
           }`}
         >
-          {median ? (
+          {headline ? (
             <>
               <div className="flex items-end justify-between gap-2">
                 <span className="text-3xl font-extrabold tabular-nums leading-none text-brand">
-                  {median.hit}방컷
+                  {headline.hit}방컷
                 </span>
                 <span className="text-right">
                   <span className="block text-lg font-bold tabular-nums text-brand">
-                    {median.accProb}%
+                    {headline.accProb}%
                   </span>
                   <span className="block text-[0.7rem] text-muted">누적</span>
                 </span>
               </div>
               <p className="mt-1.5 text-xs text-muted">
-                {medianIsHalf
-                  ? '누적 확률이 처음 50%를 넘는 방수'
+                {reliable
+                  ? `누적 확률이 처음 ${HEADLINE_KILL_THRESHOLD}%를 넘는 방수`
                   : '20방 안에서는 여기까지가 최대'}
               </p>
             </>
