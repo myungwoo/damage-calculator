@@ -1,6 +1,7 @@
 import {
   getVenomLevelData,
   VENOM_STACK_LEVELS,
+  VENOM_TICK_DAMAGE_CAP,
   VENOM_TICK_INTERVAL_SECONDS,
 } from '../data/venom';
 
@@ -36,11 +37,13 @@ export interface VenomConfig {
 }
 
 /**
- * 베놈 틱 1회의 데미지 범위 (축소 전 원본 값).
+ * 베놈 틱 1회의 데미지 범위 (축소 전 원본 값, 1중첩 기준).
  *
  * 유출 코드 기준 정수 연산:
  *   v42 = floor(0.8 * (STR + LUK)) + rand(0, STR + LUK - 1)
  *   데미지 = floor(mad * (DEX + 5 * v42) / 49)
+ *
+ * 실제로 들어가는 데미지는 메이플랜드 상한에서 잘리므로 표시용도 잘라 준다.
  */
 export const calculateVenomTickDamage = (
   config: VenomConfig
@@ -53,7 +56,10 @@ export const calculateVenomTickDamage = (
 
   const base = Math.floor(statSum * 0.8);
   const damageAt = (roll: number) =>
-    Math.floor((data.mad * (config.totalDex + 5 * (base + roll))) / 49);
+    Math.min(
+      VENOM_TICK_DAMAGE_CAP,
+      Math.floor((data.mad * (config.totalDex + 5 * (base + roll))) / 49)
+    );
 
   return { min: damageAt(0), max: damageAt(statSum - 1) };
 };
@@ -97,6 +103,12 @@ export const calculateVenomSurvivals = (
   const maxStack = 3 * maxTickDamage;
   const unit = Math.max(1, Math.ceil(maxStack / VENOM_STACK_LEVELS));
   const stackBins = Math.floor(maxStack / unit) + 1;
+
+  // 틱당 데미지 상한. 중첩 판정에는 쓰지 않고 실제로 들어가는 데미지만 자른다.
+  const tickCap = Math.min(
+    stackBins - 1,
+    Math.round((VENOM_TICK_DAMAGE_CAP * damageScale) / unit)
+  );
 
   // 1. 중첩 게이트 a <= 2v를 통과하는 롤을 스택 칸마다 정리해 둔다.
   //
@@ -185,10 +197,8 @@ export const calculateVenomSurvivals = (
       ((maxUses - 1) * config.attackPeriodSeconds) / VENOM_TICK_INTERVAL_SECONDS
     ) + 1;
   const wBins =
-    Math.min(
-      Math.ceil(monsterHp / unit),
-      totalTicks * Math.max(1, stackBins - 1)
-    ) + 1;
+    Math.min(Math.ceil(monsterHp / unit), totalTicks * Math.max(1, tickCap)) +
+    1;
   const planeSize = stackBins * wBins;
   const index = (remaining: number, stack: number, damage: number) =>
     remaining * planeSize + stack * wBins + damage;
@@ -209,10 +219,11 @@ export const calculateVenomSurvivals = (
       for (let stack = 0; stack < stackBins; stack++) {
         // 만료되면 스택도 함께 0으로 돌아간다.
         const nextStack = nextRemaining === 0 ? 0 : stack;
+        const emitted = Math.min(stack, tickCap);
         for (let damage = 0; damage < wBins; damage++) {
           const mass = joint[index(remaining, stack, damage)];
           if (mass === 0) continue;
-          const nextDamage = Math.min(damage + stack, wBins - 1);
+          const nextDamage = Math.min(damage + emitted, wBins - 1);
           next[index(nextRemaining, nextStack, nextDamage)] += mass;
         }
       }
