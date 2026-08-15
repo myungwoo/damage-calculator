@@ -58,6 +58,15 @@ export default function DamageCalculator() {
     venomApplied: false,
   });
 
+  // 프리셋에만 있는 참고용 정보(정확도, 공격력, 속성 등)를 보여주기 위해 찾아 둔다.
+  const selectedPreset = isCustomMonster
+    ? null
+    : monsterPresets.find((preset) => preset.id === selectedMonsterId);
+  const venomBlocked =
+    selectedPreset?.isBoss === true ||
+    selectedPreset?.poisonAttribute === 1 ||
+    selectedPreset?.poisonAttribute === 2;
+
   // 방컷 확률 계산은 HP가 큰 몬스터에서 수십 ms가 걸리는 동기 작업이라
   // 입력할 때마다 바로 돌리면 타이핑이 밀린다. 짧게 디바운스해서
   // 연속 입력 중에는 마지막 값 한 번만 계산한다.
@@ -225,6 +234,48 @@ export default function DamageCalculator() {
                         %
                       </div>
                     </div>
+                    {selectedPreset && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          몬스터 정보
+                        </label>
+                        <div className="mt-1 text-sm text-gray-600 dark:text-gray-400 space-y-0.5">
+                          <p>
+                            정확도 {selectedPreset.accuracy} · 공격력{' '}
+                            {selectedPreset.physicalAttack}
+                            {selectedPreset.magicAttack > 0 &&
+                              ` (마법 ${selectedPreset.magicAttack})`}
+                          </p>
+                          <p>넉백 데미지 {selectedPreset.minimumPushDamage}</p>
+                          {(selectedPreset.isBoss ||
+                            selectedPreset.isUndead ||
+                            selectedPreset.elementAttributes) && (
+                            <p>
+                              {[
+                                selectedPreset.isBoss ? '보스' : null,
+                                selectedPreset.isUndead ? '언데드' : null,
+                                selectedPreset.elementAttributes
+                                  ? `속성 ${selectedPreset.elementAttributes}`
+                                  : null,
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </p>
+                          )}
+                          {venomBlocked && (
+                            <p className="text-amber-600 dark:text-amber-400">
+                              {selectedPreset.isBoss
+                                ? '보스라서 베놈이 걸리지 않는다'
+                                : `독 ${
+                                    selectedPreset.poisonAttribute === 1
+                                      ? '무효'
+                                      : '반감'
+                                  }이라 베놈이 걸리지 않는다`}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

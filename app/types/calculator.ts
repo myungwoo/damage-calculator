@@ -250,10 +250,32 @@ export const isVenomEffect = (effect: SkillEffect): effect is VenomEffect => {
   return effect.type === 'venom';
 };
 
+/**
+ * 몬스터 프리셋.
+ *
+ * 계산에 직접 쓰이지 않는 항목도 원작 Mob.wz에서 함께 가져다 둔다.
+ * 나중에 피격 데미지나 넉백 같은 기능을 붙일 때 다시 긁어올 필요가 없게 하기 위함이다.
+ */
 export interface MonsterPreset extends Monster {
   /** 원작 Mob.wz의 몹 ID. 유출 파일에서 속성 데이터를 다시 붙일 때 이 값으로 맞춘다. */
   id: string;
   name: string;
   exp?: number;
+  /** 몬스터 정확도. 캐릭터 회피율과 맞물려 피격 확률을 정한다. */
+  accuracy: number;
+  /** 몬스터 물리 공격력 */
+  physicalAttack: number;
+  /** 몬스터 마법 공격력 */
+  magicAttack: number;
+  /** 넉백에 필요한 최소 누적 데미지 */
+  minimumPushDamage: number;
+  /** 언데드 여부 */
+  isUndead?: boolean;
+  /**
+   * 속성 저항 원본 문자열 (예: 'I2F3' = 냉기 반감, 불 약점).
+   * 문자는 P 물리 / I 냉기 / F 불 / L 전기 / S 독 / H 성 / D 암.
+   * 숫자는 1 무효, 2 반감, 3 약점.
+   */
+  elementAttributes?: string;
   region: string;
 }
