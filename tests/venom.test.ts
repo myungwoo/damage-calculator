@@ -494,6 +494,39 @@ describe('베놈 누적 데미지 분포', () => {
     assert.equal(survivals[0][0], 1);
   });
 
+  it('첫 틱은 두 번째 공격 뒤에 들어간다 (메이플랜드 실측)', () => {
+    // 트리플 스로우 100회/분 = 0.6초 주기. 부여 시점 + 1초에 첫 틱이므로
+    // 첫 틱은 두 번째 공격(0.6초)과 세 번째 공격(1.2초) 사이에 떨어진다.
+    const config: VenomConfig = {
+      level: 30,
+      totalStr: 10,
+      totalDex: 40,
+      totalLuk: 140,
+      rollsPerUse: 6,
+      attackPeriodSeconds: 0.6,
+    };
+    const survivals = calculateVenomSurvivals(config, 20000, 1, 8)!;
+    // survivals[n - 1][1] = P(n번째 공격 직전까지 누적 베놈 데미지 >= 1)
+    assert.equal(survivals[0][1], 0, '1방 직전에는 당연히 0');
+    assert.equal(survivals[1][1], 0, '2방 직전에도 아직 틱이 없어야 한다');
+    assert.ok(survivals[2][1] > 0, '3방 직전에는 첫 틱이 들어와 있어야 한다');
+  });
+
+  it('공격이 느리면 첫 틱이 두 번째 공격 전에 들어간다', () => {
+    // 주기가 1.5초면 부여 + 1초 틱이 첫 공격 구간 안에서 끝난다
+    const config: VenomConfig = {
+      level: 30,
+      totalStr: 10,
+      totalDex: 40,
+      totalLuk: 140,
+      rollsPerUse: 6,
+      attackPeriodSeconds: 1.5,
+    };
+    const survivals = calculateVenomSurvivals(config, 20000, 1, 8)!;
+    assert.equal(survivals[0][1], 0);
+    assert.ok(survivals[1][1] > 0, '2방 직전에 이미 첫 틱이 들어와 있어야 한다');
+  });
+
   it('생존함수는 t가 커질수록 단조 감소한다', () => {
     const c = VENOM_CASES[1];
     const survivals = calculateVenomSurvivals(c.venom, c.hp, 1, 20);
