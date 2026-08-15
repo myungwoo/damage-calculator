@@ -1,7 +1,7 @@
 ![Next.js](https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white)
 
 # 🗡️ 메이플랜드 데미지 계산기
 
@@ -12,6 +12,10 @@
 - 📊 **정확한 방컷 확률** — 근사나 시뮬레이션이 아니라 FFT 컨볼루션으로 확률분포를 직접 계산한다
 - ☠️ **베놈 도트 데미지 반영** — 중첩 규칙과 1초 틱까지 원작 유출 코드 기준으로 모델링했다
 - 🐌 **몬스터 프리셋 368종** — 원작 Mob.wz 기준 정확도 · 공격력 · 넉백 · 속성 · 보스 여부 포함
+- 📌 **결과 패널 고정** — 입력을 만지는 동안 데미지와 방컷 확률이 계속 보인다
+- 📈 **방컷 확률 막대 그래프** — 각 방 확률과 누적 확률을 겹쳐 그려서 분포가 한눈에 들어온다
+- 🎚️ **스킬 레벨 슬라이더** — 슬라이더 · 직접 입력 · M(만렙) 버튼을 함께 제공한다
+- 📱 모바일에서는 결과가 하단 시트로 접힌다
 - 🌗 다크 / 라이트 모드
 - 💾 저장 슬롯 3개 (localStorage)
 

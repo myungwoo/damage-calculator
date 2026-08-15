@@ -5,35 +5,37 @@ import { Moon, Sun } from 'lucide-react';
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    const prefersDark = window.matchMedia(
-      '(prefers-color-scheme: dark)'
-    ).matches;
-
-    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
-    setTheme(initialTheme);
-    document.documentElement.classList.add(initialTheme);
+    // layout.tsx의 인라인 스크립트가 이미 html에 클래스를 붙여 뒀으니 그걸 읽는다.
+    const current = document.documentElement.classList.contains('dark')
+      ? 'dark'
+      : 'light';
+    setTheme(current);
+    setMounted(true);
   }, []);
 
   useEffect(() => {
-    const root = window.document.documentElement;
+    if (!mounted) return;
+    const root = document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
+    root.style.colorScheme = theme;
     localStorage.setItem('theme', theme);
-  }, [theme]);
+  }, [theme, mounted]);
 
   return (
     <button
+      type="button"
       onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-      className="fixed top-4 right-4 p-2 rounded-full bg-background hover:bg-primary/10 transition-colors dark:hover:bg-primary/20"
-      aria-label="테마 변경"
+      className="ghost-button h-9 w-9"
+      aria-label={theme === 'light' ? '어두운 테마로 전환' : '밝은 테마로 전환'}
     >
-      {theme === 'light' ? (
-        <Moon className="w-5 h-5" />
+      {mounted && theme === 'dark' ? (
+        <Sun className="h-4 w-4" />
       ) : (
-        <Sun className="w-5 h-5" />
+        <Moon className="h-4 w-4" />
       )}
     </button>
   );

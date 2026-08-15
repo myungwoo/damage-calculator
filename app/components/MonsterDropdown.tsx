@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { Check, ChevronsUpDown, Pencil, Search } from 'lucide-react';
 import { MonsterPreset, Region } from '../types/calculator';
 
 interface MonsterDropdownProps {
@@ -23,15 +24,13 @@ export default function MonsterDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // 트리거 버튼까지 포함해야 열린 상태에서 버튼을 눌렀을 때 곧바로 닫힌다.
+  const rootRef = useRef<HTMLDivElement>(null);
 
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -45,12 +44,19 @@ export default function MonsterDropdown({
     };
   }, [isOpen]);
 
-  // 드롭다운이 닫힐 때 선택 인덱스 초기화
+  // 드롭다운이 닫힐 때 검색어와 선택 인덱스 초기화
   useEffect(() => {
     if (!isOpen) {
       setSelectedIndex(-1);
+      setSearchQuery('');
+      return;
     }
-  }, [isOpen]);
+    // 열자마자 지금 고른 몬스터가 보이게 한다. 목록이 수백 줄이라 없으면 매번 찾아 내려가야 한다.
+    const selected = rootRef.current?.querySelector(
+      `[data-monster-id="${selectedMonsterId}"]`
+    );
+    selected?.scrollIntoView({ block: 'center' });
+  }, [isOpen, selectedMonsterId]);
 
   // 몬스터 그룹핑 및 정렬
   const groupedMonsters = (() => {
@@ -87,6 +93,11 @@ export default function MonsterDropdown({
     });
   })();
 
+  const matchCount = groupedMonsters.reduce(
+    (acc, [, monsters]) => acc + monsters.length,
+    0
+  );
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) return;
 
@@ -95,39 +106,34 @@ export default function MonsterDropdown({
       ...groupedMonsters.flatMap(([, monsters]) => monsters),
     ];
 
+    const moveTo = (newIndex: number) => {
+      setTimeout(() => {
+        const selectedElement = document.querySelector(
+          `[data-index="${newIndex}"]`
+        );
+        selectedElement?.scrollIntoView({ block: 'nearest' });
+      }, 0);
+      return newIndex;
+    };
+
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex((prev) => {
-          const newIndex =
-            prev < flattenedMonsters.length - 1 ? prev + 1 : prev;
-          setTimeout(() => {
-            const selectedElement = document.querySelector(
-              `[data-index="${newIndex}"]`
-            );
-            selectedElement?.scrollIntoView({ block: 'nearest' });
-          }, 0);
-          return newIndex;
-        });
+        setSelectedIndex((prev) =>
+          moveTo(prev < flattenedMonsters.length - 1 ? prev + 1 : prev)
+        );
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex((prev) => {
-          const newIndex = prev > 0 ? prev - 1 : prev;
-          setTimeout(() => {
-            const selectedElement = document.querySelector(
-              `[data-index="${newIndex}"]`
-            );
-            selectedElement?.scrollIntoView({ block: 'nearest' });
-          }, 0);
-          return newIndex;
-        });
+        setSelectedIndex((prev) => moveTo(prev > 0 ? prev - 1 : prev));
         break;
       case 'Enter':
         e.preventDefault();
         if (selectedIndex >= 0) {
-          const selectedMonster = flattenedMonsters[selectedIndex];
-          handleSelect(selectedMonster.id);
+          handleSelect(flattenedMonsters[selectedIndex].id);
+        } else if (matchCount === 1) {
+          // 검색으로 하나만 남았으면 방향키 없이 엔터만으로 고를 수 있게 한다.
+          handleSelect(groupedMonsters[0][1][0].id);
         }
         break;
       case 'Escape':
@@ -148,69 +154,85 @@ export default function MonsterDropdown({
   );
 
   return (
-    <div className="relative">
+    <div className="relative" ref={rootRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-2 text-left border rounded bg-white dark:bg-gray-800 dark:text-gray-300 hover:border-primary focus:border-primary focus:ring-2 focus:ring-primary/50 flex justify-between items-center"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        className={`flex w-full items-center justify-between gap-2 rounded-xl border bg-sunken px-3 py-2.5 text-left transition-colors hover:border-brand/50 ${
+          isOpen ? 'border-brand ring-2 ring-brand/25' : 'border-line'
+        }`}
       >
-        {isCustomMonster
-          ? '직접 입력'
-          : selectedMonster
-            ? `LV.${selectedMonster.level} ${selectedMonster.name}`
-            : '몬스터 선택'}
-        <svg
-          className={`h-5 w-5 text-primary transform transition-transform ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-        >
-          <path
-            d="M7 7l3-3 3 3m0 6l-3 3-3-3"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <span className="flex min-w-0 items-center gap-2">
+          {isCustomMonster ? (
+            <>
+              <Pencil className="h-4 w-4 shrink-0 text-crit" />
+              <span className="truncate text-sm font-semibold text-ink">
+                직접 입력
+              </span>
+            </>
+          ) : selectedMonster ? (
+            <>
+              <span className="shrink-0 rounded-md bg-brand/15 px-1.5 py-0.5 text-[0.7rem] font-bold tabular-nums text-brand">
+                Lv.{selectedMonster.level}
+              </span>
+              <span className="truncate text-sm font-semibold text-ink">
+                {selectedMonster.name}
+              </span>
+            </>
+          ) : (
+            <span className="text-sm text-muted">몬스터 선택</span>
+          )}
+        </span>
+        <ChevronsUpDown className="h-4 w-4 shrink-0 text-muted" />
       </button>
 
       {isOpen && (
         <div
-          ref={dropdownRef}
-          className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg divide-y divide-gray-200 dark:divide-gray-700"
+          className="absolute z-30 mt-2 w-full animate-fade-in-up overflow-hidden rounded-xl border border-line bg-card shadow-pop"
           onKeyDown={handleKeyDown}
         >
-          <div className="p-2">
+          <div className="relative border-b border-line p-2">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="몬스터 검색..."
-              className="w-full p-2 border rounded focus:border-primary focus:ring-2 focus:ring-primary/50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setSelectedIndex(-1);
+              }}
+              placeholder="몬스터 이름 검색"
+              className="field-input pl-9"
               autoFocus
             />
           </div>
-          <div className="max-h-60 overflow-auto">
-            <div
+          <div className="thin-scroll max-h-72 overflow-auto">
+            <button
+              type="button"
               data-index="0"
-              className={`p-2 cursor-pointer ${
-                selectedIndex === 0
-                  ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium'
-                  : isCustomMonster
-                    ? 'bg-yellow-50 dark:bg-yellow-900/30 font-medium'
-                    : 'hover:bg-green-50/50 dark:hover:bg-green-900/20'
-              }`}
+              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
+                selectedIndex === 0 ? 'bg-brand/10' : ''
+              } ${isCustomMonster ? 'font-semibold text-brand' : 'text-ink'}`}
               onClick={() => handleSelect('custom')}
               onMouseEnter={() => setSelectedIndex(0)}
             >
+              <Pencil className="h-3.5 w-3.5 text-crit" />
               직접 입력
-            </div>
+              {isCustomMonster && <Check className="ml-auto h-4 w-4" />}
+            </button>
+
+            {matchCount === 0 && (
+              <p className="px-3 py-6 text-center text-sm text-muted">
+                검색 결과가 없다
+              </p>
+            )}
+
             {groupedMonsters.map(([region, monsters], groupIndex) => (
               <div key={region}>
-                <div className="px-2 py-1 bg-yellow-50 dark:bg-yellow-900/30 font-medium text-sm text-yellow-700 dark:text-yellow-300">
+                <div className="sticky top-0 z-10 border-y border-line bg-sunken px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-wider text-muted">
                   {region}
+                  <span className="ml-1.5 opacity-60">{monsters.length}</span>
                 </div>
                 {monsters.map((monster, index) => {
                   const flatIndex =
@@ -219,20 +241,36 @@ export default function MonsterDropdown({
                       .reduce((acc, [, m]) => acc + m.length, 0) +
                     index +
                     1;
+                  const isSelected = selectedMonsterId === monster.id;
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={monster.id}
                       data-index={flatIndex}
-                      className={`p-2 cursor-pointer ${
-                        selectedIndex === flatIndex
-                          ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium'
-                          : 'hover:bg-green-50/50 dark:hover:bg-green-900/20'
-                      } ${selectedMonsterId === monster.id ? 'bg-yellow-50 dark:bg-yellow-900/30 font-medium' : ''}`}
+                      data-monster-id={monster.id}
+                      className={`flex w-full items-center gap-2 px-3 py-1.5 text-left transition-colors ${
+                        selectedIndex === flatIndex ? 'bg-brand/10' : ''
+                      }`}
                       onClick={() => handleSelect(monster.id)}
                       onMouseEnter={() => setSelectedIndex(flatIndex)}
                     >
-                      LV.{monster.level} {monster.name}
-                    </div>
+                      <span className="w-12 shrink-0 text-[0.7rem] font-bold tabular-nums text-muted">
+                        Lv.{monster.level}
+                      </span>
+                      <span
+                        className={`truncate text-sm ${
+                          isSelected ? 'font-semibold text-brand' : 'text-ink'
+                        }`}
+                      >
+                        {monster.name}
+                      </span>
+                      <span className="ml-auto shrink-0 text-[0.7rem] tabular-nums text-muted">
+                        {monster.hp.toLocaleString('ko-KR')}
+                      </span>
+                      {isSelected && (
+                        <Check className="h-3.5 w-3.5 shrink-0 text-brand" />
+                      )}
+                    </button>
                   );
                 })}
               </div>
