@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react';
-import { AlertTriangle, Sparkles } from 'lucide-react';
+import { AlertTriangle, Dices, Sparkles } from 'lucide-react';
 import { AttackSkillType, Skills } from '../../types/calculator';
 import {
   getSkillLevelRange,
@@ -10,6 +10,7 @@ import Card from '../ui/Card';
 import Field from '../ui/Field';
 import SegmentedControl from '../ui/SegmentedControl';
 import SkillRow from '../ui/SkillRow';
+import Toggle from '../ui/Toggle';
 
 interface SkillsPanelProps {
   skills: Skills;
@@ -125,6 +126,44 @@ export default function SkillsPanel({
           onLevelChange={(level) => setSkills((prev) => ({ ...prev, level }))}
           effect={renderSkillEffect(skills.type, skills.level)}
         />
+
+        {/*
+          난수 순환은 트리플 스로우에서만 계산이 달라진다.
+          1타 스킬은 난수가 겹칠 상대가 없고, 럭키 세븐은 실측이 없어 독립으로 둔다.
+        */}
+        {skills.type === 'tripleThrow' && (
+          <div className="rounded-lg border border-line bg-sunken px-3 py-2.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-ink">
+                  <Dices className="h-3.5 w-3.5 text-brand" />
+                  난수 순환 반영
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted">
+                  원작은 공격 한 번에 난수를 <strong>7개만</strong> 뽑아 돌려
+                  쓴다. 트리플 스로우는 3타라 난수가 겹쳐서,{' '}
+                  <strong>
+                    한 타격의 데미지가 낮게 뜨면 다음 타격이 반드시 크리티컬
+                  </strong>
+                  이 된다. 총 데미지의 평균은 그대로지만 편차가 약 15% 줄어서,
+                  잘 뜬 날과 안 뜬 날의 차이가 작아진다.
+                </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-muted">
+                  방컷 확률은 몬스터 HP가 평균 데미지보다 낮으면 올라가고 높으면
+                  내려간다. 실측 40시전에서 예외 없이 확인됐다.
+                </p>
+              </div>
+              <Toggle
+                checked={skills.rngCyclingEnabled}
+                onChange={(checked) =>
+                  setSkills((prev) => ({ ...prev, rngCyclingEnabled: checked }))
+                }
+                label="난수 순환 반영"
+                hideLabel
+              />
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2">
           {buffSkills.map((skill) => {

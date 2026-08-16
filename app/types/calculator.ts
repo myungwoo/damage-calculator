@@ -74,6 +74,14 @@ export interface Skills {
    * 공격 주기를 알아야 한다. 베놈을 쓰지 않으면 계산에 영향이 없다.
    */
   attacksPerMinute: number;
+  /**
+   * 난수 순환을 방컷 확률에 반영할지.
+   *
+   * 원작은 공격 1회당 난수를 7칸만 뽑아 돌려 써서, 트리플 스로우에서는
+   * 한 라인의 데미지 난수가 다른 라인의 크리티컬 판정을 그대로 결정한다.
+   * 트리플 스로우가 아니면 계산에 영향이 없다.
+   */
+  rngCyclingEnabled: boolean;
 }
 
 export interface SaveData {

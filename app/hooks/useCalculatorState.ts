@@ -60,6 +60,8 @@ const DEFAULT_STATE = {
     venom: 0,
     venomEnabled: false,
     attacksPerMinute: DEFAULT_ATTACKS_PER_MINUTE,
+    // 실측으로 확인된 원작 동작이라 기본값은 켜 둔다.
+    rngCyclingEnabled: true,
   } as Skills,
   selectedMonsterId: monsterPresets[0].id,
   isCustomMonster: false,
