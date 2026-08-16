@@ -261,7 +261,7 @@ export interface MonsterPreset extends Monster {
   id: string;
   name: string;
   exp?: number;
-  /** 몬스터 정확도. 캐릭터 회피율과 맞물려 피격 확률을 정한다. */
+  /** 몬스터 명중률. 캐릭터 회피율과 맞물려 피격 확률을 정한다. */
   accuracy: number;
   /** 몬스터 물리 공격력 */
   physicalAttack: number;
@@ -278,4 +278,12 @@ export interface MonsterPreset extends Monster {
    */
   elementAttributes?: string;
   region: string;
+}
+
+/** 속성 저항 문자열을 사람이 읽는 형태로 푼 결과. */
+export interface ElementAttribute {
+  /** 속성 이름 (냉기, 불, 전기, 독, 성, 암, 물리) */
+  element: string;
+  /** 해당 속성에 대한 내성 */
+  resistance: '무효' | '반감' | '약점';
 }

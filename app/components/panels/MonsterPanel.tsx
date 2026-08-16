@@ -7,6 +7,7 @@ import {
   calculateRequiredHitRatio,
   calculateHitProbability,
 } from '../../utils/damageCalculator';
+import { parseElementAttributes } from '../../utils/calculatorUtils';
 import MonsterDropdown from '../MonsterDropdown';
 import NumberInput from '../NumberInput';
 import Card from '../ui/Card';
@@ -52,6 +53,11 @@ export default function MonsterPanel({
       : hitPercent >= 90
         ? 'text-crit'
         : 'text-danger';
+
+  // 'F2S3' 같은 원작 코드는 사람이 못 읽으므로 속성별로 풀어서 칩으로 보여준다.
+  const elementAttributes = parseElementAttributes(
+    selectedPreset?.elementAttributes
+  );
 
   const numericFields = [
     {
@@ -152,7 +158,7 @@ export default function MonsterPanel({
           <div className="space-y-2">
             <span className="field-label">원작 몹 정보</span>
             <div className="flex flex-wrap gap-1.5">
-              <span className="chip">정확도 {selectedPreset.accuracy}</span>
+              <span className="chip">명중률 {selectedPreset.accuracy}</span>
               <span className="chip">
                 공격력 {selectedPreset.physicalAttack}
               </span>
@@ -167,11 +173,15 @@ export default function MonsterPanel({
                   EXP {selectedPreset.exp.toLocaleString('ko-KR')}
                 </span>
               )}
-              {selectedPreset.elementAttributes && (
-                <span className="chip font-mono">
-                  {selectedPreset.elementAttributes}
+              {elementAttributes.map(({ element, resistance }) => (
+                <span
+                  key={element}
+                  className="chip"
+                  title={`원작 속성 코드 ${selectedPreset.elementAttributes}`}
+                >
+                  {element} {resistance}
                 </span>
-              )}
+              ))}
               {selectedPreset.isUndead && (
                 <span className="chip border-venom/40 bg-venom/10 text-venom">
                   언데드
