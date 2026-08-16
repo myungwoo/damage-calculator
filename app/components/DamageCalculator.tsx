@@ -84,7 +84,14 @@ export default function DamageCalculator() {
     return () => clearTimeout(timer);
   }, [monster, stats, equipment, skills]);
 
-  const results = <ResultsPanel result={damageResult} skills={skills} />;
+  const results = (
+    <ResultsPanel
+      result={damageResult}
+      monster={monster}
+      stats={stats}
+      skills={skills}
+    />
+  );
 
   const headline = findHeadlineKill(damageResult.killProbabilities);
 
@@ -125,8 +132,6 @@ export default function DamageCalculator() {
                 <MonsterPanel
                   monster={monster}
                   setMonster={setMonster}
-                  stats={stats}
-                  skills={skills}
                   selectedMonsterId={selectedMonsterId}
                   isCustomMonster={isCustomMonster}
                   onMonsterSelect={handleMonsterSelect}

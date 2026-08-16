@@ -1,12 +1,21 @@
 import { ReactNode } from 'react';
 import { Droplet, HeartPulse, Target, Zap } from 'lucide-react';
-import { DamageRange, DamageResult, Skills } from '../../types/calculator';
+import {
+  DamageRange,
+  DamageResult,
+  Monster,
+  Skills,
+  Stats,
+} from '../../types/calculator';
 import { HEADLINE_KILL_THRESHOLD } from '../../constants/calculator';
 import { findHeadlineKill } from '../../utils/calculatorUtils';
 import KillProbabilityChart from './KillProbabilityChart';
+import JudgementProbabilities from './JudgementProbabilities';
 
 interface ResultsPanelProps {
   result: DamageResult;
+  monster: Monster;
+  stats: Stats;
   skills: Skills;
 }
 
@@ -76,7 +85,12 @@ function StatLine({
   );
 }
 
-export default function ResultsPanel({ result, skills }: ResultsPanelProps) {
+export default function ResultsPanel({
+  result,
+  monster,
+  stats,
+  skills,
+}: ResultsPanelProps) {
   const shadowActive = skills.shadowPartnerEnabled && skills.shadowPartner > 0;
 
   // 사람들이 실제로 알고 싶어 하는 "몇 방컷이냐"를 크게 띄운다. 기준은 findHeadlineKill 참고.
@@ -179,6 +193,21 @@ export default function ResultsPanel({ result, skills }: ResultsPanelProps) {
               range={result.hpAbsorption}
             />
           )}
+        </div>
+
+        {/*
+          판정 확률은 방컷 확률 막대 바로 위에 둔다. 타격 확률이 100%가 아니면
+          아래 막대가 통째로 흔들리므로, 막대를 읽기 전에 보이는 자리가 맞다.
+        */}
+        <div className="space-y-2 border-t border-line pt-4">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+            판정 확률
+          </h3>
+          <JudgementProbabilities
+            monster={monster}
+            stats={stats}
+            skills={skills}
+          />
         </div>
 
         <div className="space-y-2 border-t border-line pt-4">

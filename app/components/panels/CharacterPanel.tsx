@@ -214,7 +214,7 @@ export default function CharacterPanel({
         >
           <p className="mt-1 text-xs text-muted">
             회피 판정과는 별개의 난수라, 회피에 실패해도 이 확률만큼 한 번 더
-            흘린다. 몬스터 패널의 회피 확률에 합쳐서 보여준다.
+            흘린다. 결과의 회피 확률에 합쳐서 보여준다.
           </p>
         </SkillRow>
       </div>
