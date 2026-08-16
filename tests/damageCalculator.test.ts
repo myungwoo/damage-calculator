@@ -328,6 +328,166 @@ describe('calculateKillProbabilitiesWithinNHits', () => {
   });
 });
 
+describe('데미지 라인 클램프', () => {
+  /**
+   * 원작 라인은 trunc(clamp(1, 199999, 선형(난수)))라, 하한/상한에 눌리는 구간의
+   * 난수가 전부 같은 값으로 뭉친다. 균등분포로 보면 그 덩어리가 구간 전체로 퍼져
+   * 데미지를 과대평가한다.
+   */
+  const CASES = [
+    {
+      name: '방어력에 눌려 하한이 잘리는 구간',
+      hp: 3000,
+      rawBasic: { min: -420.5, max: 756.4 },
+      rawCrit: { min: -180.2, max: 1260.7 },
+      shadow: 0.5,
+      critChance: 50,
+      hits: 3,
+    },
+    {
+      name: '크게 눌리는 구간 (하한 질량 40%)',
+      hp: 1800,
+      rawBasic: { min: -333.3, max: 500.9 },
+      rawCrit: { min: -120.0, max: 834.8 },
+      shadow: 0,
+      critChance: 35,
+      hits: 2,
+    },
+    {
+      name: '눌리지 않는 구간 (기존 동작 유지)',
+      hp: 4000,
+      rawBasic: { min: 620.4, max: 1240.8 },
+      rawCrit: { min: 1033.9, max: 2068.0 },
+      shadow: 0.5,
+      critChance: 50,
+      hits: 3,
+    },
+  ];
+
+  const skillOf = (hits: number) =>
+    hits === 3 ? ('tripleThrow' as const) : ('lucky7' as const);
+
+  const toInts = (raw: { min: number; max: number }) => ({
+    min: Math.max(1, Math.min(199999, Math.floor(raw.min))),
+    max: Math.max(1, Math.min(199999, Math.floor(raw.max))),
+  });
+
+  for (const c of CASES) {
+    it(`참조 DP와 일치한다 - ${c.name}`, () => {
+      const stats = makeStats();
+      const monster = makeMonster({ hp: c.hp });
+      const rows = calculateKillProbabilitiesWithinNHits(
+        skillOf(c.hits),
+        c.rawBasic,
+        c.rawCrit,
+        c.shadow,
+        c.critChance,
+        c.hp,
+        stats,
+        monster
+      );
+      const scenario: KillScenario = {
+        hp: c.hp,
+        hits: c.hits,
+        basic: toInts(c.rawBasic),
+        crit: toInts(c.rawCrit),
+        rawBasic: c.rawBasic,
+        rawCrit: c.rawCrit,
+        shadow: c.shadow,
+        critChance: c.critChance / 100,
+        hitProb: 1,
+      };
+      const expected = referenceKillProbabilities(scenario);
+      const actual = toAccumulatedProbabilities(rows);
+
+      let compared = 0;
+      for (let i = 0; i < expected.length; i++) {
+        const value = actual[i];
+        if (value === null) continue;
+        compared++;
+        assert.ok(
+          Math.abs(value - expected[i]) < 0.0001,
+          `${i + 1}방: ${value} vs 참조 ${expected[i]}`
+        );
+      }
+      assert.ok(compared > 0, '비교할 행이 없다');
+    });
+  }
+
+  it('하한에 눌린 질량을 균등분포로 퍼뜨리지 않는다', () => {
+    // 같은 정수 범위를 (a) 클램프 전 실수 범위로 주는 경우와
+    // (b) 이미 클램프된 정수 범위로 주는 경우를 비교한다.
+    // (b)는 하한 덩어리를 구간 전체에 퍼뜨리므로 데미지를 과대평가해야 한다.
+    const c = CASES[1];
+    const stats = makeStats();
+    const monster = makeMonster({ hp: c.hp });
+    const args = [
+      skillOf(c.hits),
+      c.shadow,
+      c.critChance,
+      c.hp,
+      stats,
+      monster,
+    ] as const;
+    const withAtom = toAccumulatedProbabilities(
+      calculateKillProbabilitiesWithinNHits(
+        args[0],
+        c.rawBasic,
+        c.rawCrit,
+        args[1],
+        args[2],
+        args[3],
+        args[4],
+        args[5]
+      )
+    );
+    const asUniform = toAccumulatedProbabilities(
+      calculateKillProbabilitiesWithinNHits(
+        args[0],
+        toInts(c.rawBasic),
+        toInts(c.rawCrit),
+        args[1],
+        args[2],
+        args[3],
+        args[4],
+        args[5]
+      )
+    );
+
+    let gap = 0;
+    for (let i = 0; i < withAtom.length; i++) {
+      const a = withAtom[i];
+      const b = asUniform[i];
+      if (a === null || b === null) continue;
+      // 균등으로 퍼뜨리면 언제나 더 빨리 잡는 쪽으로 틀린다
+      assert.ok(b >= a - 1e-9, `${i + 1}방에서 방향이 뒤집혔다: ${b} < ${a}`);
+      gap = Math.max(gap, b - a);
+    }
+    assert.ok(gap > 0.01, `차이가 너무 작다: ${gap}`);
+  });
+
+  it('클램프가 걸리지 않으면 정수 범위를 준 것과 같다', () => {
+    const c = CASES[2];
+    const stats = makeStats();
+    const monster = makeMonster({ hp: c.hp });
+    const call = (basic: { min: number; max: number }, crit: typeof basic) =>
+      calculateKillProbabilitiesWithinNHits(
+        skillOf(c.hits),
+        basic,
+        crit,
+        c.shadow,
+        c.critChance,
+        c.hp,
+        stats,
+        monster
+      );
+    assert.deepEqual(
+      call(c.rawBasic, c.rawCrit),
+      call(toInts(c.rawBasic), toInts(c.rawCrit))
+    );
+  });
+});
+
 describe('난수 순환 (트리플 스로우)', () => {
   /**
    * 원작은 공격 1회당 난수를 7칸만 뽑아 돌려 쓴다. 그 결과 트리플 스로우
