@@ -1,14 +1,21 @@
 import { Dispatch, SetStateAction } from 'react';
 import { Minus, Plus, User } from 'lucide-react';
-import { Stats, StatType } from '../../types/calculator';
+import { Skills, Stats, StatType } from '../../types/calculator';
+import {
+  SHADOW_SHIFTER_MAX_LEVEL,
+  getShadowShifterProp,
+} from '../../data/shadowShifter';
 import NumberInput from '../NumberInput';
 import Card from '../ui/Card';
 import Field from '../ui/Field';
 import ReadonlyValue from '../ui/ReadonlyValue';
+import SkillRow from '../ui/SkillRow';
 
 interface CharacterPanelProps {
   stats: Stats;
   setStats: Dispatch<SetStateAction<Stats>>;
+  skills: Skills;
+  setSkills: Dispatch<SetStateAction<Skills>>;
   onPureStatChange: (statType: StatType, value: number) => void;
   onLevelChange: (delta: number) => void;
 }
@@ -16,6 +23,8 @@ interface CharacterPanelProps {
 export default function CharacterPanel({
   stats,
   setStats,
+  skills,
+  setSkills,
   onPureStatChange,
   onLevelChange,
 }: CharacterPanelProps) {
@@ -176,6 +185,38 @@ export default function CharacterPanel({
             />
           </Field>
         </div>
+
+        {/*
+          페이크는 공격 스킬이 아니라 피격을 무효화하는 스킬이라 데미지 계산에
+          안 들어간다. 회피율과 같은 자리에서 회피 확률만 움직이므로 스킬 패널이
+          아니라 여기에 둔다.
+        */}
+        <SkillRow
+          name="페이크"
+          level={skills.shadowShifter}
+          maxLevel={SHADOW_SHIFTER_MAX_LEVEL}
+          onLevelChange={(level) =>
+            setSkills((prev) => ({ ...prev, shadowShifter: level }))
+          }
+          toggle={{
+            checked: skills.shadowShifterEnabled,
+            onChange: (checked) =>
+              setSkills((prev) => ({
+                ...prev,
+                shadowShifterEnabled: checked,
+              })),
+          }}
+          effect={
+            skills.shadowShifter > 0
+              ? `피격 시 ${getShadowShifterProp(skills.shadowShifter)}% 확률로 데미지를 무효화한다 (원작 쉐도우 쉬프터)`
+              : '레벨을 올리면 피격을 무효화할 확률이 생긴다 (원작 쉐도우 쉬프터)'
+          }
+        >
+          <p className="mt-1 text-xs text-muted">
+            회피 판정과는 별개의 난수라, 회피에 실패해도 이 확률만큼 한 번 더
+            흘린다. 몬스터 패널의 회피 확률에 합쳐서 보여준다.
+          </p>
+        </SkillRow>
       </div>
     </Card>
   );

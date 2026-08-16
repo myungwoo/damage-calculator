@@ -73,6 +73,14 @@ export interface Skills {
   venom: number;
   venomEnabled: boolean;
   /**
+   * 페이크(쉐도우 쉬프터) 레벨.
+   *
+   * 공격 스킬이 아니라 피격을 무효화하는 스킬이라 데미지 계산에는 안 들어가고
+   * 회피 확률에만 들어간다. 그래서 UI도 스킬 패널이 아니라 캐릭터 패널에 있다.
+   */
+  shadowShifter: number;
+  shadowShifterEnabled: boolean;
+  /**
    * 분당 공격 횟수.
    * 베놈은 시간당 1틱씩 들어가므로, 몇 방 안에 몇 틱이 들어가는지 세려면
    * 공격 주기를 알아야 한다. 베놈을 쓰지 않으면 계산에 영향이 없다.

@@ -61,6 +61,8 @@ const DEFAULT_STATE = {
     sharpEyesEnabled: false,
     venom: 0,
     venomEnabled: false,
+    shadowShifter: 0,
+    shadowShifterEnabled: false,
     attacksPerMinute: DEFAULT_ATTACKS_PER_MINUTE,
     // 실측으로 확인된 원작 동작이라 기본값은 켜 둔다.
     rngCyclingEnabled: true,

@@ -126,6 +126,7 @@ export default function DamageCalculator() {
                   monster={monster}
                   setMonster={setMonster}
                   stats={stats}
+                  skills={skills}
                   selectedMonsterId={selectedMonsterId}
                   isCustomMonster={isCustomMonster}
                   onMonsterSelect={handleMonsterSelect}
@@ -135,6 +136,8 @@ export default function DamageCalculator() {
                 <CharacterPanel
                   stats={stats}
                   setStats={setStats}
+                  skills={skills}
+                  setSkills={setSkills}
                   onPureStatChange={handlePureStatChange}
                   onLevelChange={handleLevelChange}
                 />
