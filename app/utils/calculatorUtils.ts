@@ -1,6 +1,6 @@
 import { getSkillEffect } from '../data/skillEffects';
 import { HEADLINE_KILL_THRESHOLD } from '../constants/calculator';
-import { DamageResult } from '../types/calculator';
+import { DamageResult, ElementAttribute } from '../types/calculator';
 import {
   isLucky7Effect,
   isAvengerEffect,
@@ -13,6 +13,44 @@ import {
   isTripleThrowEffect,
   isVenomEffect,
 } from '../types/calculator';
+
+/** 원작 elemAttr의 속성 문자 -> 한글 이름. */
+const ELEMENT_NAMES: Record<string, string> = {
+  P: '물리',
+  I: '냉기',
+  F: '불',
+  L: '전기',
+  S: '독',
+  H: '성',
+  D: '암',
+};
+
+/** 원작 elemAttr의 내성 값 -> 한글 이름. */
+const ELEMENT_RESISTANCES: Record<string, ElementAttribute['resistance']> = {
+  '1': '무효',
+  '2': '반감',
+  '3': '약점',
+};
+
+/**
+ * `'F2S3'` 같은 원작 elemAttr 문자열을 사람이 읽는 항목으로 푼다.
+ * 모르는 문자나 값이 섞여 있으면 그 항목만 버린다.
+ */
+export const parseElementAttributes = (
+  elementAttributes: string | undefined
+): ElementAttribute[] => {
+  if (!elementAttributes) return [];
+
+  const parsed: ElementAttribute[] = [];
+  for (const [, letter, value] of elementAttributes.matchAll(/([A-Z])(\d)/g)) {
+    const element = ELEMENT_NAMES[letter];
+    const resistance = ELEMENT_RESISTANCES[value];
+    if (element && resistance) {
+      parsed.push({ element, resistance });
+    }
+  }
+  return parsed;
+};
 
 export const getSkillLevelRange = (skillType: string) => {
   switch (skillType) {
