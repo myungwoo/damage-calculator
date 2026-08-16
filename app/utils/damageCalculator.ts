@@ -64,15 +64,40 @@ const toDamageLine = (damage: number): number =>
 /**
  * 방컷 확률 계산에 넘기는 데미지 라인 정보.
  *
- * min / max는 **클램프 전 실수 지지구간**이다. defenseBand는 그 안에서
- * 방어력 난수가 차지하는 폭이고, 나머지가 스탯 롤 몫이다.
- * 생략하면 방어력 난수가 없는 것으로 보고 균등분포가 된다.
+ * min / max는 **스킬 데미지% 적용 전, 방어력 감산 후** 실수 지지구간이다.
+ * defenseBand는 그 안에서 방어력 난수가 차지하는 폭이고, 나머지가 스탯 롤 몫이다.
+ *
+ * 라인 값은 아래 식으로 만들어진다. 배율을 생략하면 `trunc(d)`가 되므로
+ * min / max를 그냥 최종 데미지 범위로 줘도 된다.
  */
 export interface DamageRangeInput {
   min: number;
   max: number;
   defenseBand?: number;
+  /** 스킬 데미지 배율. 트리플 스로우 30이면 1.5 */
+  skillMultiplier?: number;
+  /** 크리티컬 가산 배율 `(critParam - 100) / 100`. 일반 라인은 0 */
+  criticalAdd?: number;
 }
+
+/**
+ * 라인 데미지 한 값.
+ *
+ *   damage = trunc(스킬배율 * d + 크리가산 * trunc(d))
+ *
+ * 원작은 크리티컬 가산항을 **스킬% 적용 전 값을 정수화한 뒤** 곱한다
+ * (`damage += (critParam - 100) * 0.01 * (int)highDamage`).
+ * 그래서 크리티컬 라인은 d에 대해 매끈한 직선이 아니라 계단이고,
+ * 가산 배율만큼 폭이 벌어져 **닿지 않는 정수 데미지가 생긴다.**
+ *
+ * d에 대해 단조 증가하는 것은 그대로라 난수 순환의 구간 자르기는 그대로 쓸 수 있다.
+ */
+export const damageLineValue = (
+  base: number,
+  skillMultiplier: number,
+  criticalAdd: number
+): number =>
+  Math.trunc(skillMultiplier * base + criticalAdd * Math.trunc(base));
 
 /**
  * 폭 alpha와 beta인 독립 균등분포 두 개의 합에 대한 CDF.
@@ -196,18 +221,21 @@ const calculateStatAttack = (
   };
 };
 
-const calculateDamageWithModifiers = (
+/**
+ * 방어력 감산까지 끝낸, **스킬 데미지% 적용 전** 데미지 축.
+ *
+ * 원작은 이 값을 `highDamage`로 따로 들고 있다가 크리티컬 가산항에 쓴다.
+ * 스킬%와 크리티컬을 여기서 곱해 버리면 그 구조를 표현할 수 없어서 축을 분리한다.
+ */
+const calculateBaseDamageRange = (
   statAttack: { min: number; max: number },
-  skillDamageMultiplier: number,
-  criticalMultiplier: number,
   stats: Stats,
   monster: Monster,
   skillType: AttackSkillType,
   totalAttack: number
-) => {
+): DamageRangeInput => {
   const levelDifference = Math.max(0, monster.level - stats.level);
   const levelMultiplier = 1 - 0.01 * levelDifference;
-  const totalMultiplier = skillDamageMultiplier + criticalMultiplier - 1;
 
   const { totalLuk } = calculateTotalStats(stats);
 
@@ -225,19 +253,12 @@ const calculateDamageWithModifiers = (
     baseMin = statAttack.min;
   }
 
-  const max =
-    (baseMax * levelMultiplier - monster.physicalDefense * 0.5) *
-    totalMultiplier;
-  const min =
-    (baseMin * levelMultiplier - monster.physicalDefense * 0.6) *
-    totalMultiplier;
-
   return {
-    min,
-    max,
+    min: baseMin * levelMultiplier - monster.physicalDefense * 0.6,
+    max: baseMax * levelMultiplier - monster.physicalDefense * 0.5,
     // 원작은 U[PDD*0.5, PDD*0.6]을 스탯 롤과 독립으로 뺀다.
     // 그 난수 폭이 데미지 분포를 균등이 아니라 사다리꼴로 만든다.
-    defenseBand: monster.physicalDefense * 0.1 * totalMultiplier,
+    defenseBand: monster.physicalDefense * 0.1,
   };
 };
 
@@ -358,7 +379,17 @@ export const calculateKillProbabilitiesWithinNHits = (
     // 쉐도우 파트너는 본체 데미지가 확정된 뒤 그 데미지의 고정 비율(만렙 50%,
     // 내림)을 그대로 따라간다. 크리티컬 여부도 본체를 따르므로 독립적으로
     // 굴리지 않고 본체 데미지에서 바로 계산한다.
-    const total = damage + Math.floor(damage * shadowMultiplier);
+    //
+    // 파트너도 독립된 데미지 라인이라 [1, 199999] 클램프를 받는다.
+    // 본체가 1이면 파트너는 0이 아니라 1이 들어간다.
+    const partner =
+      shadowMultiplier > 0
+        ? Math.max(
+            MIN_DAMAGE_PER_LINE,
+            Math.min(MAX_DAMAGE_PER_LINE, Math.floor(damage * shadowMultiplier))
+          )
+        : 0;
+    const total = damage + partner;
     dist[Math.min(Math.round(total * damageScale), monsterHp)] += weight;
   };
 
@@ -382,28 +413,52 @@ export const calculateKillProbabilitiesWithinNHits = (
   ) => {
     if (weight <= 0 || uTo <= uFrom) return;
 
+    const skill = raw.skillMultiplier ?? 1;
+    const critAdd = raw.criticalAdd ?? 0;
     const beta = Math.max(0, raw.defenseBand ?? 0);
     const fullAlpha = statSpan(raw);
     const alpha = fullAlpha * (uTo - uFrom);
     // 이 구간에서 가능한 최솟값. 스탯 롤이 uFrom 지점부터 시작한다.
     const origin = raw.min + fullAlpha * uFrom;
     const cdf = trapezoidCdf(alpha, beta);
-    /** P(데미지 < x) */
+    /** P(d < x) */
     const below = (x: number) => cdf(x - origin);
+    const ceiling = origin + alpha + beta;
 
-    const lowest = MIN_DAMAGE_PER_LINE;
-    const highest = MAX_DAMAGE_PER_LINE;
+    const put = (damage: number, mass: number) =>
+      addDamage(
+        dist,
+        Math.max(MIN_DAMAGE_PER_LINE, Math.min(MAX_DAMAGE_PER_LINE, damage)),
+        weight * mass
+      );
 
-    addDamage(dist, lowest, weight * below(lowest + 1));
-    addDamage(dist, highest, weight * (1 - below(highest)));
+    // d의 정수 구간마다 trunc(d)가 상수라, 그 안에서는 기울기 skill인 직선이다.
+    // 구간을 넘어갈 때마다 라인 값이 critAdd만큼 건너뛴다.
+    const step = skill + critAdd;
+    const first = Math.max(Math.floor(origin), 0);
+    const last = Math.min(
+      Math.floor(ceiling),
+      Math.floor(MAX_DAMAGE_PER_LINE / Math.max(step, 1e-9)) + 1
+    );
 
-    const from = Math.max(lowest + 1, Math.floor(origin));
-    const to = Math.min(highest - 1, Math.floor(origin + alpha + beta));
-    let previous = below(from);
-    for (let damage = from; damage <= to; damage++) {
-      const next = below(damage + 1);
-      addDamage(dist, damage, weight * (next - previous));
-      previous = next;
+    // d가 first 아래면 라인 값이 하한을 넘지 못한다
+    put(MIN_DAMAGE_PER_LINE, below(first));
+    put(MAX_DAMAGE_PER_LINE, 1 - below(last + 1));
+
+    for (let bucket = first; bucket <= last; bucket++) {
+      const low = Math.max(origin, bucket);
+      const high = Math.min(ceiling, bucket + 1);
+      if (high <= low) continue;
+      const offset = critAdd * bucket;
+      const valueFrom = Math.floor(skill * low + offset);
+      const valueTo = Math.floor(skill * high + offset);
+      for (let value = valueFrom; value <= valueTo; value++) {
+        // 라인 값이 value가 되는 d 구간
+        const dFrom = Math.max(low, (value - offset) / skill);
+        const dTo = Math.min(high, (value + 1 - offset) / skill);
+        if (dTo <= dFrom) continue;
+        put(value, below(dTo) - below(dFrom));
+      }
     }
   };
 
@@ -589,27 +644,47 @@ export const calculateDamage = (
     criticalMultiplier += (100 + sharpEyesSkill.damage) / 100;
   }
 
-  // Calculate basic damage
-  const basicDamage = calculateDamageWithModifiers(
+  // 스킬% 적용 전 데미지 축. 일반 라인과 크리티컬 라인이 같은 축을 공유하고,
+  // 크리티컬 가산항은 이 축의 정수화된 값을 쓴다.
+  const baseDamage = calculateBaseDamageRange(
     statAttack,
-    skillDamageMultiplier,
-    1,
     stats,
     monster,
     skills.type,
     totalAttack
   );
+  const criticalAdd = criticalMultiplier - 1;
 
-  // Calculate critical damage
-  const criticalDamage = calculateDamageWithModifiers(
-    statAttack,
-    skillDamageMultiplier,
-    criticalMultiplier,
-    stats,
-    monster,
-    skills.type,
-    totalAttack
-  );
+  // 방컷 확률에는 이 축을 그대로 넘긴다.
+  // 클램프에 눌리는 구간은 난수가 한 값에 뭉치는 확률질량이고,
+  // 크리티컬 가산항은 계단이라, 미리 정수 범위로 눌러 담으면 둘 다 표현할 수 없다.
+  const basicLine: DamageRangeInput = {
+    ...baseDamage,
+    skillMultiplier: skillDamageMultiplier,
+    criticalAdd: 0,
+  };
+  const criticalLine: DamageRangeInput = {
+    ...baseDamage,
+    skillMultiplier: skillDamageMultiplier,
+    criticalAdd,
+  };
+
+  const toLine = (base: number, add: number) =>
+    Math.max(
+      MIN_DAMAGE_PER_LINE,
+      Math.min(
+        MAX_DAMAGE_PER_LINE,
+        damageLineValue(base, skillDamageMultiplier, add)
+      )
+    );
+  const basicDamage = {
+    min: toLine(baseDamage.min, 0),
+    max: toLine(baseDamage.max, 0),
+  };
+  const criticalDamage = {
+    min: toLine(baseDamage.min, criticalAdd),
+    max: toLine(baseDamage.max, criticalAdd),
+  };
 
   // Calculate shadow partner damage
   let shadowMultiplier = 0;
@@ -617,25 +692,9 @@ export const calculateDamage = (
     shadowMultiplier = shadowSkill.skillDamage / 100;
   }
 
-  // Floor all damage values
-  // 방컷 확률은 여기서 내림한 정수 데미지 위에서 계산하므로,
-  // 화면에 표시하는 데미지 범위도 반드시 내림한 뒤의 값에서 유도해야
-  // 표시 범위와 확률 계산이 어긋나지 않는다.
-  //
   // 스탯 공격력은 데미지 라인이 아니라 중간값이라 [1, 199999] 클램프를 걸지 않는다.
   statAttack.min = Math.max(Math.floor(statAttack.min), 0);
   statAttack.max = Math.max(Math.floor(statAttack.max), 0);
-
-  // 방컷 확률에는 클램프 전 실수 범위를 넘긴다.
-  // 하한/상한에 눌리는 구간은 난수가 한 값에 뭉치는 확률질량이라,
-  // 미리 클램프한 정수 범위만 넘기면 그 덩어리를 표현할 방법이 없다.
-  const rawBasicDamage = { ...basicDamage };
-  const rawCriticalDamage = { ...criticalDamage };
-
-  basicDamage.min = toDamageLine(basicDamage.min);
-  basicDamage.max = toDamageLine(basicDamage.max);
-  criticalDamage.min = toDamageLine(criticalDamage.min);
-  criticalDamage.max = toDamageLine(criticalDamage.max);
 
   // Calculate shadow partner damage ranges
   // 파트너 타격도 독립된 데미지 라인이라 같은 클램프를 받는다.
@@ -698,8 +757,8 @@ export const calculateDamage = (
   // Calculate kill probabilities
   const killProbabilities = calculateKillProbabilitiesWithinNHits(
     skills.type,
-    rawBasicDamage,
-    rawCriticalDamage,
+    basicLine,
+    criticalLine,
     shadowMultiplier,
     criticalChance,
     monster.hp,
