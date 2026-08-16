@@ -74,6 +74,28 @@ const getInitialState = (): State => {
   return DEFAULT_STATE;
 };
 
+// 저장 데이터에는 몬스터 수치만 들어 있고 어느 프리셋인지가 없다.
+// 프리셋 값은 UI에서 잠겨 있어 그대로 저장되므로 수치로 되찾을 수 있다.
+// 독 속성 / 보스 여부는 저장 데이터에 없을 수 있으므로 프리셋에서 다시 붙인다.
+const resolveMonsterSelection = (savedMonster: Monster) => {
+  const matchingPreset = monsterPresets.find(
+    (preset) =>
+      preset.level === savedMonster.level &&
+      preset.hp === savedMonster.hp &&
+      preset.physicalDefense === savedMonster.physicalDefense
+  );
+
+  return {
+    monster: {
+      ...savedMonster,
+      poisonAttribute: matchingPreset?.poisonAttribute,
+      isBoss: matchingPreset?.isBoss,
+    },
+    selectedMonsterId: matchingPreset?.id || 'custom',
+    isCustomMonster: !matchingPreset,
+  };
+};
+
 export const useCalculatorState = () => {
   const [state, setState] = useState(getInitialState());
   const [isLoading, setIsLoading] = useState(true);
@@ -111,31 +133,18 @@ export const useCalculatorState = () => {
 
       const savedData = localStorage.getItem(`${STORAGE_KEY_PREFIX}0`);
       if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        const matchingPreset = monsterPresets.find(
-          (preset) =>
-            preset.level === parsedData.monster.level &&
-            preset.hp === parsedData.monster.hp &&
-            preset.physicalDefense === parsedData.monster.physicalDefense
-        );
+        const parsedData = JSON.parse(savedData) as SaveData;
 
         setState((prev) => ({
           ...prev,
-          // 독 속성 / 보스 여부는 저장 데이터에 없을 수 있으므로 프리셋에서 다시 붙인다.
-          monster: {
-            ...(parsedData.monster as Monster),
-            poisonAttribute: matchingPreset?.poisonAttribute,
-            isBoss: matchingPreset?.isBoss,
-          },
-          stats: parsedData.stats as Stats,
-          equipment: parsedData.equipment as Equipment,
+          ...resolveMonsterSelection(parsedData.monster),
+          stats: parsedData.stats,
+          equipment: parsedData.equipment,
           // 예전 저장 데이터에는 베놈 관련 필드가 없으므로 기본값으로 채운다.
           skills: {
             ...DEFAULT_STATE.skills,
-            ...(parsedData.skills as Skills),
+            ...parsedData.skills,
           },
-          selectedMonsterId: matchingPreset?.id || 'custom',
-          isCustomMonster: !matchingPreset,
         }));
       }
     }
@@ -298,7 +307,8 @@ export const useCalculatorState = () => {
         const parsedData = JSON.parse(savedData) as SaveData;
         setState((prev) => ({
           ...prev,
-          monster: parsedData.monster,
+          // 드롭다운 표시와 프리셋 잠금이 불러온 몬스터를 따라가야 한다.
+          ...resolveMonsterSelection(parsedData.monster),
           stats: parsedData.stats,
           equipment: parsedData.equipment,
           // 예전 저장 데이터에는 베놈 관련 필드가 없으므로 기본값으로 채운다.
