@@ -46,6 +46,18 @@ export const VENOM_EXCLUDED_SKILLS: AttackSkillType[] = ['drain'];
 export const VENOM_TICK_INTERVAL_SECONDS = 1;
 
 /**
+ * 베놈을 걸 때 만료 시각에만 얹히는 지연 (초).
+ *
+ * 유출 코드에서 만료 시각은 `tVenom_ = tCur + tDelay + 1000 * 지속시간`인데
+ * 틱 클럭의 기준점 `m_tLastUpdateVenom`에는 `tCur`만 들어간다. 그리고
+ * `LifePool::ApplyUserAttack`이 베놈을 걸 때 `tDelay = 1000`을 넘긴다.
+ *
+ * 결과적으로 틱은 `floor((tDelay + 지속시간 * 1000) / 1000) = 지속시간 + 1`회 들어간다.
+ * 만렙(지속시간 4초)이면 5틱이다. 실측에서 틱이 4~5회로 보이던 것과 맞는다.
+ */
+export const VENOM_APPLY_DELAY_SECONDS = 1;
+
+/**
  * 틱 1회에 들어갈 수 있는 최대 도트 데미지.
  *
  * 원작 유출 코드에는 이런 상한이 없다. nVenom_은 int이고 중첩 누적에 제한이 없다.

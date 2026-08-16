@@ -1,9 +1,21 @@
 import {
   getVenomLevelData,
+  VENOM_APPLY_DELAY_SECONDS,
   VENOM_STACK_LEVELS,
   VENOM_TICK_DAMAGE_CAP,
   VENOM_TICK_INTERVAL_SECONDS,
 } from '../data/venom';
+
+/**
+ * 부여 1회당 들어가는 틱 수.
+ *
+ * 만료 시각에는 `tDelay`(= 1초)가 얹히지만 틱 클럭의 기준점에는 얹히지 않으므로
+ * 지속시간보다 한 틱을 더 받는다. 자세한 근거는 VENOM_APPLY_DELAY_SECONDS 주석 참고.
+ */
+export const getVenomTickCount = (durationSeconds: number): number =>
+  Math.floor(
+    (durationSeconds + VENOM_APPLY_DELAY_SECONDS) / VENOM_TICK_INTERVAL_SECONDS
+  );
 
 /**
  * 베놈 도트 데미지 계산.
@@ -73,7 +85,7 @@ export const calculateVenomTickDamage = (
  * - 공격 k는 (k - 1) * 공격주기 시각에 일어난다.
  * - 몹 도트 클럭은 위상 0으로 자유진행해서 0, 1, 2, ... 초에 틱이 발생한다.
  * - 같은 시각에 겹치면 공격(= 베놈 부여)이 먼저, 틱이 나중이다.
- * - 한 번 부여된 베놈은 지속시간(초)과 같은 개수의 틱을 받고 만료된다.
+ * - 한 번 부여된 베놈은 (지속시간 + 1)개의 틱을 받고 만료된다.
  */
 export const calculateVenomSurvivals = (
   config: VenomConfig,
@@ -199,9 +211,7 @@ export const calculateVenomSurvivals = (
   //    [부여 + age * 공격주기, 부여 + (age + 1) * 공격주기)에 들어가는 틱은
   //    부여 + k * 1초 (k = 1 .. 지속시간) 중 그 구간에 걸리는 것들이다.
   const period = config.attackPeriodSeconds;
-  const tickCount = Math.round(
-    data.durationSeconds / VENOM_TICK_INTERVAL_SECONDS
-  );
+  const tickCount = getVenomTickCount(data.durationSeconds);
   // 마지막 틱이 들어가는 구간 다음부터는 베놈이 남아 있지 않다.
   const maxAge =
     Math.floor((tickCount * VENOM_TICK_INTERVAL_SECONDS) / period) + 1;

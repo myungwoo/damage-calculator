@@ -43,6 +43,24 @@ import {
  */
 export const MAX_HP_RESOLUTION = 16383;
 
+/**
+ * 데미지 라인 하나가 가질 수 있는 값의 범위.
+ *
+ * 원작은 타격마다 마지막에 `damage = max(1.0, min(99999.0, damage))`로 자른 뒤
+ * 정수로 절삭한다. 상한만 메이플랜드에서 199999로 올라갔다.
+ *
+ * 하한은 쉐도우 파트너 타격에도 똑같이 걸린다. 방어력에 눌려 본체 데미지가 음수가
+ * 되는 조합에서도 0이 아니라 1이 들어간다.
+ */
+export const MIN_DAMAGE_PER_LINE = 1;
+export const MAX_DAMAGE_PER_LINE = 199999;
+
+/** 데미지 라인 하나를 원작과 같은 순서(클램프 -> 절삭)로 정수화한다. */
+const toDamageLine = (damage: number): number =>
+  Math.floor(
+    Math.max(MIN_DAMAGE_PER_LINE, Math.min(MAX_DAMAGE_PER_LINE, damage))
+  );
+
 /** 스킬 1회당 본체 타격 수 (럭키 세븐 2, 트리플 스로우 3, 그 외 1) */
 export const getHitCount = (skillType: AttackSkillType): number =>
   skillType === 'tripleThrow' ? 3 : skillType === 'lucky7' ? 2 : 1;
@@ -281,6 +299,9 @@ export const calculateKillProbabilitiesWithinNHits = (
   singleHitDistMain[0] = 1 - hitProb;
 
   const criticalProb = criticalChance / 100;
+  // 데미지 라인의 [1, 199999] 클램프는 축소 전 원본 값에 걸어야 하므로
+  // calculateDamage에서 이미 끝내고 들어온다. 여기서 다시 걸면 축소된 눈금에
+  // 1을 강제하는 셈이 되어 오히려 데미지를 부풀린다.
   {
     // 일반 공격 (non-critical)
     for (
@@ -493,22 +514,28 @@ export const calculateDamage = (
   // 방컷 확률은 여기서 내림한 정수 데미지 위에서 계산하므로,
   // 화면에 표시하는 데미지 범위도 반드시 내림한 뒤의 값에서 유도해야
   // 표시 범위와 확률 계산이 어긋나지 않는다.
+  //
+  // 스탯 공격력은 데미지 라인이 아니라 중간값이라 [1, 199999] 클램프를 걸지 않는다.
   statAttack.min = Math.max(Math.floor(statAttack.min), 0);
   statAttack.max = Math.max(Math.floor(statAttack.max), 0);
-  basicDamage.min = Math.max(Math.floor(basicDamage.min), 0);
-  basicDamage.max = Math.max(Math.floor(basicDamage.max), 0);
-  criticalDamage.min = Math.max(Math.floor(criticalDamage.min), 0);
-  criticalDamage.max = Math.max(Math.floor(criticalDamage.max), 0);
+  basicDamage.min = toDamageLine(basicDamage.min);
+  basicDamage.max = toDamageLine(basicDamage.max);
+  criticalDamage.min = toDamageLine(criticalDamage.min);
+  criticalDamage.max = toDamageLine(criticalDamage.max);
 
   // Calculate shadow partner damage ranges
+  // 파트너 타격도 독립된 데미지 라인이라 같은 클램프를 받는다.
+  const shadowLine = (damage: number) =>
+    shadowMultiplier > 0 ? toDamageLine(damage * shadowMultiplier) : 0;
+
   const shadowBasic = {
-    min: Math.floor(basicDamage.min * shadowMultiplier),
-    max: Math.floor(basicDamage.max * shadowMultiplier),
+    min: shadowLine(basicDamage.min),
+    max: shadowLine(basicDamage.max),
   };
 
   const shadowCritical = {
-    min: Math.floor(criticalDamage.min * shadowMultiplier),
-    max: Math.floor(criticalDamage.max * shadowMultiplier),
+    min: shadowLine(criticalDamage.min),
+    max: shadowLine(criticalDamage.max),
   };
 
   // Calculate final damage ranges (본체 + 쉐도우 파트너, 타격 1회 기준)
