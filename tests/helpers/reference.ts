@@ -22,6 +22,11 @@ export interface KillScenario {
   hitProb: number;
   /** 최대 스킬 시전 횟수 */
   maxUses?: number;
+  /**
+   * 난수 순환(원작이 공격 1회당 난수 7칸을 돌려 쓰는 것)을 반영할지.
+   * 3타에서만 의미가 있고, 한 라인의 데미지 난수가 다른 라인의 크리티컬을 결정한다.
+   */
+  rngCycling?: boolean;
 }
 
 /** 타격 1회의 데미지 분포. 인덱스는 누적 데미지, hp 인덱스는 사망(흡수 상태). */
@@ -103,15 +108,36 @@ export const simulateKillProbabilities = (
   const random = createRandom(seed);
   const counts = new Array(maxUses).fill(0);
 
+  /** 데미지 난수 u와 크리티컬 여부로 라인 하나의 데미지(파트너 포함)를 만든다. */
+  const lineDamage = (crit: boolean, u: number): number => {
+    const range = crit ? s.crit : s.basic;
+    const damage = range.min + Math.floor(u * (range.max - range.min + 1));
+    return damage + Math.floor(damage * s.shadow);
+  };
+
+  const coupled = s.rngCycling === true && s.hits === 3;
+
   for (let trial = 0; trial < trials; trial++) {
     let accumulated = 0;
     for (let use = 0; use < maxUses; use++) {
-      for (let hit = 0; hit < s.hits; hit++) {
-        if (random() >= s.hitProb) continue;
-        const range = random() < s.critChance ? s.crit : s.basic;
-        const damage =
-          range.min + Math.floor(random() * (range.max - range.min + 1));
-        accumulated += damage + Math.floor(damage * s.shadow);
+      if (coupled) {
+        // 라인 B의 데미지 난수가 라인 C의 크리티컬 판정을 그대로 결정한다.
+        const aHit = random() < s.hitProb;
+        const aCrit = random() < s.critChance;
+        const aU = random();
+        const bHit = random() < s.hitProb;
+        const bCrit = random() < s.critChance;
+        const bU = random();
+        const cHit = random() < s.hitProb;
+        const cU = random();
+        if (aHit) accumulated += lineDamage(aCrit, aU);
+        if (bHit) accumulated += lineDamage(bCrit, bU);
+        if (cHit) accumulated += lineDamage(bU < s.critChance, cU);
+      } else {
+        for (let hit = 0; hit < s.hits; hit++) {
+          if (random() >= s.hitProb) continue;
+          accumulated += lineDamage(random() < s.critChance, random());
+        }
       }
       if (accumulated >= s.hp) {
         counts[use]++;

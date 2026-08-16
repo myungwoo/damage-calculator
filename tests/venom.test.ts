@@ -407,6 +407,7 @@ describe('베놈 적용 조건', () => {
     venom: 30,
     venomEnabled: true,
     attacksPerMinute: DEFAULT_ATTACKS_PER_MINUTE,
+    rngCyclingEnabled: false,
     ...overrides,
   });
 

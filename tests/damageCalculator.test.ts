@@ -14,6 +14,7 @@ import { DEFAULT_ATTACKS_PER_MINUTE } from '../app/data/venom';
 import {
   KillScenario,
   referenceKillProbabilities,
+  createRandom,
   simulateKillProbabilities,
   toAccumulatedProbabilities,
 } from './helpers/reference';
@@ -327,6 +328,158 @@ describe('calculateKillProbabilitiesWithinNHits', () => {
   });
 });
 
+describe('난수 순환 (트리플 스로우)', () => {
+  /**
+   * 원작은 공격 1회당 난수를 7칸만 뽑아 돌려 쓴다. 그 결과 트리플 스로우
+   * 3라인 중 한 라인의 데미지 난수가 다른 라인의 크리티컬 판정을 그대로 결정한다.
+   * 메이플랜드 실측 40시전에서 예외 없이 확인됐다.
+   */
+  const CASES = [
+    {
+      name: '방어력 낮은 몹',
+      hp: 12000,
+      basic: { min: 1500, max: 3100 },
+      crit: { min: 2500, max: 5166 },
+      shadow: 0.5,
+      critChance: 50,
+    },
+    {
+      name: '크리티컬 확률이 50%가 아닌 경우',
+      hp: 9000,
+      basic: { min: 900, max: 2000 },
+      crit: { min: 1400, max: 3100 },
+      shadow: 0.5,
+      critChance: 35,
+    },
+    {
+      name: '쉐도우 파트너 없음',
+      hp: 7000,
+      basic: { min: 1100, max: 2300 },
+      crit: { min: 1830, max: 3830 },
+      shadow: 0,
+      critChance: 50,
+    },
+  ];
+
+  const run = (c: (typeof CASES)[number], rngCycling: boolean) => {
+    const stats = makeStats();
+    const monster = makeMonster({ hp: c.hp });
+    const rows = calculateKillProbabilitiesWithinNHits(
+      'tripleThrow',
+      { ...c.basic },
+      { ...c.crit },
+      c.shadow,
+      c.critChance,
+      c.hp,
+      stats,
+      monster,
+      20,
+      null,
+      rngCycling
+    );
+    const scenario: KillScenario = {
+      hp: c.hp,
+      hits: 3,
+      basic: c.basic,
+      crit: c.crit,
+      shadow: c.shadow,
+      critChance: c.critChance / 100,
+      hitProb: 1,
+      rngCycling,
+    };
+    return { rows, scenario };
+  };
+
+  for (const c of CASES) {
+    it(`몬테카를로 시뮬레이션과 일치한다 - ${c.name}`, () => {
+      const { rows, scenario } = run(c, true);
+      const actual = toAccumulatedProbabilities(rows);
+      const simulated = simulateKillProbabilities(scenario, 400000, 424242);
+
+      let compared = 0;
+      for (let i = 0; i < simulated.length; i++) {
+        const value = actual[i];
+        if (value === null) continue;
+        compared++;
+        assert.ok(
+          Math.abs(value - simulated[i]) < 0.005,
+          `${i + 1}방: ${value} vs 시뮬레이션 ${simulated[i]}`
+        );
+      }
+      assert.ok(compared > 0, '비교할 행이 없다');
+    });
+  }
+
+  it('독립 가정과 결과가 달라진다', () => {
+    const off = toAccumulatedProbabilities(run(CASES[0], false).rows);
+    const on = toAccumulatedProbabilities(run(CASES[0], true).rows);
+    const gap = off
+      .map((v, i) => (v === null || on[i] === null ? 0 : Math.abs(v - on[i])))
+      .reduce((a, b) => Math.max(a, b), 0);
+    assert.ok(gap > 0.005, `차이가 너무 작다: ${gap}`);
+  });
+
+  it('평균 데미지는 바뀌지 않는다 (분산만 준다)', () => {
+    // 결합은 난수의 결합분포만 바꾸고 각 난수의 주변부 분포는 그대로다.
+    // 몬테카를로 평균이 같은지로 확인한다.
+    const c = CASES[0];
+    const mean = (rngCycling: boolean) => {
+      const s = { ...run(c, rngCycling).scenario, hp: 10 ** 9, maxUses: 1 };
+      const random = createRandom(99);
+      let total = 0;
+      const N = 200000;
+      for (let t = 0; t < N; t++) {
+        let sum = 0;
+        const line = (crit: boolean, u: number) => {
+          const range = crit ? s.crit : s.basic;
+          const d = range.min + Math.floor(u * (range.max - range.min + 1));
+          return d + Math.floor(d * s.shadow);
+        };
+        const aCrit = random() < s.critChance;
+        const aU = random();
+        const bCrit = random() < s.critChance;
+        const bU = random();
+        const cU = random();
+        sum += line(aCrit, aU) + line(bCrit, bU);
+        sum += line(
+          rngCycling ? bU < s.critChance : random() < s.critChance,
+          cU
+        );
+        total += sum;
+      }
+      return total / N;
+    };
+    const off = mean(false);
+    const on = mean(true);
+    assert.ok(
+      Math.abs(on / off - 1) < 0.005,
+      `평균이 달라졌다: ${off} vs ${on}`
+    );
+  });
+
+  it('1타 스킬과 럭키 세븐에는 영향이 없다', () => {
+    for (const skillType of ['avenger', 'drain', 'lucky7'] as const) {
+      const stats = makeStats();
+      const monster = makeMonster({ hp: 6000 });
+      const args = [
+        skillType,
+        { min: 900, max: 2000 },
+        { min: 1500, max: 3333 },
+        0.5,
+        50,
+        6000,
+        stats,
+        monster,
+        20,
+        null,
+      ] as const;
+      const off = calculateKillProbabilitiesWithinNHits(...args, false);
+      const on = calculateKillProbabilitiesWithinNHits(...args, true);
+      assert.deepEqual(on, off, `${skillType}에서 결과가 달라졌다`);
+    }
+  });
+});
+
 describe('명중률', () => {
   it('필요 명중률은 (55 + 레벨차) * 회피율 / 15 이다', () => {
     assert.equal(calculateRequiredHitRatio(100, 90, 15), 65);
@@ -379,6 +532,7 @@ describe('calculateDamage', () => {
     venom: 0,
     venomEnabled: false,
     attacksPerMinute: DEFAULT_ATTACKS_PER_MINUTE,
+    rngCyclingEnabled: false,
     ...overrides,
   });
 

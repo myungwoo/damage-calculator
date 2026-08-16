@@ -217,7 +217,8 @@ export const calculateKillProbabilitiesWithinNHits = (
   stats: Stats,
   monster: Monster,
   maxHits: number = 20,
-  venomConfig: VenomConfig | null = null
+  venomConfig: VenomConfig | null = null,
+  rngCycling: boolean = false
 ) => {
   // 명중률 계산
   const hitProb = calculateHitProbability(
@@ -289,26 +290,34 @@ export const calculateKillProbabilitiesWithinNHits = (
   //    - 쉐도우 파트너 ON 시 파트너 타격 2회가 추가(본체와 동일한 크리티컬 여부),
   //      단 데미지는 본체 데미지에 multiplier를 곱한 고정값
 
-  // - 단일 히트 분포 (본체)
-  //   damage -> 확률
-  const singleHitDistMain = new Float64Array(size);
-
-  // 명중 실패 확률 추가
-  // 다단히트(럭키 세븐 2타, 트리플 스로우 3타)의 명중 판정은 타격별로 독립이므로
-  // 이 분포를 타격 수만큼 컨볼루션하면 된다.
-  singleHitDistMain[0] = 1 - hitProb;
-
   const criticalProb = criticalChance / 100;
   // 데미지 라인의 [1, 199999] 클램프는 축소 전 원본 값에 걸어야 하므로
   // calculateDamage에서 이미 끝내고 들어온다. 여기서 다시 걸면 축소된 눈금에
   // 1을 강제하는 셈이 되어 오히려 데미지를 부풀린다.
-  {
-    // 일반 공격 (non-critical)
-    for (
-      let damage = basicDamage.min;
-      damage <= basicDamage.max && damage <= monsterHp;
-      damage++
-    ) {
+
+  /**
+   * 데미지 난수가 [uFrom, uTo) 구간일 때의 질량 weight를 분포에 더한다.
+   *
+   * 난수는 데미지 범위 위에 균등하므로 구간을 정수 눈금에 비례 배분한다.
+   * 몬스터 HP를 넘는 데미지는 전부 인덱스 monsterHp(= 사망)로 몰아넣는다.
+   */
+  const addDamageSlice = (
+    dist: Float64Array,
+    range: { min: number; max: number },
+    uFrom: number,
+    uTo: number,
+    weight: number
+  ) => {
+    if (weight <= 0 || uTo <= uFrom) return;
+    const count = range.max - range.min + 1;
+    const from = uFrom * count;
+    const to = uTo * count;
+    const scale = weight / (to - from);
+
+    let index = Math.floor(from);
+    for (; index < to; index++) {
+      const damage = range.min + index;
+      if (damage > monsterHp) break;
       const totalDamage = Math.min(
         // 쉐도우 파트너는 본체 데미지가 확정된 뒤 그 데미지의 고정 비율(만렙 50%,
         // 내림)을 그대로 따라간다. 크리티컬 여부도 본체를 따르므로 독립적으로
@@ -316,61 +325,85 @@ export const calculateKillProbabilitiesWithinNHits = (
         damage + Math.floor(damage * shadowMultiplier),
         monsterHp
       );
-      singleHitDistMain[totalDamage] +=
-        ((1 - criticalProb) / (basicDamage.max - basicDamage.min + 1)) *
-        hitProb;
+      dist[totalDamage] +=
+        (Math.min(to, index + 1) - Math.max(from, index)) * scale;
     }
-    const remaining =
-      basicDamage.max - Math.max(monsterHp + 1, basicDamage.min) + 1;
-    if (remaining > 0) {
-      singleHitDistMain[monsterHp] +=
-        ((1 - criticalProb) / (basicDamage.max - basicDamage.min + 1)) *
-        hitProb *
-        remaining;
+    if (index < to) {
+      dist[monsterHp] += (to - Math.max(from, index)) * scale;
     }
-  }
-  {
-    // 크리티컬 공격
-    for (
-      let damage = criticalDamage.min;
-      damage <= criticalDamage.max && damage <= monsterHp;
-      damage++
-    ) {
-      const totalDamage = Math.min(
-        // 쉐도우 파트너는 본체 데미지가 확정된 뒤 그 데미지의 고정 비율(만렙 50%,
-        // 내림)을 그대로 따라간다. 크리티컬 여부도 본체를 따르므로 독립적으로
-        // 굴리지 않고 본체 데미지에서 바로 계산한다.
-        damage + Math.floor(damage * shadowMultiplier),
-        monsterHp
-      );
-      singleHitDistMain[totalDamage] +=
-        (criticalProb / (criticalDamage.max - criticalDamage.min + 1)) *
-        hitProb;
-    }
-    const remaining =
-      criticalDamage.max - Math.max(monsterHp + 1, criticalDamage.min) + 1;
-    if (remaining > 0) {
-      singleHitDistMain[monsterHp] +=
-        (criticalProb / (criticalDamage.max - criticalDamage.min + 1)) *
-        hitProb *
-        remaining;
-    }
-  }
+  };
+
+  /**
+   * 타격 1회 분포. 데미지 난수를 [uFrom, uTo)로 제한하고
+   * 일반 / 크리티컬 가중치를 지정해 만든다. 두 가중치의 합이 1이면 확률분포가 된다.
+   *
+   * 명중 판정은 타격별로 독립이므로 실패 질량은 항상 그대로 얹는다.
+   */
+  const buildHitDist = (
+    uFrom: number,
+    uTo: number,
+    basicWeight: number,
+    critWeight: number
+  ): Float64Array => {
+    const dist = new Float64Array(size);
+    dist[0] += 1 - hitProb;
+    addDamageSlice(dist, basicDamage, uFrom, uTo, basicWeight * hitProb);
+    addDamageSlice(dist, criticalDamage, uFrom, uTo, critWeight * hitProb);
+    return dist;
+  };
 
   // 2. 타격 수만큼 단일 히트 분포를 합성해 "스킬 1회" 분포를 만든다.
   //    럭키 세븐은 2회 타격이고, 트리플 스로우는 3회 타격
   const hitCount = getHitCount(skillType);
 
-  const singleHitSpectrum = fftForward(singleHitDistMain, fftSize);
-  let singleSkillDist: Float64Array = singleHitDistMain;
-  for (let i = 1; i < hitCount; i++) {
-    singleSkillDist = convolveDistFFT(singleSkillDist, singleHitSpectrum);
+  /**
+   * 난수 순환을 반영할지.
+   *
+   * 원작은 공격 1회당 난수를 7칸만 뽑아 돌려 쓴다. 트리플 스로우 3라인에서는
+   * 그 결과로 한 라인의 데미지 난수가 다른 라인의 크리티컬 판정을 그대로 결정한다
+   * (메이플랜드 실측 40시전 40/40). 타격이 하나뿐인 스킬은 겹칠 상대가 없고,
+   * 크리티컬 확률이 0이나 100%면 결합이 있어도 분포가 달라지지 않는다.
+   */
+  const coupled =
+    rngCycling && hitCount === 3 && criticalProb > 0 && criticalProb < 1;
+
+  let singleSkillDist: Float64Array;
+  if (coupled) {
+    // 라인 A는 완전 독립, 라인 B의 데미지 난수가 라인 C의 크리티컬을 결정한다.
+    //   P(1시전) = A * [ p * (B|난수<p) * (C=크리) + (1-p) * (B|난수>=p) * (C=일반) ]
+    // 크리티컬 판정이 "난수 < 크리확률"이라 B를 자르는 지점이 곧 크리확률이다.
+    const p = criticalProb;
+    const lineA = buildHitDist(0, 1, 1 - p, p);
+    const lineBLow = buildHitDist(0, p, 1 - p, p);
+    const lineBHigh = buildHitDist(p, 1, 1 - p, p);
+    const lineCCrit = buildHitDist(0, 1, 0, 1);
+    const lineCBasic = buildHitDist(0, 1, 1, 0);
+
+    const low = convolveDistFFT(lineBLow, fftForward(lineCCrit, fftSize));
+    const high = convolveDistFFT(lineBHigh, fftForward(lineCBasic, fftSize));
+
+    const pair = new Float64Array(size);
+    for (let i = 0; i < size; i++) {
+      pair[i] = p * low[i] + (1 - p) * high[i];
+    }
+    singleSkillDist = convolveDistFFT(lineA, fftForward(pair, fftSize));
+  } else {
+    const singleHitDistMain = buildHitDist(
+      0,
+      1,
+      1 - criticalProb,
+      criticalProb
+    );
+    const singleHitSpectrum = fftForward(singleHitDistMain, fftSize);
+    singleSkillDist = singleHitDistMain;
+    for (let i = 1; i < hitCount; i++) {
+      singleSkillDist = convolveDistFFT(singleSkillDist, singleHitSpectrum);
+    }
   }
 
   // 3. 스킬 1회 분포를 반복 합성해 N회 시전 후의 누적 데미지 분포를 구한다.
   //    같은 분포를 계속 곱하므로 정방향 변환은 한 번만 해 두고 재사용한다.
-  const singleSkillSpectrum =
-    hitCount === 1 ? singleHitSpectrum : fftForward(singleSkillDist, fftSize);
+  const singleSkillSpectrum = fftForward(singleSkillDist, fftSize);
 
   /**
    * 시전 useIndex + 1회 시점의 사망 확률.
@@ -592,7 +625,8 @@ export const calculateDamage = (
     stats,
     monster,
     20,
-    venomConfig
+    venomConfig,
+    skills.rngCyclingEnabled
   );
 
   // Calculate critical probability
