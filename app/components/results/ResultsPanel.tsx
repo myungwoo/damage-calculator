@@ -10,7 +10,8 @@ import {
 import { HEADLINE_KILL_THRESHOLD } from '../../constants/calculator';
 import { findHeadlineKill } from '../../utils/calculatorUtils';
 import KillProbabilityChart from './KillProbabilityChart';
-import JudgementProbabilities from './JudgementProbabilities';
+import HitProbabilityNotice from './HitProbabilityNotice';
+import AvoidProbabilities from './AvoidProbabilities';
 
 interface ResultsPanelProps {
   result: DamageResult;
@@ -147,74 +148,71 @@ export default function ResultsPanel({
           )}
         </div>
 
-        {/* 총 데미지 범위 */}
-        <div className="flex items-baseline justify-between gap-2 rounded-xl border border-line px-3 py-2.5">
-          <span className="whitespace-nowrap text-xs font-medium text-muted">
-            총 데미지 범위
-          </span>
-          <span className="text-right">
-            <span className="block text-base font-bold tabular-nums text-ink">
-              {fmt(result.totalDamageRange.min)} ~{' '}
-              {fmt(result.totalDamageRange.max)}
-            </span>
-            <span className="block text-[0.7rem] tabular-nums text-muted">
-              기댓값 {fmt(result.totalDamageRange.expected ?? 0)}
-            </span>
-          </span>
-        </div>
-
-        <div className="space-y-2">
-          <StatLine
-            label="기본"
-            range={result.basic}
-            addon={shadowActive ? result.shadowBasic : null}
-          />
-          <StatLine
-            label="크리티컬"
-            icon={<Zap className="h-3.5 w-3.5" />}
-            tone="crit"
-            range={result.critical}
-            addon={shadowActive ? result.shadowCritical : null}
-          />
-          <StatLine label="스탯 공격력" range={result.statAttack} />
-          {result.venomApplied && result.venomTickDamage && (
-            <StatLine
-              label="베놈 틱 (1중첩)"
-              icon={<Droplet className="h-3.5 w-3.5" />}
-              tone="venom"
-              range={result.venomTickDamage}
-              note="1초마다 1틱, 중첩되면 합산되어 들어간다. 몹 방어력과 크리티컬의 영향을 받지 않고, 이 데미지만으로는 몬스터를 잡을 수 없다"
-            />
-          )}
-          {skills.type === 'drain' && (
-            <StatLine
-              label="HP 흡수량"
-              icon={<HeartPulse className="h-3.5 w-3.5" />}
-              range={result.hpAbsorption}
-            />
-          )}
-        </div>
-
         {/*
-          판정 확률은 방컷 확률 막대 바로 위에 둔다. 타격 확률이 100%가 아니면
-          아래 막대가 통째로 흔들리므로, 막대를 읽기 전에 보이는 자리가 맞다.
+          방컷 확률은 이 계산기가 존재하는 이유라 요약 바로 아래에 둔다.
+          데미지 값들보다 먼저 나와야 스크롤 없이 읽힌다.
         */}
-        <div className="space-y-2 border-t border-line pt-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-            판정 확률
-          </h3>
-          <JudgementProbabilities
-            monster={monster}
-            stats={stats}
-            skills={skills}
-          />
-        </div>
-
-        <div className="space-y-2 border-t border-line pt-4">
+        <div className="space-y-2">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
             방컷 확률
           </h3>
           <KillProbabilityChart killProbabilities={result.killProbabilities} />
+          {/* 타격 확률이 100%에 못 미칠 때만 뜬다. 위 막대가 그만큼 내려간 이유다. */}
+          <HitProbabilityNotice monster={monster} stats={stats} />
+        </div>
+
+        {/* 여기부터 데미지 값들. 구분자로 방컷 확률과 성격을 갈라 준다. */}
+        <div className="space-y-4 border-t border-line pt-4">
+          <div className="flex items-baseline justify-between gap-2 rounded-xl border border-line px-3 py-2.5">
+            <span className="whitespace-nowrap text-xs font-medium text-muted">
+              총 데미지 범위
+            </span>
+            <span className="text-right">
+              <span className="block text-base font-bold tabular-nums text-ink">
+                {fmt(result.totalDamageRange.min)} ~{' '}
+                {fmt(result.totalDamageRange.max)}
+              </span>
+              <span className="block text-[0.7rem] tabular-nums text-muted">
+                기댓값 {fmt(result.totalDamageRange.expected ?? 0)}
+              </span>
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            <StatLine
+              label="기본"
+              range={result.basic}
+              addon={shadowActive ? result.shadowBasic : null}
+            />
+            <StatLine
+              label="크리티컬"
+              icon={<Zap className="h-3.5 w-3.5" />}
+              tone="crit"
+              range={result.critical}
+              addon={shadowActive ? result.shadowCritical : null}
+            />
+            <StatLine label="스탯 공격력" range={result.statAttack} />
+            {result.venomApplied && result.venomTickDamage && (
+              <StatLine
+                label="베놈 틱 (1중첩)"
+                icon={<Droplet className="h-3.5 w-3.5" />}
+                tone="venom"
+                range={result.venomTickDamage}
+                note="1초마다 1틱, 중첩되면 합산되어 들어간다. 몹 방어력과 크리티컬의 영향을 받지 않고, 이 데미지만으로는 몬스터를 잡을 수 없다"
+              />
+            )}
+            {skills.type === 'drain' && (
+              <StatLine
+                label="HP 흡수량"
+                icon={<HeartPulse className="h-3.5 w-3.5" />}
+                range={result.hpAbsorption}
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-line pt-4">
+          <AvoidProbabilities monster={monster} stats={stats} skills={skills} />
         </div>
       </div>
     </div>
