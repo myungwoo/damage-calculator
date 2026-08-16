@@ -11,11 +11,18 @@
  * 배포 코드의 닫힌 식과는 유도 경로가 달라 서로 검산이 된다.
  */
 
-/** 클램프 전 실수 지지구간과, 그 안에서 방어력 난수가 차지하는 폭 */
+/**
+ * 스킬% 적용 전(방어 감산 후) 지지구간과, 그 안에서 방어력 난수가 차지하는 폭.
+ * 배율을 생략하면 라인 = trunc(d)라 min/max를 최종 데미지 범위로 줘도 된다.
+ */
 export interface DamageRange {
   min: number;
   max: number;
   defenseBand?: number;
+  /** 스킬 데미지 배율 */
+  skillMultiplier?: number;
+  /** 크리티컬 가산 배율 (critParam - 100) / 100 */
+  criticalAdd?: number;
 }
 
 export interface KillScenario {
@@ -49,6 +56,26 @@ const LINE_MAX = 199999;
 export const statSpanOf = (range: DamageRange): number =>
   Math.max(0, range.max - range.min - Math.max(0, range.defenseBand ?? 0));
 
+const clampLine = (damage: number): number =>
+  Math.max(LINE_MIN, Math.min(LINE_MAX, damage));
+
+/**
+ * 쉐도우 파트너 타격. 본체의 확정 정수 데미지를 그대로 따라가되
+ * 독립된 데미지 라인이라 [1, 199999] 클램프를 똑같이 받는다.
+ */
+export const partnerLine = (damage: number, shadow: number): number =>
+  shadow > 0 ? clampLine(Math.floor(damage * shadow)) : 0;
+
+/**
+ * 라인 데미지 한 값. 원작은 크리티컬 가산항에 스킬% 적용 전 값을 정수화해서 쓴다.
+ *   damage = trunc(skill * d + criticalAdd * trunc(d))
+ */
+export const lineValueOf = (range: DamageRange, base: number): number =>
+  Math.trunc(
+    (range.skillMultiplier ?? 1) * base +
+      (range.criticalAdd ?? 0) * Math.trunc(base)
+  );
+
 /** 타격 1회의 데미지 분포. 인덱스는 누적 데미지, hp 인덱스는 사망(흡수 상태). */
 const singleHitDistribution = (s: KillScenario): number[] => {
   const dist = new Array(s.hp + 1).fill(0);
@@ -56,29 +83,50 @@ const singleHitDistribution = (s: KillScenario): number[] => {
 
   const add = (damage: number, weight: number): void => {
     if (weight <= 0) return;
-    dist[Math.min(damage + Math.floor(damage * s.shadow), s.hp)] +=
+    dist[Math.min(damage + partnerLine(damage, s.shadow), s.hp)] +=
       weight * s.hitProb;
   };
 
-  /** U[lo, lo + width]를 절삭 + 클램프해서 정수 눈금에 담는다. */
-  const addUniform = (lo: number, width: number, weight: number): void => {
+  /**
+   * d가 U[lo, lo + width]일 때 라인 데미지를 정수 눈금에 담는다.
+   * d의 정수 구간마다 trunc(d)가 상수라 그 안에서는 기울기 skill인 직선이다.
+   */
+  const addUniform = (
+    range: DamageRange,
+    lo: number,
+    width: number,
+    weight: number
+  ): void => {
     if (width <= 0) {
-      add(Math.max(LINE_MIN, Math.min(LINE_MAX, Math.floor(lo))), weight);
+      add(clampLine(lineValueOf(range, lo)), weight);
       return;
     }
+    const skill = range.skillMultiplier ?? 1;
+    const critAdd = range.criticalAdd ?? 0;
     const hi = lo + width;
-    // 하한에 눌리는 구간: 데미지가 2 미만이면 전부 1이 된다
-    if (lo < LINE_MIN + 1) {
-      add(LINE_MIN, ((Math.min(hi, LINE_MIN + 1) - lo) / width) * weight);
+    const step = Math.max(skill + critAdd, 1e-9);
+
+    // 음수 구간은 전부 하한으로 눌린다. 위쪽도 마찬가지라 미리 잘라 둔다.
+    const first = Math.max(Math.floor(lo), 0);
+    const last = Math.min(Math.floor(hi), Math.floor(LINE_MAX / step) + 1);
+    if (lo < first) add(LINE_MIN, ((Math.min(hi, first) - lo) / width) * weight);
+    if (hi > last + 1) {
+      add(LINE_MAX, ((hi - Math.max(lo, last + 1)) / width) * weight);
     }
-    if (hi > LINE_MAX) {
-      add(LINE_MAX, ((hi - Math.max(lo, LINE_MAX)) / width) * weight);
-    }
-    const from = Math.max(LINE_MIN + 1, Math.floor(lo));
-    const to = Math.min(LINE_MAX - 1, Math.floor(hi));
-    for (let damage = from; damage <= to; damage++) {
-      const overlap = Math.min(hi, damage + 1) - Math.max(lo, damage);
-      if (overlap > 0) add(damage, (overlap / width) * weight);
+
+    for (let bucket = first; bucket <= last; bucket++) {
+      const a = Math.max(lo, bucket);
+      const b = Math.min(hi, bucket + 1);
+      if (b <= a) continue;
+      const offset = critAdd * bucket;
+      const from = Math.floor(skill * a + offset);
+      const to = Math.floor(skill * b + offset);
+      for (let value = from; value <= to; value++) {
+        const dFrom = Math.max(a, (value - offset) / skill);
+        const dTo = Math.min(b, (value + 1 - offset) / skill);
+        if (dTo <= dFrom) continue;
+        add(clampLine(value), ((dTo - dFrom) / width) * weight);
+      }
     }
   };
 
@@ -90,7 +138,7 @@ const singleHitDistribution = (s: KillScenario): number[] => {
     const steps = beta > 0 ? Math.max(512, Math.ceil(beta) * 32) : 1;
     for (let i = 0; i < steps; i++) {
       const offset = beta > 0 ? ((i + 0.5) / steps) * beta : 0;
-      addUniform(range.min + offset, alpha, weight / steps);
+      addUniform(range, range.min + offset, alpha, weight / steps);
     }
   };
 
@@ -161,12 +209,9 @@ export const simulateKillProbabilities = (
   const lineDamage = (crit: boolean, u: number, v: number): number => {
     const range = crit ? s.crit : s.basic;
     const beta = Math.max(0, range.defenseBand ?? 0);
-    const raw = range.min + u * statSpanOf(range) + v * beta;
-    const damage = Math.max(
-      LINE_MIN,
-      Math.min(LINE_MAX, Math.trunc(raw))
-    );
-    return damage + Math.floor(damage * s.shadow);
+    const base = range.min + u * statSpanOf(range) + v * beta;
+    const damage = clampLine(lineValueOf(range, base));
+    return damage + partnerLine(damage, s.shadow);
   };
 
   const coupled = s.rngCycling === true && s.hits === 3;

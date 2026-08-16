@@ -8,6 +8,7 @@ import {
   MAX_DAMAGE_PER_LINE,
   MAX_HP_RESOLUTION,
   MIN_DAMAGE_PER_LINE,
+  damageLineValue,
   trapezoidCdf,
 } from '../app/utils/damageCalculator';
 import { Equipment, Monster, Skills, Stats } from '../app/types/calculator';
@@ -416,6 +417,89 @@ describe('사다리꼴 CDF', () => {
   });
 });
 
+describe('크리티컬 가산항', () => {
+  /**
+   * 원작은 크리티컬 가산항에 스킬% 적용 전 값을 **정수화한 뒤** 곱한다.
+   *   damage *= 스킬damage * 0.01
+   *   damage += (critParam - 100) * 0.01 * (int)highDamage
+   * 그래서 크리티컬 라인은 매끈한 직선이 아니라 계단이다.
+   */
+  it('유출 코드와 같은 순서로 계산한다', () => {
+    // 트리플 스로우 30(1.5배) + 크리티컬 스로우 30(critParam 200 -> 가산 1.0)
+    const skill = 1.5;
+    const add = 1.0;
+    for (const base of [3486.67, 3487.0, 3487.33, 1000.9, 0.5, 12345.678]) {
+      const expected = Math.trunc(
+        skill * base + add * Math.trunc(base) // (int)highDamage
+      );
+      assert.equal(damageLineValue(base, skill, add), expected, `base=${base}`);
+    }
+  });
+
+  it('가산항이 없으면 그냥 스킬 배율을 곱한 값이다', () => {
+    for (const base of [100.4, 250.9, 3487.33]) {
+      assert.equal(damageLineValue(base, 1.5, 0), Math.trunc(1.5 * base));
+      assert.equal(damageLineValue(base, 1, 0), Math.trunc(base));
+    }
+  });
+
+  it('계단이라 닿지 않는 크리티컬 데미지 값이 생긴다', () => {
+    // 스킬 1.5 + 가산 1.0이면 d 한 칸마다 값이 2.5씩 오르는데
+    // 칸 안에서는 1.5밖에 못 훑어서 1.0만큼 구멍이 남는다.
+    const reachable = new Set<number>();
+    for (let i = 0; i <= 200000; i++) {
+      const base = 1000 + i / 20000;
+      reachable.add(damageLineValue(base, 1.5, 1.0));
+    }
+    const missing: number[] = [];
+    for (let value = 2500; value <= 2520; value++) {
+      if (!reachable.has(value)) missing.push(value);
+    }
+    assert.deepEqual(missing, [2504, 2509, 2514, 2519]);
+  });
+
+  it('크리티컬 최댓값이 배율을 그냥 곱한 값보다 낮아질 수 있다', () => {
+    const stats = makeStats();
+    const monster = makeMonster({ hp: 15000, physicalDefense: 300 });
+    const equipment: Equipment = {
+      weaponAttack: 100,
+      selectedWeaponId: 'balanced-fury',
+      gloveAttack: 30,
+      otherAttack: 20,
+      buff: 0,
+    };
+    const skills: Skills = {
+      type: 'tripleThrow',
+      level: 30,
+      criticalThrow: 30,
+      javelin: 20,
+      shadowPartner: 30,
+      shadowPartnerEnabled: true,
+      mapleWarrior: 0,
+      mapleWarriorEnabled: false,
+      sharpEyes: 30,
+      sharpEyesEnabled: false,
+      venom: 0,
+      venomEnabled: false,
+      attacksPerMinute: DEFAULT_ATTACKS_PER_MINUTE,
+      rngCyclingEnabled: false,
+    };
+    const result = calculateDamage(monster, stats, equipment, skills);
+
+    // 일반:크리 = 1.5:2.5 이므로 그냥 곱하면 정확히 5/3배가 된다.
+    // 계단 때문에 실제로는 그보다 크거나 같을 수 없고, 보통 1~2 낮다.
+    const naive = Math.floor((result.basic.max * 5) / 3);
+    assert.ok(
+      result.critical.max <= naive,
+      `${result.critical.max} > ${naive}`
+    );
+    assert.ok(
+      result.critical.max >= naive - 3,
+      `너무 많이 떨어졌다: ${result.critical.max} vs ${naive}`
+    );
+  });
+});
+
 describe('데미지 라인 클램프', () => {
   /**
    * 원작 라인은 trunc(clamp(1, 199999, 선형(난수)))라, 하한/상한에 눌리는 구간의
@@ -499,6 +583,27 @@ describe('데미지 라인 클램프', () => {
       assert.ok(compared > 0, '비교할 행이 없다');
     });
   }
+
+  it('본체가 1이면 쉐도우 파트너도 0이 아니라 1이다', () => {
+    // 파트너도 독립된 데미지 라인이라 같은 하한을 받는다.
+    // 전부 하한에 눌리는 범위를 주면 타격당 2(본체 1 + 파트너 1)가 들어간다.
+    const stats = makeStats();
+    const hp = 10;
+    const rows = calculateKillProbabilitiesWithinNHits(
+      'avenger',
+      { min: -100, max: -50 },
+      { min: -100, max: -50 },
+      0.5,
+      50,
+      hp,
+      stats,
+      makeMonster({ hp })
+    );
+    // 타격당 2씩 들어가면 5방에 딱 잡는다
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].hit, 5);
+    assert.equal(rows[0].accProb, '100.00');
+  });
 
   it('하한에 눌린 질량을 균등분포로 퍼뜨리지 않는다', () => {
     // 같은 정수 범위를 (a) 클램프 전 실수 범위로 주는 경우와
