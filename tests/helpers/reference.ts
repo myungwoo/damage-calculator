@@ -109,7 +109,8 @@ const singleHitDistribution = (s: KillScenario): number[] => {
     // 음수 구간은 전부 하한으로 눌린다. 위쪽도 마찬가지라 미리 잘라 둔다.
     const first = Math.max(Math.floor(lo), 0);
     const last = Math.min(Math.floor(hi), Math.floor(LINE_MAX / step) + 1);
-    if (lo < first) add(LINE_MIN, ((Math.min(hi, first) - lo) / width) * weight);
+    if (lo < first)
+      add(LINE_MIN, ((Math.min(hi, first) - lo) / width) * weight);
     if (hi > last + 1) {
       add(LINE_MAX, ((hi - Math.max(lo, last + 1)) / width) * weight);
     }

@@ -1,0 +1,43 @@
+name: CI
+
+# PR에서 직접 돌고, 배포 워크플로우(nextjs.yml)에서도 같은 잡을 재사용한다.
+# 검사를 한 곳에만 적어야 PR과 배포가 서로 다른 기준으로 통과하는 일이 없다.
+on:
+  pull_request:
+  workflow_call:
+
+jobs:
+  verify:
+    name: 포맷 · 린트 · 타입 · 테스트
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: 포맷 검사
+        run: npm run format:check
+
+      - name: 린트
+        run: npm run lint
+
+      - name: 타입 검사
+        run: npm run typecheck
+
+      # 방컷 확률·베놈 계산을 참조 DP와 몬테카를로에 대조하는 유닛 테스트
+      - name: 테스트
+        run: npm test
+
+      # 배포 경로에서는 바로 뒤 build 잡이 Pages 설정까지 얹어서 다시 빌드하므로
+      # 여기서는 PR일 때만 돌린다.
+      - name: 빌드
+        if: github.event_name == 'pull_request'
+        run: npm run build
