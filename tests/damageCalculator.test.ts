@@ -46,6 +46,7 @@ const makeMonster = (overrides: Partial<Monster> = {}): Monster => ({
   physicalDefense: 0,
   magicalDefense: 0,
   avoid: 0,
+  accuracy: 0,
   ...overrides,
 });
 

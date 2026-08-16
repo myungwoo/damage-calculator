@@ -55,6 +55,7 @@ app/
 tests/                 # 유닛 테스트 (node --test)
   helpers/
     reference.ts           # 방컷 확률 참조 구현 (O(n^2) DP, 몬테카를로)
+  avoidProbability.test.ts
   damageCalculator.test.ts
   fft.test.ts
   venom.test.ts
@@ -312,6 +313,56 @@ v95에는 보스용 난수가 하나 더 있다), 언데드. 실측에 쓴 듀�
 원작 엔진을 그대로 옮긴 몬테카를로 대비 남은 오차는 **어느 조건에서도 0.03%p 이하**다.
 남은 근사는 HP 축소(성긴 눈금)와 참조 몬테카를로의 표본 오차뿐이다.
 
+## 회피 확률 (몹 -> 캐릭터)
+
+방컷 확률이 "내가 몹을 몇 방에 죽이나"라면 이쪽은 "몹이 때릴 때 얼마나 흘리나"다.
+`damageCalculator.ts`의 `calculateAvoidProbability`(물리) /
+`calculateMagicAvoidProbability`(마법)가 담당한다. 원작 `CalcDamage::CheckPDamageMiss` /
+`CheckMDamageMiss`를 그대로 옮겼고, 데미지 계산과는 난수도 경로도 겹치지 않아 독립적으로 쓴다.
+
+**물리와 마법은 같은 공식의 변형이 아니라 아예 다른 식이다.**
+
+| | 물리 (`CheckPDamageMiss`) | 마법 (`CheckMDamageMiss`) |
+| --- | --- | --- |
+| 회피율 상한 | 999 | 999 |
+| 레벨 페널티 | `-(몹Lv - 캐릭Lv) / 2` (정수 나눗셈) | `-(몹Lv - 캐릭Lv)` 전액 |
+| 판정 | `회피율 / (몹명중 * 4.5) * 100 > U[0, 100)` | `U[0.1 * 회피율, 회피율] >= 몹명중` |
+| 클램프 | 도적 5~95% / 그 외 2~80% | 없음 (0%도 100%도 나온다) |
+
+- 페널티를 먹여 0 이하가 되면 0으로 둔다(음수로 안 내려간다).
+- **몹 명중률이 0이어도 물리는 100%가 아니다.** 원작이 0으로 나눠 무한대가 되고 그대로
+  상한에 잘리기 때문에 도적 기준 95%다. 마법은 클램프가 없어 100%가 된다.
+- 닫힌 식은 각각 `clamp(회피율 / (몹명중 * 4.5), 0.05, 0.95)`와
+  `clamp((회피율 - 몹명중) / (0.9 * 회피율), 0, 1)`이다.
+
+### 도적 클램프(5~95%)의 근거
+
+원작 분기는 `bs->nJob / 100 == 4`다. 이 숫자가 해적이 아니라 **도적**이라는 것은
+같은 유출본 안에서 교차확인했다 — `CalcDamage.cpp`의 마법사 분기가 `== 2`이고,
+`QWUser.cpp`의 AP 요구치가 `3 또는 4 -> LUK`(궁수·도적)이며, 아대(무기 타입 33) 분기도
+`== 4`를 쓴다. 이 계산기는 나이트로드 전용이라 도적 값만 넣었다.
+
+### 유출본 사이의 차이
+
+- `mnwvs077`은 물리 판정을 `calc > GetNormalizedCurrentRand()`로 적어 뒀는데,
+  그 매크로는 `[0, 1)`을 주고 `calc`는 퍼센트(2~95)라 단위가 안 맞는다. 그대로면 항상
+  회피가 된다. `Rebirth95.Server`가 같은 판정을 `get_rand(rnd, 100.0, 0.0)`으로 굴리므로
+  **난수 쪽이 0~100이 맞다**고 보고 퍼센트로 맞췄다.
+- 단 `Rebirth95.Server`의 `calc_evar`(`sqrt(회피) - sqrt(몹명중)`, 레벨차 5배 차감)는
+  **빅뱅 이후 v95 공식**이라 쓰지 않는다. 메이플랜드는 빅뱅 전이다.
+- 두 판정 모두 `mnwvs077`에서는 호출부가 없는 죽은 코드다(몹의 공격 처리가 구현돼 있지
+  않다). IDA 디컴파일을 옮겨만 둔 것이라 식 자체는 원작 그대로로 본다.
+
+### 확인되지 않아 가정으로 둔 것
+
+- **실측이 없다.** 회피는 성공/실패만 보이고 수치가 안 떠서, 데미지처럼 역산할 수단이 없다.
+  베놈·난수 순환과 달리 이 절은 전부 유출 코드 기준이다.
+- **몸박(터치 데미지)이 물리 경로라는 것**은 가정이다. 원작에서 몹 공격의 물리/마법 구분은
+  `MobAttackInfo`의 타입이 정하는데, 프리셋에는 그 정보가 없어서 UI는 물리를 기본으로 두고
+  마법 값을 함께 적어 준다.
+- **회피 불가 몹**: `Rebirth95.Server`에는 `CannotEvade` 플래그가 있는데 v0.77 쪽에서는
+  확인하지 못했고 프리셋에도 없어서 반영하지 않았다.
+
 ## 공격 스킬별 특성
 
 이 계산기는 나이트로드(표창) 기준이다.
@@ -449,8 +500,8 @@ GMS/KMS 버전 차이가 있을 수 있으니 수치는 항상 교차검증한�
 | 자료 | 용도 | 특징 |
 | --- | --- | --- |
 | [`CMob__OnMobStatChangeSkill.txt`](https://drive.google.com/file/d/1AipXS7vutfhrNALtJxvTcQjBZgvIrgQU/view) | 몹 상태이상 스킬 전반 | 브라질(BMS) 빅뱅 전 공식 서버를 IDA로 디컴파일한 **진짜 넥슨 코드**. 베놈·쇼다운·닌자 앰부시·독 안개 등의 적용 조건과 공식이 전부 들어 있다. 신뢰도 최상 |
-| [tnsc4502/mnwvs077](https://github.com/tnsc4502/mnwvs077) | 도트 틱 처리, 공격 처리 흐름 | 원작 v0.77 구조를 그대로 옮긴 C++ 재구현. `WvsGame/Mob.cpp`의 `UpdateMobStatChange`가 1초 틱과 HP 하한 1을, `WvsGame/LifePool.cpp`의 `ApplyUserAttack`이 베놈이 붙는 스킬 목록을 보여준다. **재구현이라 세부는 원본과 다를 수 있다**(중첩 조건이 원본과 다르게 단순화돼 있음) |
-| [67-6f-64/Rebirth95.Server](https://github.com/67-6f-64/Rebirth95.Server) | 대조용 | v95 기반 C# 재구현. 도트 틱을 몹 단위 자유진행 1초 클럭으로 돌린다. mnwvs077과 구조가 달라 두 방식을 비교할 때 쓴다 |
+| [tnsc4502/mnwvs077](https://github.com/tnsc4502/mnwvs077) | 도트 틱 처리, 공격 처리 흐름, 회피 판정(`WvsGame/CalcDamage.cpp`의 `CheckPDamageMiss` / `CheckMDamageMiss`) | 원작 v0.77 구조를 그대로 옮긴 C++ 재구현. `WvsGame/Mob.cpp`의 `UpdateMobStatChange`가 1초 틱과 HP 하한 1을, `WvsGame/LifePool.cpp`의 `ApplyUserAttack`이 베놈이 붙는 스킬 목록을 보여준다. **재구현이라 세부는 원본과 다를 수 있다**(중첩 조건이 원본과 다르게 단순화돼 있음) |
+| [67-6f-64/Rebirth95.Server](https://github.com/67-6f-64/Rebirth95.Server) | 대조용 | v95 기반 C# 재구현. 도트 틱을 몹 단위 자유진행 1초 클럭으로 돌린다. mnwvs077과 구조가 달라 두 방식을 비교할 때 쓴다. 회피 판정의 난수 범위(0~100)를 확인한 곳이기도 한데, **공식 자체는 빅뱅 이후 것**이라 그대로 가져오면 안 된다 |
 | [iw2d/kinoko](https://github.com/iw2d/kinoko) | 난수 소비 순서 대조 | `world/user/stat/CalcDamage.java`. 쓰지 않는 난수까지 `counter++`로 세어 클라이언트와 인덱스를 맞춘다. 7칸 순환이 실재한다는 강한 증거 |
 | [Kaioru/Edelstein](https://github.com/Kaioru/Edelstein) | 난수 소비 순서 대조 | C# 재구현. `RndSize = 7` + `Rotational<uint>` |
 | [mrzhqiang/ms079](https://github.com/mrzhqiang/ms079) | **몹 WZ 데이터 1차 출처** | v0.79 기준 `wz/Mob.wz/*.img.xml`. 메이플랜드와 가장 가까운 버전이라 몹 수치는 여기를 먼저 본다. v083이 틀린 사례가 있다(루루모 HP를 v083은 760만으로 적지만 v079와 실제 메랜은 7600) |
@@ -476,6 +527,10 @@ GMS/KMS 버전 차이가 있을 수 있으니 수치는 항상 교차검증한�
 반대로 아래 항목은 계산에 쓰이지 않거나 실측이 어려워 v079 WZ 값을 그대로 쓴다.
 `accuracy`, `physicalAttack`, `magicAttack`, `minimumPushDamage`,
 `isUndead`, `elementAttributes`, `poisonAttribute`, `isBoss`.
+
+`accuracy`는 회피 확률이 붙으면서 실제로 계산에 들어간다. 그래도 WZ 값을 그대로 두는
+이유는 실측이 어렵기 때문이다(회피는 성공/실패만 보이고 수치가 안 뜬다). 레벨·HP·방어력과
+달리 메이플랜드가 이 값을 손댔다는 증거가 아직 없으므로 v079 값을 기준으로 둔다.
 
 `region`은 몹의 출현 맵(maplestory.io `foundAt`)을 기존 프리셋의 지역 라벨과 대조해
 정했다. 출현 맵 정보가 없는 몹(주로 소환형 보스)은 추정하지 않고 `'기타'`로 뒀다.

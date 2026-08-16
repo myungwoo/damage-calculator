@@ -205,6 +205,109 @@ export const calculateHitProbability = (
   );
 };
 
+/**
+ * 회피 확률 하한 / 상한.
+ *
+ * 원작 `CalcDamage::CheckPDamageMiss`는 `nJob / 100 == 4`(도적)면 5~95%,
+ * 그 밖의 직업은 2~80%로 자른다. 이 계산기는 나이트로드 전용이라 도적 값만 쓴다.
+ * (직업군 번호는 같은 파일의 마법사 분기 `nJob / 100 == 2`와 `QWUser`의 AP 요구치
+ * — 3·4가 LUK — 로 교차확인했다. 4는 해적이 아니라 도적이다.)
+ */
+export const AVOID_PROBABILITY_MIN = 0.05;
+export const AVOID_PROBABILITY_MAX = 0.95;
+
+/**
+ * 몹 레벨 페널티까지 먹인 캐릭터 회피율.
+ *
+ * 원작은 회피율을 999에서 자르고, 몹 레벨이 캐릭터보다 높으면 그 차이만큼 깎는다.
+ * 깎아서 0 이하가 되면 0으로 둔다. 페널티 폭이 물리는 레벨차의 절반(정수 나눗셈),
+ * 마법은 레벨차 전부라 `levelPenaltyDivisor`로만 갈린다.
+ */
+const calculateEffectiveAvoid = (
+  avoid: number,
+  monsterLevel: number,
+  characterLevel: number,
+  levelPenaltyDivisor: number
+): number => {
+  const capped = Math.min(999, Math.max(0, Math.trunc(avoid)));
+  if (characterLevel >= monsterLevel) {
+    return capped;
+  }
+  const penalized =
+    capped - Math.trunc((monsterLevel - characterLevel) / levelPenaltyDivisor);
+  return penalized > 0 ? penalized : 0;
+};
+
+/**
+ * 몬스터의 **물리 공격**(몸박 포함)을 캐릭터가 회피할 확률.
+ *
+ * 원작 `CalcDamage::CheckPDamageMiss`를 그대로 옮겼다.
+ *
+ * ```
+ * calc = 유효회피율 / (몹명중률 * 4.5) * 100      // 퍼센트
+ * 회피 = calc > U[0, 100)
+ * ```
+ *
+ * 몹 명중률이 0이면 원작은 0으로 나눠 무한대가 되고 그대로 상한에 잘린다.
+ * 즉 명중률 0인 몹도 100%가 아니라 상한만큼만 피한다.
+ */
+export const calculateAvoidProbability = (
+  avoid: number | undefined,
+  monsterLevel: number,
+  characterLevel: number,
+  monsterAccuracy: number
+): number => {
+  const effectiveAvoid = calculateEffectiveAvoid(
+    avoid ?? 0,
+    monsterLevel,
+    characterLevel,
+    2
+  );
+  const accuracy = Math.min(999, Math.max(0, Math.trunc(monsterAccuracy)));
+  const rate =
+    accuracy <= 0
+      ? Number.POSITIVE_INFINITY
+      : effectiveAvoid / (accuracy * 4.5);
+  return Math.min(AVOID_PROBABILITY_MAX, Math.max(AVOID_PROBABILITY_MIN, rate));
+};
+
+/**
+ * 몬스터의 **마법 공격**을 캐릭터가 회피할 확률.
+ *
+ * 원작 `CalcDamage::CheckMDamageMiss`는 물리와 구조가 아예 다르다.
+ * 비율을 퍼센트로 바꿔 굴리는 대신 회피율 자체를 굴려서 몹 명중률과 비교하고,
+ * 레벨 페널티도 절반이 아니라 전액이며 상·하한 클램프가 없다.
+ *
+ * ```
+ * 회피 = U[0.1 * 유효회피율, 유효회피율] >= 몹명중률
+ * ```
+ */
+export const calculateMagicAvoidProbability = (
+  avoid: number | undefined,
+  monsterLevel: number,
+  characterLevel: number,
+  monsterAccuracy: number
+): number => {
+  const effectiveAvoid = calculateEffectiveAvoid(
+    avoid ?? 0,
+    monsterLevel,
+    characterLevel,
+    1
+  );
+  const accuracy = Math.min(999, Math.max(0, Math.trunc(monsterAccuracy)));
+  // 회피율이 0이면 굴린 값도 항상 0이라, 몹 명중률이 0일 때만 회피한다.
+  if (effectiveAvoid <= 0) {
+    return accuracy <= 0 ? 1 : 0;
+  }
+  if (accuracy <= effectiveAvoid * 0.1) {
+    return 1;
+  }
+  if (accuracy >= effectiveAvoid) {
+    return 0;
+  }
+  return (effectiveAvoid - accuracy) / (effectiveAvoid * 0.9);
+};
+
 const calculateStatAttack = (
   stats: Stats,
   totalAttack: number,

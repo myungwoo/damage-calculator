@@ -26,6 +26,7 @@ const DEFAULT_STATE = {
     physicalDefense: monsterPresets[0].physicalDefense,
     magicalDefense: monsterPresets[0].magicalDefense,
     avoid: monsterPresets[0].avoid,
+    accuracy: monsterPresets[0].accuracy,
     poisonAttribute: monsterPresets[0].poisonAttribute,
     isBoss: monsterPresets[0].isBoss,
   } as Monster,
@@ -38,6 +39,7 @@ const DEFAULT_STATE = {
     additionalDex: 0,
     additionalLuk: 0,
     hitRatio: undefined,
+    avoid: undefined,
   } as Stats,
   equipment: {
     weaponAttack: 10,
@@ -76,7 +78,7 @@ const getInitialState = (): State => {
 
 // 저장 데이터에는 몬스터 수치만 들어 있고 어느 프리셋인지가 없다.
 // 프리셋 값은 UI에서 잠겨 있어 그대로 저장되므로 수치로 되찾을 수 있다.
-// 독 속성 / 보스 여부는 저장 데이터에 없을 수 있으므로 프리셋에서 다시 붙인다.
+// 독 속성 / 보스 여부 / 명중률은 저장 데이터에 없을 수 있으므로 프리셋에서 다시 붙인다.
 const resolveMonsterSelection = (savedMonster: Monster) => {
   const matchingPreset = monsterPresets.find(
     (preset) =>
@@ -88,6 +90,8 @@ const resolveMonsterSelection = (savedMonster: Monster) => {
   return {
     monster: {
       ...savedMonster,
+      // 회피 확률을 붙이기 전에 저장된 데이터에는 명중률이 없다.
+      accuracy: savedMonster.accuracy ?? matchingPreset?.accuracy ?? 0,
       poisonAttribute: matchingPreset?.poisonAttribute,
       isBoss: matchingPreset?.isBoss,
     },
@@ -173,6 +177,7 @@ export const useCalculatorState = () => {
             physicalDefense: selectedPreset.physicalDefense,
             magicalDefense: selectedPreset.magicalDefense,
             avoid: selectedPreset.avoid,
+            accuracy: selectedPreset.accuracy,
             poisonAttribute: selectedPreset.poisonAttribute,
             isBoss: selectedPreset.isBoss,
           },

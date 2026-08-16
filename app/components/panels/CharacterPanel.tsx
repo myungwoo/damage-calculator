@@ -145,17 +145,37 @@ export default function CharacterPanel({
           </p>
         </div>
 
-        <Field label="명중률" hint="비워 두면 타격 확률을 100%로 두고 계산한다">
-          <NumberInput
-            value={stats.hitRatio}
-            ariaLabel="명중률"
-            onChange={(value) =>
-              setStats((prev) => ({ ...prev, hitRatio: value }))
-            }
-            placeholder="입력 안 하면 100% 명중"
-            allowUndefined
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field
+            label="명중률"
+            hint="비워 두면 타격 확률을 100%로 두고 계산한다"
+          >
+            <NumberInput
+              value={stats.hitRatio}
+              ariaLabel="명중률"
+              onChange={(value) =>
+                setStats((prev) => ({ ...prev, hitRatio: value }))
+              }
+              placeholder="입력 안 하면 100% 명중"
+              allowUndefined
+            />
+          </Field>
+
+          <Field
+            label="회피율"
+            hint="비워 두면 0으로 두고 회피 확률을 계산한다"
+          >
+            <NumberInput
+              value={stats.avoid}
+              ariaLabel="회피율"
+              onChange={(value) =>
+                setStats((prev) => ({ ...prev, avoid: value }))
+              }
+              placeholder="입력 안 하면 0"
+              allowUndefined
+            />
+          </Field>
+        </div>
       </div>
     </Card>
   );

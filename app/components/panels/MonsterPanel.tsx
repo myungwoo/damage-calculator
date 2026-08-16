@@ -6,6 +6,10 @@ import { REGION_ORDER } from '../../constants/calculator';
 import {
   calculateRequiredHitRatio,
   calculateHitProbability,
+  calculateAvoidProbability,
+  calculateMagicAvoidProbability,
+  AVOID_PROBABILITY_MAX,
+  AVOID_PROBABILITY_MIN,
 } from '../../utils/damageCalculator';
 import { parseElementAttributes } from '../../utils/calculatorUtils';
 import MonsterDropdown from '../MonsterDropdown';
@@ -46,6 +50,28 @@ export default function MonsterPanel({
     monster.avoid
   );
   const hitPercent = hitProbability * 100;
+  // 회피 확률: 몹이 나를 때릴 때 얼마나 흘리는지. 물리와 마법은 원작 공식이 다르다.
+  const avoidPercent =
+    calculateAvoidProbability(
+      stats.avoid,
+      monster.level,
+      stats.level,
+      monster.accuracy
+    ) * 100;
+  const magicAvoidPercent =
+    calculateMagicAvoidProbability(
+      stats.avoid,
+      monster.level,
+      stats.level,
+      monster.accuracy
+    ) * 100;
+  // 상·하한에 걸린 값은 회피율을 더 올려도(내려도) 안 움직이므로 그렇다고 알려준다.
+  const avoidClamped =
+    avoidPercent <= AVOID_PROBABILITY_MIN * 100 + 1e-9
+      ? '하한'
+      : avoidPercent >= AVOID_PROBABILITY_MAX * 100 - 1e-9
+        ? '상한'
+        : null;
   // 100%가 아니면 방컷 확률이 크게 흔들리므로 색으로 먼저 알린다.
   const hitTone =
     hitPercent >= 99.995
@@ -79,6 +105,11 @@ export default function MonsterPanel({
       label: '회피율',
       value: monster.avoid,
       apply: (value: number) => ({ avoid: value }),
+    },
+    {
+      label: '명중률',
+      value: monster.accuracy,
+      apply: (value: number) => ({ accuracy: value }),
     },
   ];
 
@@ -154,11 +185,45 @@ export default function MonsterPanel({
           </p>
         </div>
 
+        {/* 회피 확률: 반대 방향(몹 -> 나) 판정이라 타격 확률과 나란히 둔다. */}
+        <div className="rounded-xl border border-line bg-sunken/60 p-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="field-label">회피 확률</span>
+            <span className="text-lg font-bold tabular-nums text-brand">
+              {avoidPercent.toFixed(2)}%
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
+            <div
+              className="h-full rounded-full bg-brand transition-all"
+              style={{ width: `${Math.min(100, avoidPercent)}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted">
+            몸박 포함 물리 공격 기준
+            {avoidClamped &&
+              ` · 도적 ${avoidClamped}(${
+                avoidClamped === '하한'
+                  ? AVOID_PROBABILITY_MIN * 100
+                  : AVOID_PROBABILITY_MAX * 100
+              }%)에 걸려 회피율을 더 올려도 안 오른다`}
+            {!avoidClamped &&
+              stats.avoid === undefined &&
+              ' · 회피율 미입력 시 0으로 본다'}
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            몹 마법 공격은{' '}
+            <b className="tabular-nums text-ink">
+              {magicAvoidPercent.toFixed(2)}%
+            </b>{' '}
+            (원작 공식이 물리와 다르다)
+          </p>
+        </div>
+
         {selectedPreset && (
           <div className="space-y-2">
             <span className="field-label">원작 몹 정보</span>
             <div className="flex flex-wrap gap-1.5">
-              <span className="chip">명중률 {selectedPreset.accuracy}</span>
               <span className="chip">
                 공격력 {selectedPreset.physicalAttack}
               </span>
