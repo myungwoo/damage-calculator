@@ -105,7 +105,7 @@ export default function MonsterPanel({
 
         {selectedPreset && (
           <div className="space-y-2">
-            <span className="field-label">원작 몹 정보</span>
+            <span className="field-label">몹 정보</span>
             <div className="flex flex-wrap gap-1.5">
               <span className="chip">
                 공격력 {selectedPreset.physicalAttack}
@@ -125,7 +125,7 @@ export default function MonsterPanel({
                 <span
                   key={element}
                   className="chip"
-                  title={`원작 속성 코드 ${selectedPreset.elementAttributes}`}
+                  title={`속성 코드 ${selectedPreset.elementAttributes}`}
                 >
                   {element} {resistance}
                 </span>

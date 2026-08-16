@@ -208,8 +208,8 @@ export default function CharacterPanel({
           }}
           effect={
             skills.shadowShifter > 0
-              ? `피격 시 ${getShadowShifterProp(skills.shadowShifter)}% 확률로 데미지를 무효화한다 (원작 쉐도우 쉬프터)`
-              : '레벨을 올리면 피격을 무효화할 확률이 생긴다 (원작 쉐도우 쉬프터)'
+              ? `피격 시 ${getShadowShifterProp(skills.shadowShifter)}% 확률로 데미지를 무효화한다`
+              : '레벨을 올리면 피격을 무효화할 확률이 생긴다'
           }
         >
           <p className="mt-1 text-xs text-muted">

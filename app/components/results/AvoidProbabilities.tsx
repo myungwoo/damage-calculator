@@ -66,6 +66,14 @@ export default function AvoidProbabilities({
     },
   ];
 
+  // 조건이 맞을 때만 붙는 각주라, 남는 게 없으면 문단째로 뺀다.
+  const footnotes = [
+    stats.avoid === undefined ? '회피율 미입력 시 0으로 본다' : null,
+    shadowShifterProp === 0 && skills.shadowShifter > 0
+      ? '페이크를 켜면 함께 반영한다'
+      : null,
+  ].filter((note): note is string => note !== null);
+
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between gap-2">
@@ -136,13 +144,11 @@ export default function AvoidProbabilities({
         })}
       </div>
 
-      <p className="text-[0.7rem] leading-relaxed text-muted">
-        물리와 마법은 원작 판정식이 서로 다르다
-        {stats.avoid === undefined && ' · 회피율 미입력 시 0으로 본다'}
-        {shadowShifterProp === 0 &&
-          skills.shadowShifter > 0 &&
-          ' · 페이크를 켜면 함께 반영한다'}
-      </p>
+      {footnotes.length > 0 && (
+        <p className="text-[0.7rem] leading-relaxed text-muted">
+          {footnotes.join(' · ')}
+        </p>
+      )}
     </div>
   );
 }
