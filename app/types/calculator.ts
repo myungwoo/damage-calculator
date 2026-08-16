@@ -27,6 +27,8 @@ export interface Monster {
   physicalDefense: number;
   magicalDefense: number;
   avoid: number;
+  /** 몬스터 명중률. 캐릭터 회피율과 맞물려 회피 확률을 정한다. */
+  accuracy: number;
   /**
    * 독 속성 저항 (원작 Mob.wz elemAttr의 S 항목).
    * 1 = 무효, 2 = 반감, 3 = 약점. 1과 2에는 베놈이 걸리지 않는다.
@@ -45,6 +47,8 @@ export interface Stats {
   additionalDex: number;
   additionalLuk: number;
   hitRatio?: number;
+  /** 캐릭터 회피율. 비워 두면 0으로 본다. */
+  avoid?: number;
 }
 
 export interface Equipment {
@@ -68,6 +72,14 @@ export interface Skills {
   sharpEyesEnabled: boolean;
   venom: number;
   venomEnabled: boolean;
+  /**
+   * 페이크(쉐도우 쉬프터) 레벨.
+   *
+   * 공격 스킬이 아니라 피격을 무효화하는 스킬이라 데미지 계산에는 안 들어가고
+   * 회피 확률에만 들어간다. 그래서 UI도 스킬 패널이 아니라 캐릭터 패널에 있다.
+   */
+  shadowShifter: number;
+  shadowShifterEnabled: boolean;
   /**
    * 분당 공격 횟수.
    * 베놈은 시간당 1틱씩 들어가므로, 몇 방 안에 몇 틱이 들어가는지 세려면
@@ -269,8 +281,6 @@ export interface MonsterPreset extends Monster {
   id: string;
   name: string;
   exp?: number;
-  /** 몬스터 명중률. 캐릭터 회피율과 맞물려 피격 확률을 정한다. */
-  accuracy: number;
   /** 몬스터 물리 공격력 */
   physicalAttack: number;
   /** 몬스터 마법 공격력 */

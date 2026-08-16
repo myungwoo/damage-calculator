@@ -1,12 +1,8 @@
 import { Dispatch, SetStateAction } from 'react';
 import { AlertTriangle, Skull } from 'lucide-react';
-import { Monster, MonsterPreset, Stats } from '../../types/calculator';
+import { Monster, MonsterPreset } from '../../types/calculator';
 import { monsterPresets } from '../../data/monsterPresets';
 import { REGION_ORDER } from '../../constants/calculator';
-import {
-  calculateRequiredHitRatio,
-  calculateHitProbability,
-} from '../../utils/damageCalculator';
 import { parseElementAttributes } from '../../utils/calculatorUtils';
 import MonsterDropdown from '../MonsterDropdown';
 import NumberInput from '../NumberInput';
@@ -16,7 +12,6 @@ import Field from '../ui/Field';
 interface MonsterPanelProps {
   monster: Monster;
   setMonster: Dispatch<SetStateAction<Monster>>;
-  stats: Stats;
   selectedMonsterId: string;
   isCustomMonster: boolean;
   onMonsterSelect: (id: string) => void;
@@ -27,33 +22,12 @@ interface MonsterPanelProps {
 export default function MonsterPanel({
   monster,
   setMonster,
-  stats,
   selectedMonsterId,
   isCustomMonster,
   onMonsterSelect,
   selectedPreset,
   venomBlocked,
 }: MonsterPanelProps) {
-  const requiredHitRatio = calculateRequiredHitRatio(
-    monster.level,
-    stats.level,
-    monster.avoid
-  );
-  const hitProbability = calculateHitProbability(
-    stats.hitRatio,
-    monster.level,
-    stats.level,
-    monster.avoid
-  );
-  const hitPercent = hitProbability * 100;
-  // 100%가 아니면 방컷 확률이 크게 흔들리므로 색으로 먼저 알린다.
-  const hitTone =
-    hitPercent >= 99.995
-      ? 'text-brand'
-      : hitPercent >= 90
-        ? 'text-crit'
-        : 'text-danger';
-
   // 'F2S3' 같은 원작 코드는 사람이 못 읽으므로 속성별로 풀어서 칩으로 보여준다.
   const elementAttributes = parseElementAttributes(
     selectedPreset?.elementAttributes
@@ -79,6 +53,11 @@ export default function MonsterPanel({
       label: '회피율',
       value: monster.avoid,
       apply: (value: number) => ({ avoid: value }),
+    },
+    {
+      label: '명중률',
+      value: monster.accuracy,
+      apply: (value: number) => ({ accuracy: value }),
     },
   ];
 
@@ -124,41 +103,10 @@ export default function MonsterPanel({
           </p>
         )}
 
-        {/* 명중 정보: 방컷 확률을 좌우하는 값이라 별도 블록으로 뺀다. */}
-        <div className="rounded-xl border border-line bg-sunken/60 p-3">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="field-label">타격 확률</span>
-            <span className={`text-lg font-bold tabular-nums ${hitTone}`}>
-              {hitPercent.toFixed(2)}%
-            </span>
-          </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
-            <div
-              className={`h-full rounded-full transition-all ${
-                hitPercent >= 99.995
-                  ? 'bg-brand'
-                  : hitPercent >= 90
-                    ? 'bg-crit'
-                    : 'bg-danger'
-              }`}
-              style={{ width: `${Math.min(100, hitPercent)}%` }}
-            />
-          </div>
-          <p className="mt-2 text-xs text-muted">
-            100%를 채우려면 명중률{' '}
-            <b className="tabular-nums text-ink">
-              {requiredHitRatio.toFixed(2)}
-            </b>{' '}
-            필요
-            {stats.hitRatio === undefined && ' · 명중률 미입력 시 100%로 본다'}
-          </p>
-        </div>
-
         {selectedPreset && (
           <div className="space-y-2">
             <span className="field-label">원작 몹 정보</span>
             <div className="flex flex-wrap gap-1.5">
-              <span className="chip">명중률 {selectedPreset.accuracy}</span>
               <span className="chip">
                 공격력 {selectedPreset.physicalAttack}
               </span>

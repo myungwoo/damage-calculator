@@ -46,6 +46,7 @@ const makeMonster = (overrides: Partial<Monster> = {}): Monster => ({
   physicalDefense: 0,
   magicalDefense: 0,
   avoid: 0,
+  accuracy: 0,
   ...overrides,
 });
 
@@ -484,6 +485,8 @@ describe('크리티컬 가산항', () => {
       sharpEyesEnabled: false,
       venom: 0,
       venomEnabled: false,
+      shadowShifter: 0,
+      shadowShifterEnabled: false,
       attacksPerMinute: DEFAULT_ATTACKS_PER_MINUTE,
       rngCyclingEnabled: false,
     };
@@ -897,6 +900,8 @@ describe('calculateDamage', () => {
     sharpEyesEnabled: false,
     venom: 0,
     venomEnabled: false,
+    shadowShifter: 0,
+    shadowShifterEnabled: false,
     attacksPerMinute: DEFAULT_ATTACKS_PER_MINUTE,
     rngCyclingEnabled: false,
     ...overrides,

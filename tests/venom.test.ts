@@ -41,6 +41,7 @@ const makeMonster = (overrides: Partial<Monster> = {}): Monster => ({
   physicalDefense: 0,
   magicalDefense: 0,
   avoid: 0,
+  accuracy: 0,
   ...overrides,
 });
 
@@ -409,6 +410,8 @@ describe('베놈 적용 조건', () => {
     sharpEyesEnabled: false,
     venom: 30,
     venomEnabled: true,
+    shadowShifter: 0,
+    shadowShifterEnabled: false,
     attacksPerMinute: DEFAULT_ATTACKS_PER_MINUTE,
     rngCyclingEnabled: false,
     ...overrides,

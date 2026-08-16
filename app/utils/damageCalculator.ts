@@ -205,6 +205,199 @@ export const calculateHitProbability = (
   );
 };
 
+/**
+ * 회피 확률 하한 / 상한.
+ *
+ * 원작 `CalcDamage::CheckPDamageMiss`는 `nJob / 100 == 4`(도적)면 5~95%,
+ * 그 밖의 직업은 2~80%로 자른다. 이 계산기는 나이트로드 전용이라 도적 값만 쓴다.
+ * (직업군 번호는 같은 파일의 마법사 분기 `nJob / 100 == 2`와 `QWUser`의 AP 요구치
+ * — 3·4가 LUK — 로 교차확인했다. 4는 해적이 아니라 도적이다.)
+ */
+export const AVOID_PROBABILITY_MIN = 0.05;
+export const AVOID_PROBABILITY_MAX = 0.95;
+
+/**
+ * 몹 레벨 페널티까지 먹인 캐릭터 회피율.
+ *
+ * 원작은 회피율을 999에서 자르고, 몹 레벨이 캐릭터보다 높으면 그 차이만큼 깎는다.
+ * 깎아서 0 이하가 되면 0으로 둔다. 페널티 폭이 물리는 레벨차의 절반(정수 나눗셈),
+ * 마법은 레벨차 전부라 `levelPenaltyDivisor`로만 갈린다.
+ */
+const calculateEffectiveAvoid = (
+  avoid: number,
+  monsterLevel: number,
+  characterLevel: number,
+  levelPenaltyDivisor: number
+): number => {
+  const capped = Math.min(999, Math.max(0, Math.trunc(avoid)));
+  if (characterLevel >= monsterLevel) {
+    return capped;
+  }
+  const penalized =
+    capped - Math.trunc((monsterLevel - characterLevel) / levelPenaltyDivisor);
+  return penalized > 0 ? penalized : 0;
+};
+
+/**
+ * 몬스터의 **물리 공격**(몸박 포함)을 캐릭터가 회피할 확률.
+ *
+ * 원작 `CalcDamage::CheckPDamageMiss`를 그대로 옮겼다.
+ *
+ * ```
+ * calc = 유효회피율 / (몹명중률 * 4.5) * 100      // 퍼센트
+ * 회피 = calc > U[0, 100)
+ * ```
+ *
+ * 몹 명중률이 0이면 원작은 0으로 나눠 무한대가 되고 그대로 상한에 잘린다.
+ * 즉 명중률 0인 몹도 100%가 아니라 상한만큼만 피한다.
+ */
+export const calculateAvoidProbability = (
+  avoid: number | undefined,
+  monsterLevel: number,
+  characterLevel: number,
+  monsterAccuracy: number
+): number => {
+  const effectiveAvoid = calculateEffectiveAvoid(
+    avoid ?? 0,
+    monsterLevel,
+    characterLevel,
+    2
+  );
+  const accuracy = Math.min(999, Math.max(0, Math.trunc(monsterAccuracy)));
+  const rate =
+    accuracy <= 0
+      ? Number.POSITIVE_INFINITY
+      : effectiveAvoid / (accuracy * 4.5);
+  return Math.min(AVOID_PROBABILITY_MAX, Math.max(AVOID_PROBABILITY_MIN, rate));
+};
+
+/**
+ * 몬스터의 **마법 공격**을 캐릭터가 회피할 확률.
+ *
+ * 원작 `CalcDamage::CheckMDamageMiss`는 물리와 구조가 아예 다르다.
+ * 비율을 퍼센트로 바꿔 굴리는 대신 회피율 자체를 굴려서 몹 명중률과 비교하고,
+ * 레벨 페널티도 절반이 아니라 전액이며 상·하한 클램프가 없다.
+ *
+ * ```
+ * 회피 = U[0.1 * 유효회피율, 유효회피율] >= 몹명중률
+ * ```
+ */
+export const calculateMagicAvoidProbability = (
+  avoid: number | undefined,
+  monsterLevel: number,
+  characterLevel: number,
+  monsterAccuracy: number
+): number => {
+  const effectiveAvoid = calculateEffectiveAvoid(
+    avoid ?? 0,
+    monsterLevel,
+    characterLevel,
+    1
+  );
+  const accuracy = Math.min(999, Math.max(0, Math.trunc(monsterAccuracy)));
+  // 회피율이 0이면 굴린 값도 항상 0이라, 몹 명중률이 0일 때만 회피한다.
+  if (effectiveAvoid <= 0) {
+    return accuracy <= 0 ? 1 : 0;
+  }
+  if (accuracy <= effectiveAvoid * 0.1) {
+    return 1;
+  }
+  if (accuracy >= effectiveAvoid) {
+    return 0;
+  }
+  return (effectiveAvoid - accuracy) / (effectiveAvoid * 0.9);
+};
+
+/**
+ * 페이크(쉐도우 쉬프터)까지 반영한 회피 확률.
+ *
+ * 회피 판정과 페이크 판정은 서로 다른 난수를 쓰고, **어느 쪽이든 단독으로 피해를
+ * 0으로 만든다.** 그래서 어느 쪽을 먼저 굴리든 결과가 같다 —
+ * `a + (1 - a) * p`와 `p + (1 - p) * a`가 모두 `1 - (1 - a) * (1 - p)`다.
+ * 순서는 화면에 MISS가 뜨는지 분신이 뜨는지만 가른다.
+ */
+export const combineAvoidWithShadowShifter = (
+  avoidProbability: number,
+  shadowShifterProbability: number
+): number => 1 - (1 - avoidProbability) * (1 - shadowShifterProbability);
+
+/** 회피 확률 한 종류(물리 또는 마법)의 요약. */
+export interface AvoidBreakdownEntry {
+  /** 회피율만으로 계산한 확률 */
+  base: number;
+  /** 페이크까지 반영한 확률 */
+  withShadowShifter: number;
+  /** 회피율이 1 오를 때 `base`가 늘어나는 폭 */
+  baseGainPerAvoid: number;
+  /** 회피율이 1 오를 때 `withShadowShifter`가 늘어나는 폭 */
+  shadowShifterGainPerAvoid: number;
+}
+
+export interface AvoidBreakdown {
+  physical: AvoidBreakdownEntry;
+  magic: AvoidBreakdownEntry;
+}
+
+/**
+ * 물리 / 마법 회피 확률과 회피율 1당 증가폭을 한 번에 낸다.
+ *
+ * 증가폭은 미분이 아니라 **회피율을 실제로 1 올려 본 차이**다. 원작 공식이
+ * 상·하한에서 잘리고 마법 쪽은 구간별로 꺾이기 때문에, 기울기를 그대로 쓰면
+ * 상한에 걸린 구간에서 "올려도 안 오르는데 오른다"고 적히게 된다.
+ *
+ * `shadowShifterProbability`는 0~1이다. 페이크를 끄면 0을 넘긴다.
+ */
+export const calculateAvoidBreakdown = (
+  avoid: number | undefined,
+  monsterLevel: number,
+  characterLevel: number,
+  monsterAccuracy: number,
+  shadowShifterProbability: number
+): AvoidBreakdown => {
+  const currentAvoid = avoid ?? 0;
+
+  const summarize = (
+    probability: (value: number) => number
+  ): AvoidBreakdownEntry => {
+    const base = probability(currentAvoid);
+    const nextBase = probability(currentAvoid + 1);
+    const withShadowShifter = combineAvoidWithShadowShifter(
+      base,
+      shadowShifterProbability
+    );
+    const nextWithShadowShifter = combineAvoidWithShadowShifter(
+      nextBase,
+      shadowShifterProbability
+    );
+
+    return {
+      base,
+      withShadowShifter,
+      baseGainPerAvoid: nextBase - base,
+      shadowShifterGainPerAvoid: nextWithShadowShifter - withShadowShifter,
+    };
+  };
+
+  return {
+    physical: summarize((value) =>
+      calculateAvoidProbability(
+        value,
+        monsterLevel,
+        characterLevel,
+        monsterAccuracy
+      )
+    ),
+    magic: summarize((value) =>
+      calculateMagicAvoidProbability(
+        value,
+        monsterLevel,
+        characterLevel,
+        monsterAccuracy
+      )
+    ),
+  };
+};
+
 const calculateStatAttack = (
   stats: Stats,
   totalAttack: number,
