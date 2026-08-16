@@ -5,7 +5,9 @@ import {
   calculateHitProbability,
   calculateKillProbabilitiesWithinNHits,
   calculateRequiredHitRatio,
+  MAX_DAMAGE_PER_LINE,
   MAX_HP_RESOLUTION,
+  MIN_DAMAGE_PER_LINE,
 } from '../app/utils/damageCalculator';
 import { Equipment, Monster, Skills, Stats } from '../app/types/calculator';
 import { DEFAULT_ATTACKS_PER_MINUTE } from '../app/data/venom';
@@ -452,6 +454,53 @@ describe('calculateDamage', () => {
       Math.abs(on.critical.max / off.critical.max - expectedRatio) < 0.001,
       `크리티컬 배율 비율 ${on.critical.max / off.critical.max}`
     );
+  });
+
+  it('방어력에 눌려도 데미지 라인은 0이 아니라 1이다', () => {
+    // 원작은 타격마다 max(1.0, min(199999.0, damage))로 자른 뒤 절삭한다.
+    const result = calculateDamage(
+      makeMonster({ hp: 600, level: 40, physicalDefense: 130 }),
+      makeStats({ level: 35, luk: 70, dex: 30 }),
+      { ...equipment, weaponAttack: 0, gloveAttack: 0, otherAttack: 0 },
+      makeSkills({ level: 8, criticalThrow: 0, javelin: 0 })
+    );
+
+    // 방어력 감산 뒤 최소 데미지가 음수로 내려가는 조합이다
+    assert.equal(result.basic.min, MIN_DAMAGE_PER_LINE);
+    // 파트너 타격도 독립된 데미지 라인이라 같은 하한을 받는다
+    assert.equal(result.shadowBasic.min, MIN_DAMAGE_PER_LINE);
+    assert.ok(result.basic.max > MIN_DAMAGE_PER_LINE, '최댓값까지 눌리진 않는다');
+  });
+
+  it('데미지 라인은 199999에서 잘린다', () => {
+    const result = calculateDamage(
+      makeMonster({ hp: 5000000, level: 180, physicalDefense: 500 }),
+      makeStats({ level: 200, luk: 2500, dex: 200 }),
+      { ...equipment, gloveAttack: 200, otherAttack: 200, buff: 100 },
+      makeSkills({
+        type: 'tripleThrow',
+        level: 30,
+        sharpEyesEnabled: true,
+      })
+    );
+
+    assert.equal(result.critical.max, MAX_DAMAGE_PER_LINE);
+    // 파트너는 이미 잘린 본체 정수 데미지를 따라간다
+    assert.equal(
+      result.shadowCritical.max,
+      Math.floor(MAX_DAMAGE_PER_LINE * 0.5)
+    );
+  });
+
+  it('쉐도우 파트너가 꺼져 있으면 파트너 데미지는 0이다', () => {
+    const result = calculateDamage(
+      monster,
+      makeStats(),
+      equipment,
+      makeSkills({ shadowPartnerEnabled: false })
+    );
+    assert.equal(result.shadowBasic.min, 0);
+    assert.equal(result.shadowCritical.max, 0);
   });
 
   it('레벨 차이가 클수록 데미지가 줄어든다', () => {

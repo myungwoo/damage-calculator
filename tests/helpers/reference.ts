@@ -134,8 +134,13 @@ export interface VenomScenario {
   mad: number;
   /** 타격 1회당 중독 성공 확률 0~1 */
   prop: number;
-  /** 중독 지속 시간 (초). 1초에 1틱이므로 곧 부여 1회당 틱 수다. */
-  durationSeconds: number;
+  /**
+   * 부여 1회당 들어가는 틱 수.
+   *
+   * 만료 시각에는 tDelay(1초)가 얹히는데 틱 클럭의 기준점에는 얹히지 않아
+   * 지속시간보다 한 틱을 더 받는다. 만렙(지속시간 4초)이면 5다.
+   */
+  ticksPerApply: number;
   /** STR + LUK */
   statSum: number;
   /** DEX */
@@ -154,7 +159,7 @@ export interface VenomScenario {
  * 유출 코드의 동작을 그대로 흉내 낸다.
  * - 타격마다 prop 확률로 중독 판정
  * - 기존 누적 <= 신규 * 2 일 때만 합연산으로 중첩되고 지속시간이 갱신된다
- * - 도트 클럭은 중첩에 성공한 시각에 고정되고, 거기서 1초 간격으로 지속시간만큼 들어간다
+ * - 도트 클럭은 중첩에 성공한 시각에 고정되고, 거기서 1초 간격으로 ticksPerApply번 들어간다
  *   (중첩에 성공할 때마다 타이머가 초기화된다)
  * - 틱 1회에 들어가는 데미지는 상한에서 잘린다 (중첩 판정에는 상한을 쓰지 않는다)
  * - 도트 데미지는 몬스터 HP를 1 미만으로 내리지 못한다
@@ -203,7 +208,7 @@ export const simulateKillProbabilitiesWithVenom = (
         if (stack <= 2 * value) {
           stack += value;
           // 중첩에 성공하면 틱 타이머가 이 시각으로 초기화된다
-          remaining = venom.durationSeconds;
+          remaining = venom.ticksPerApply;
           nextTick = attackTime + 1;
         }
       }

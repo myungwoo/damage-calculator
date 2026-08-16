@@ -8,11 +8,13 @@ import {
   VenomConfig,
   calculateVenomTickDamage,
   calculateVenomSurvivals,
+  getVenomTickCount,
 } from '../app/utils/venom';
 import { getVenomLevelData } from '../app/data/venom';
 import { Equipment, Monster, Skills, Stats } from '../app/types/calculator';
 import {
   DEFAULT_ATTACKS_PER_MINUTE,
+  VENOM_APPLY_DELAY_SECONDS,
   VENOM_TICK_DAMAGE_CAP,
 } from '../app/data/venom';
 import {
@@ -273,7 +275,7 @@ const runVenomEngine = (c: VenomCase) => {
   const venomScenario: VenomScenario = {
     mad: data.mad,
     prop: data.prop / 100,
-    durationSeconds: data.durationSeconds,
+    ticksPerApply: data.durationSeconds + VENOM_APPLY_DELAY_SECONDS,
     statSum: c.venom.totalStr + c.venom.totalLuk,
     dex: c.venom.totalDex,
     rollsPerUse: c.venom.rollsPerUse,
@@ -510,6 +512,42 @@ describe('베놈 누적 데미지 분포', () => {
     assert.equal(survivals[0][1], 0, '1방 직전에는 당연히 0');
     assert.equal(survivals[1][1], 0, '2방 직전에도 아직 틱이 없어야 한다');
     assert.ok(survivals[2][1] > 0, '3방 직전에는 첫 틱이 들어와 있어야 한다');
+  });
+
+  it('부여 1회당 틱 수는 지속시간 + 1이다', () => {
+    // 만료 시각에는 tDelay(1초)가 얹히는데 틱 클럭의 기준점에는 얹히지 않는다.
+    // 만렙(지속시간 4초)이면 5틱.
+    assert.equal(getVenomTickCount(4), 5);
+    assert.equal(getVenomTickCount(2), 3);
+
+    // 한 번만 걸고 내버려 두면(= 공격 주기를 지속시간보다 길게) 딱 그만큼만 들어간다.
+    // 공격 주기 100초면 두 번째 공격 직전에 모든 틱이 끝나 있다.
+    //
+    // STR + LUK을 작게, DEX를 크게 잡아 틱 데미지 범위를 좁힌다.
+    // 그래야 4틱 최대치 < 5틱 최소치 < 5틱 최대치 < 6틱 최소치가 되어
+    // 누적값만 보고 틱 수를 구분할 수 있다.
+    const config: VenomConfig = {
+      level: 30,
+      totalStr: 1,
+      totalDex: 400,
+      totalLuk: 4,
+      rollsPerUse: 1,
+      attackPeriodSeconds: 100,
+    };
+    const tick = calculateVenomTickDamage(config)!;
+    assert.ok(tick.max * 4 < tick.min * 5, '4틱과 5틱 구간이 겹치면 안 된다');
+    assert.ok(tick.max * 5 < tick.min * 6, '5틱과 6틱 구간이 겹치면 안 된다');
+
+    const survivals = calculateVenomSurvivals(config, 200000, 1, 3)!;
+    assert.ok(
+      survivals[1][tick.min * 5] > 0,
+      '2방 직전에 5틱만큼 누적될 수 있어야 한다'
+    );
+    assert.equal(
+      survivals[1][tick.min * 6],
+      0,
+      '6틱은 들어갈 수 없어야 한다'
+    );
   });
 
   it('공격이 느리면 첫 틱이 두 번째 공격 전에 들어간다', () => {
