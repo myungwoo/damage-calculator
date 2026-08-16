@@ -209,6 +209,7 @@ const calculateDamageWithModifiers = (
  */
 export const calculateKillProbabilitiesWithinNHits = (
   skillType: AttackSkillType,
+  /** 클램프 전 실수 데미지 범위. [1, 199999] 클램프는 여기서 건다. */
   basicDamage: { min: number; max: number },
   criticalDamage: { min: number; max: number },
   shadowMultiplier: number,
@@ -233,18 +234,66 @@ export const calculateKillProbabilitiesWithinNHits = (
   // 실수 부분 반올림에 따른 오차는 감안해야 함 (실측 최대 0.06%p)
   let damageScale = 1;
   if (monsterHp > MAX_HP_RESOLUTION) {
-    const ratio = MAX_HP_RESOLUTION / monsterHp;
-    damageScale = ratio;
+    damageScale = MAX_HP_RESOLUTION / monsterHp;
     monsterHp = MAX_HP_RESOLUTION;
-    basicDamage = {
-      min: Math.round(basicDamage.min * ratio),
-      max: Math.round(basicDamage.max * ratio),
-    };
-    criticalDamage = {
-      min: Math.round(criticalDamage.min * ratio),
-      max: Math.round(criticalDamage.max * ratio),
-    };
   }
+
+  /**
+   * 데미지 라인 하나를 "데미지 난수 -> 축소 후 정수 데미지" 조각으로 나눈 것.
+   *
+   * 원작 라인은 `trunc(clamp(1, 199999, 선형(난수)))`라, 하한/상한에 눌리는 구간이
+   * 있으면 그 구간의 난수가 전부 같은 값으로 뭉친다. 균등분포에는 이 덩어리가
+   * 들어갈 자리가 없어서, 눌린 구간을 별도 확률질량으로 떼어 놓아야 한다.
+   *
+   * 떼어 놓지 않고 `[1, max]` 위 균등으로 보면 그 질량이 구간 전체로 퍼져
+   * 데미지를 과대평가한다(실측 평균 1.14배, 방컷 확률 최대 98%p).
+   */
+  interface LineRange {
+    /** 하한에 눌리는 난수 비율과 그때의 데미지 */
+    lowFraction: number;
+    lowDamage: number;
+    /** 상한에 눌리는 난수 비율과 그때의 데미지 */
+    highFraction: number;
+    highDamage: number;
+    /** 눌리지 않은 구간의 정수 데미지 범위. min > max면 가운데가 비었다는 뜻 */
+    min: number;
+    max: number;
+  }
+
+  /**
+   * 클램프 전 실수 범위를 조각으로 나눈다.
+   *
+   * 클램프는 반드시 축소 전 원본 값에 걸어야 한다. 축소된 눈금에 하한 1을
+   * 강제하면 1 눈금이 원본 1/damageScale 데미지라 오히려 부풀어 오른다.
+   */
+  const toLineRange = (raw: { min: number; max: number }): LineRange => {
+    const span = raw.max - raw.min;
+    const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
+    const lowFraction =
+      span > 0
+        ? clamp01((MIN_DAMAGE_PER_LINE - raw.min) / span)
+        : raw.min < MIN_DAMAGE_PER_LINE
+          ? 1
+          : 0;
+    const highFraction =
+      span > 0
+        ? clamp01((raw.max - MAX_DAMAGE_PER_LINE) / span)
+        : raw.max > MAX_DAMAGE_PER_LINE
+          ? 1
+          : 0;
+    const scaled = (damage: number) => Math.round(damage * damageScale);
+    return {
+      lowFraction,
+      lowDamage: scaled(MIN_DAMAGE_PER_LINE),
+      highFraction,
+      highDamage: scaled(MAX_DAMAGE_PER_LINE),
+      min: scaled(Math.floor(Math.max(raw.min, MIN_DAMAGE_PER_LINE))),
+      max: scaled(Math.floor(Math.min(raw.max, MAX_DAMAGE_PER_LINE))),
+    };
+  };
+
+  const basicRange = toLineRange(basicDamage);
+  const criticalRange = toLineRange(criticalDamage);
 
   // 베놈은 축소 후 HP 축 위에서 계산해야 공격 데미지와 눈금이 맞는다.
   const venomSurvivals = venomConfig
@@ -291,45 +340,67 @@ export const calculateKillProbabilitiesWithinNHits = (
   //      단 데미지는 본체 데미지에 multiplier를 곱한 고정값
 
   const criticalProb = criticalChance / 100;
-  // 데미지 라인의 [1, 199999] 클램프는 축소 전 원본 값에 걸어야 하므로
-  // calculateDamage에서 이미 끝내고 들어온다. 여기서 다시 걸면 축소된 눈금에
-  // 1을 강제하는 셈이 되어 오히려 데미지를 부풀린다.
 
-  /**
-   * 데미지 난수가 [uFrom, uTo) 구간일 때의 질량 weight를 분포에 더한다.
-   *
-   * 난수는 데미지 범위 위에 균등하므로 구간을 정수 눈금에 비례 배분한다.
-   * 몬스터 HP를 넘는 데미지는 전부 인덱스 monsterHp(= 사망)로 몰아넣는다.
-   */
-  const addDamageSlice = (
-    dist: Float64Array,
-    range: { min: number; max: number },
-    uFrom: number,
-    uTo: number,
-    weight: number
-  ) => {
-    if (weight <= 0 || uTo <= uFrom) return;
-    const count = range.max - range.min + 1;
-    const from = uFrom * count;
-    const to = uTo * count;
-    const scale = weight / (to - from);
-
-    let index = Math.floor(from);
-    for (; index < to; index++) {
-      const damage = range.min + index;
-      if (damage > monsterHp) break;
-      const totalDamage = Math.min(
+  /** 본체 데미지 하나를 파트너까지 더한 뒤 HP 흡수 상태로 눌러 담는다. */
+  const addDamage = (dist: Float64Array, damage: number, weight: number) => {
+    if (weight <= 0) return;
+    dist[
+      Math.min(
         // 쉐도우 파트너는 본체 데미지가 확정된 뒤 그 데미지의 고정 비율(만렙 50%,
         // 내림)을 그대로 따라간다. 크리티컬 여부도 본체를 따르므로 독립적으로
         // 굴리지 않고 본체 데미지에서 바로 계산한다.
         damage + Math.floor(damage * shadowMultiplier),
         monsterHp
+      )
+    ] += weight;
+  };
+
+  /**
+   * 데미지 난수가 [uFrom, uTo) 구간일 때의 질량 weight를 분포에 더한다.
+   *
+   * 난수 축은 [하한에 눌린 구간 | 선형 구간 | 상한에 눌린 구간] 셋으로 나뉜다.
+   * 눌린 구간은 통째로 한 값에 얹고, 선형 구간만 정수 눈금에 비례 배분한다.
+   */
+  const addDamageSlice = (
+    dist: Float64Array,
+    range: LineRange,
+    uFrom: number,
+    uTo: number,
+    weight: number
+  ) => {
+    if (weight <= 0 || uTo <= uFrom) return;
+    const scale = weight / (uTo - uFrom);
+
+    const midFrom = range.lowFraction;
+    const midTo = 1 - range.highFraction;
+
+    // 하한 / 상한 덩어리
+    addDamage(dist, range.lowDamage, (Math.min(uTo, midFrom) - uFrom) * scale);
+    addDamage(dist, range.highDamage, (uTo - Math.max(uFrom, midTo)) * scale);
+
+    // 선형 구간
+    const start = Math.max(uFrom, midFrom);
+    const end = Math.min(uTo, midTo);
+    if (end <= start || range.max < range.min) return;
+
+    const count = range.max - range.min + 1;
+    const toCell = (u: number) => ((u - midFrom) / (midTo - midFrom)) * count;
+    const from = toCell(start);
+    const to = toCell(end);
+    const cellScale = ((end - start) * scale) / (to - from);
+
+    let index = Math.floor(from);
+    for (; index < to; index++) {
+      const damage = range.min + index;
+      if (damage > monsterHp) break;
+      addDamage(
+        dist,
+        damage,
+        (Math.min(to, index + 1) - Math.max(from, index)) * cellScale
       );
-      dist[totalDamage] +=
-        (Math.min(to, index + 1) - Math.max(from, index)) * scale;
     }
     if (index < to) {
-      dist[monsterHp] += (to - Math.max(from, index)) * scale;
+      dist[monsterHp] += (to - Math.max(from, index)) * cellScale;
     }
   };
 
@@ -347,8 +418,8 @@ export const calculateKillProbabilitiesWithinNHits = (
   ): Float64Array => {
     const dist = new Float64Array(size);
     dist[0] += 1 - hitProb;
-    addDamageSlice(dist, basicDamage, uFrom, uTo, basicWeight * hitProb);
-    addDamageSlice(dist, criticalDamage, uFrom, uTo, critWeight * hitProb);
+    addDamageSlice(dist, basicRange, uFrom, uTo, basicWeight * hitProb);
+    addDamageSlice(dist, criticalRange, uFrom, uTo, critWeight * hitProb);
     return dist;
   };
 
@@ -551,6 +622,13 @@ export const calculateDamage = (
   // 스탯 공격력은 데미지 라인이 아니라 중간값이라 [1, 199999] 클램프를 걸지 않는다.
   statAttack.min = Math.max(Math.floor(statAttack.min), 0);
   statAttack.max = Math.max(Math.floor(statAttack.max), 0);
+
+  // 방컷 확률에는 클램프 전 실수 범위를 넘긴다.
+  // 하한/상한에 눌리는 구간은 난수가 한 값에 뭉치는 확률질량이라,
+  // 미리 클램프한 정수 범위만 넘기면 그 덩어리를 표현할 방법이 없다.
+  const rawBasicDamage = { ...basicDamage };
+  const rawCriticalDamage = { ...criticalDamage };
+
   basicDamage.min = toDamageLine(basicDamage.min);
   basicDamage.max = toDamageLine(basicDamage.max);
   criticalDamage.min = toDamageLine(criticalDamage.min);
@@ -617,8 +695,8 @@ export const calculateDamage = (
   // Calculate kill probabilities
   const killProbabilities = calculateKillProbabilitiesWithinNHits(
     skills.type,
-    basicDamage,
-    criticalDamage,
+    rawBasicDamage,
+    rawCriticalDamage,
     shadowMultiplier,
     criticalChance,
     monster.hp,

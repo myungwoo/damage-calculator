@@ -14,6 +14,12 @@ export interface KillScenario {
   basic: { min: number; max: number };
   /** 크리티컬 데미지 범위 (정수) */
   crit: { min: number; max: number };
+  /**
+   * 클램프 전 실수 범위. 주면 라인 데미지를 `clamp(1, 199999, 선형(난수))`로 본다.
+   * 하한/상한에 눌리는 구간은 한 값에 뭉치는 확률질량이 된다.
+   */
+  rawBasic?: { min: number; max: number };
+  rawCrit?: { min: number; max: number };
   /** 쉐도우 파트너 비율 (만렙 0.5) */
   shadow: number;
   /** 크리티컬 확률 0~1 */
@@ -29,27 +35,69 @@ export interface KillScenario {
   rngCycling?: boolean;
 }
 
+const LINE_MIN = 1;
+const LINE_MAX = 199999;
+
+const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
+
+/** 클램프 전 실수 범위를 (하한 덩어리 / 선형 구간 / 상한 덩어리)로 나눈다. */
+export const splitClampedRange = (raw: { min: number; max: number }) => {
+  const span = raw.max - raw.min;
+  const lowFraction =
+    span > 0
+      ? clamp01((LINE_MIN - raw.min) / span)
+      : raw.min < LINE_MIN
+        ? 1
+        : 0;
+  const highFraction =
+    span > 0
+      ? clamp01((raw.max - LINE_MAX) / span)
+      : raw.max > LINE_MAX
+        ? 1
+        : 0;
+  return {
+    lowFraction,
+    highFraction,
+    min: Math.floor(Math.max(raw.min, LINE_MIN)),
+    max: Math.floor(Math.min(raw.max, LINE_MAX)),
+  };
+};
+
 /** 타격 1회의 데미지 분포. 인덱스는 누적 데미지, hp 인덱스는 사망(흡수 상태). */
 const singleHitDistribution = (s: KillScenario): number[] => {
   const dist = new Array(s.hp + 1).fill(0);
   dist[0] += 1 - s.hitProb;
 
+  const add = (damage: number, weight: number): void => {
+    if (weight <= 0) return;
+    dist[Math.min(damage + Math.floor(damage * s.shadow), s.hp)] +=
+      weight * s.hitProb;
+  };
+
   const addRange = (
     range: { min: number; max: number },
+    raw: { min: number; max: number } | undefined,
     weight: number
   ): void => {
-    const count = range.max - range.min + 1;
-    for (let damage = range.min; damage <= range.max; damage++) {
-      const total = Math.min(
-        damage + Math.floor(damage * s.shadow),
-        s.hp
-      );
-      dist[total] += ((weight / count) * s.hitProb);
+    if (!raw) {
+      const count = range.max - range.min + 1;
+      for (let damage = range.min; damage <= range.max; damage++) {
+        add(damage, weight / count);
+      }
+      return;
+    }
+    const { lowFraction, highFraction, min, max } = splitClampedRange(raw);
+    add(LINE_MIN, weight * lowFraction);
+    add(LINE_MAX, weight * highFraction);
+    const count = max - min + 1;
+    if (count > 0) {
+      const middle = (weight * (1 - lowFraction - highFraction)) / count;
+      for (let damage = min; damage <= max; damage++) add(damage, middle);
     }
   };
 
-  addRange(s.basic, 1 - s.critChance);
-  addRange(s.crit, s.critChance);
+  addRange(s.basic, s.rawBasic, 1 - s.critChance);
+  addRange(s.crit, s.rawCrit, s.critChance);
   return dist;
 };
 
@@ -108,10 +156,27 @@ export const simulateKillProbabilities = (
   const random = createRandom(seed);
   const counts = new Array(maxUses).fill(0);
 
-  /** 데미지 난수 u와 크리티컬 여부로 라인 하나의 데미지(파트너 포함)를 만든다. */
+  /**
+   * 데미지 난수 u와 크리티컬 여부로 라인 하나의 데미지(파트너 포함)를 만든다.
+   * u에 대해 단조 증가라 난수 순환 결합을 그대로 태울 수 있다.
+   */
   const lineDamage = (crit: boolean, u: number): number => {
     const range = crit ? s.crit : s.basic;
-    const damage = range.min + Math.floor(u * (range.max - range.min + 1));
+    const raw = crit ? s.rawCrit : s.rawBasic;
+    let damage: number;
+    if (!raw) {
+      damage = range.min + Math.floor(u * (range.max - range.min + 1));
+    } else {
+      const { lowFraction, highFraction, min, max } = splitClampedRange(raw);
+      if (u < lowFraction) {
+        damage = LINE_MIN;
+      } else if (u >= 1 - highFraction) {
+        damage = LINE_MAX;
+      } else {
+        const t = (u - lowFraction) / (1 - lowFraction - highFraction);
+        damage = Math.min(max, min + Math.floor(t * (max - min + 1)));
+      }
+    }
     return damage + Math.floor(damage * s.shadow);
   };
 
