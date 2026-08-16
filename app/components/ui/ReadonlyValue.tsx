@@ -17,7 +17,7 @@ export default function ReadonlyValue({
   return (
     <output
       aria-label={ariaLabel}
-      className={`block w-full rounded-lg border border-dashed border-line px-3 py-2 text-sm tabular-nums ${
+      className={`field-readonly block w-full rounded-lg px-3 py-2 text-sm tabular-nums ${
         emphasis ? 'font-semibold text-brand' : 'text-muted'
       }`}
     >

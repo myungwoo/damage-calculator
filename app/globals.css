@@ -18,6 +18,16 @@
   --venom: 124 58 237;
   --danger: 220 60 60;
   --shadow-color: 16 23 36;
+
+  /*
+   * 입력칸 전용 레이어. sunken(패널 배경)과 반드시 구분해서 쓴다.
+   * 라이트 모드에서 입력칸을 회색으로 채우면 비활성으로 오해받으므로
+   * 카드와 같은 흰색으로 두고 테두리로만 경계를 만든다.
+   * field-line은 흰 배경 대비 3:1이라 WCAG 1.4.11(비텍스트 대비)을 만족한다.
+   */
+  --field: 255 255 255;
+  --field-line: 138 150 171;
+  --field-disabled: 233 237 242;
 }
 
 :root.dark {
@@ -32,6 +42,14 @@
   --venom: 167 139 250;
   --danger: 248 113 113;
   --shadow-color: 0 0 0;
+
+  /*
+   * 다크 모드는 반대로 카드보다 밝게 파서 입력칸을 만든다.
+   * 비활성은 카드 쪽으로 눌러 두면 "채워진 칸"이 아니게 되어 구분이 선다.
+   */
+  --field: 32 38 51;
+  --field-line: 96 107 128;
+  --field-disabled: 22 26 35;
 }
 
 @layer base {
@@ -83,14 +101,27 @@
 }
 
 @layer components {
+  /* 값을 직접 고칠 수 있는 칸. 흰 바탕 + 또렷한 테두리로 "쓸 수 있다"를 알린다. */
   .field-input {
-    @apply w-full rounded-lg border border-line bg-sunken px-3 py-2 text-sm text-ink
+    @apply w-full rounded-lg border border-field-line bg-field px-3 py-2 text-sm text-ink
       transition-colors placeholder:text-muted/70
-      hover:border-brand/50 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25;
+      hover:border-brand focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25;
   }
 
+  /* 비활성은 반대로 채워서 눌러 둔다. 테두리도 같이 흐려야 대비가 뒤집힌다. */
   .field-input:disabled {
-    @apply cursor-not-allowed border-line/60 bg-line/25 text-muted;
+    @apply cursor-not-allowed border-line bg-field-disabled text-muted
+      hover:border-line;
+  }
+
+  /* 입력칸처럼 눌러서 여는 컨트롤(몬스터 드롭다운 등)도 같은 표면을 쓴다. */
+  .field-trigger {
+    @apply border-field-line bg-field transition-colors hover:border-brand;
+  }
+
+  /* 계산으로 정해지는 값. 회색으로 채우고 점선을 둘러 입력칸과 반대로 읽히게 한다. */
+  .field-readonly {
+    @apply border border-dashed border-line bg-sunken;
   }
 
   .field-label {
@@ -106,11 +137,15 @@
       text-xs font-medium text-muted;
   }
 
+  /*
+   * 버튼은 입력칸과 반대로 채워 둔다. "채워짐 = 누르는 것 / 비어 있음 = 쓰는 것"이
+   * 되도록, 대신 테두리는 입력칸과 같은 세기로 세워 비활성으로 보이지 않게 한다.
+   */
   .ghost-button {
-    @apply inline-flex items-center justify-center rounded-lg border border-line bg-sunken
+    @apply inline-flex items-center justify-center rounded-lg border border-field-line bg-sunken
       text-sm font-medium text-ink transition-colors
-      hover:border-brand/50 hover:bg-brand/10 hover:text-brand
-      disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line
+      hover:border-brand hover:bg-brand/10 hover:text-brand
+      disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-field-line
       disabled:hover:bg-sunken disabled:hover:text-ink;
   }
 }
