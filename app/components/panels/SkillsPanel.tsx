@@ -151,8 +151,9 @@ export default function SkillsPanel({
                 <p className="mt-1.5 text-xs leading-relaxed text-muted">
                   둘째 줄의 데미지 난수가 아래쪽 구간(= 크리티컬 확률만큼)에
                   들어가면 셋째 줄은 크리티컬, 아니면 일반이 된다. 평균 데미지는
-                  그대로고 시전 1회 총합의 편차만 약 15% 줄어서, 방컷 확률은
-                  몬스터 HP가 평균 데미지보다 낮으면 올라가고 높으면 내려간다.
+                  그대로고 시전 1회 총합의 편차만 약 15% 줄어서,{' '}
+                  <strong>N방 컷 확률은 몬스터 HP가 N시전 누적 평균</strong>
+                  보다 낮으면 올라가고 높으면 내려간다.
                 </p>
               </div>
               <Toggle
