@@ -1,0 +1,15 @@
+# 빌드 산출물
+.next
+out
+.test-build
+*.tsbuildinfo
+
+# 의존성과 잠금 파일
+node_modules
+package-lock.json
+
+# 정적 자산
+public
+
+# 문서는 손으로 맞춘 표와 줄바꿈이 많아 포맷 검사에서 제외한다
+*.md

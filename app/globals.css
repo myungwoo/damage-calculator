@@ -52,8 +52,7 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background:
-      radial-gradient(
+    background: radial-gradient(
         60rem 40rem at 12% -10%,
         rgb(var(--brand) / 0.1),
         transparent 60%

@@ -353,7 +353,10 @@ describe('베놈을 포함한 방컷 확률', () => {
           accumulated >= previous - 1e-9,
           `${c.name} ${row.hit}방: 누적 확률이 줄었다`
         );
-        assert.ok(accumulated <= 100.000001, `${c.name}: 누적 확률이 100% 초과`);
+        assert.ok(
+          accumulated <= 100.000001,
+          `${c.name}: 누적 확률이 100% 초과`
+        );
         previous = accumulated;
       }
     }
@@ -544,11 +547,7 @@ describe('베놈 누적 데미지 분포', () => {
       survivals[1][tick.min * 5] > 0,
       '2방 직전에 5틱만큼 누적될 수 있어야 한다'
     );
-    assert.equal(
-      survivals[1][tick.min * 6],
-      0,
-      '6틱은 들어갈 수 없어야 한다'
-    );
+    assert.equal(survivals[1][tick.min * 6], 0, '6틱은 들어갈 수 없어야 한다');
   });
 
   it('공격이 느리면 첫 틱이 두 번째 공격 전에 들어간다', () => {
@@ -563,7 +562,10 @@ describe('베놈 누적 데미지 분포', () => {
     };
     const survivals = calculateVenomSurvivals(config, 20000, 1, 8)!;
     assert.equal(survivals[0][1], 0);
-    assert.ok(survivals[1][1] > 0, '2방 직전에 이미 첫 틱이 들어와 있어야 한다');
+    assert.ok(
+      survivals[1][1] > 0,
+      '2방 직전에 이미 첫 틱이 들어와 있어야 한다'
+    );
   });
 
   it('생존함수는 t가 커질수록 단조 감소한다', () => {

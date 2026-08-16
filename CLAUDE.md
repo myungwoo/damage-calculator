@@ -459,11 +459,22 @@ GMS/KMS 버전 차이가 있을 수 있으니 수치는 항상 교차검증한�
 ## 개발 규칙
 
 ### 코드 스타일
-`eslint.config.mjs`의 prettier 설정을 따른다.
+포맷 규칙의 단일 출처는 `.prettierrc.json`이다. ESLint의 `prettier/prettier` 규칙도
+옵션을 따로 적지 않고 이 파일을 읽으므로, 규칙을 바꿀 땐 여기만 고친다.
 - 들여쓰기: 스페이스 2칸
 - 세미콜론: 사용
 - 따옴표: 작은따옴표
 - 주석: 한국어로 작성
+
+`npm run format:check`가 CI에서 도는 검사와 같다. 손으로 표와 줄바꿈을 맞춘
+문서(`*.md`)와 빌드 산출물은 `.prettierignore`로 제외했다.
+
+### CI
+`.github/workflows/ci.yml`이 검사의 단일 출처다.
+포맷 -> 린트 -> 타입 -> 테스트 순으로 돌고, PR에서는 빌드까지 확인한다.
+배포 워크플로우(`nextjs.yml`)는 이 파일을 `workflow_call`로 재사용해
+`checks` 잡이 통과해야만 빌드·배포가 진행된다. 검사를 추가할 땐 `ci.yml`만 고치면
+PR과 배포 양쪽에 같이 걸린다.
 
 ### 문서 유지보수
 - 코드 수정 시 CLAUDE.md도 함께 업데이트하여 최신 상태 유지
@@ -502,6 +513,9 @@ npm run dev      # 개발 서버 실행 (포트 3000)
 npm run build    # 프로덕션 빌드
 npm run lint     # ESLint 검사
 npm run lint:fix # ESLint 자동 수정
+npm run format   # Prettier 자동 포맷
+npm run format:check # Prettier 포맷 검사 (CI와 동일)
+npm run typecheck    # tsc --noEmit 타입 검사
 npm test         # 유닛 테스트 (tsconfig.test.json으로 컴파일 후 node --test)
 ```
 

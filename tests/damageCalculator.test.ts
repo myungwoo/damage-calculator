@@ -199,7 +199,10 @@ describe('calculateKillProbabilitiesWithinNHits', () => {
           accumulated >= previous - 1e-9,
           `${c.name} ${row.hit}방: 누적 확률이 줄었다`
         );
-        assert.ok(accumulated <= 100.000001, `${c.name}: 누적 확률이 100% 초과`);
+        assert.ok(
+          accumulated <= 100.000001,
+          `${c.name}: 누적 확률이 100% 초과`
+        );
         assert.ok(Number(row.prob) >= 0, `${c.name}: 개별 확률이 음수`);
         previous = accumulated;
       }
@@ -851,7 +854,9 @@ describe('명중률', () => {
   it('필요 명중률을 채우면 100%, 절반이면 0%가 된다', () => {
     assert.equal(calculateHitProbability(65, 100, 90, 15), 1);
     assert.equal(calculateHitProbability(32.5, 100, 90, 15), 0);
-    assert.ok(Math.abs(calculateHitProbability(48.75, 100, 90, 15) - 0.5) < 1e-9);
+    assert.ok(
+      Math.abs(calculateHitProbability(48.75, 100, 90, 15) - 0.5) < 1e-9
+    );
   });
 
   it('명중률을 넘겨도 100%를 넘지 않고, 모자라도 0% 아래로 가지 않는다', () => {
@@ -900,7 +905,12 @@ describe('calculateDamage', () => {
   const monster = makeMonster({ hp: 15000, physicalDefense: 300 });
 
   it('표시하는 데미지 범위가 확률 계산에 쓰는 정수 데미지와 어긋나지 않는다', () => {
-    const result = calculateDamage(monster, makeStats(), equipment, makeSkills());
+    const result = calculateDamage(
+      monster,
+      makeStats(),
+      equipment,
+      makeSkills()
+    );
 
     for (const value of [
       result.basic.min,
@@ -984,7 +994,10 @@ describe('calculateDamage', () => {
     assert.equal(result.basic.min, MIN_DAMAGE_PER_LINE);
     // 파트너 타격도 독립된 데미지 라인이라 같은 하한을 받는다
     assert.equal(result.shadowBasic.min, MIN_DAMAGE_PER_LINE);
-    assert.ok(result.basic.max > MIN_DAMAGE_PER_LINE, '최댓값까지 눌리진 않는다');
+    assert.ok(
+      result.basic.max > MIN_DAMAGE_PER_LINE,
+      '최댓값까지 눌리진 않는다'
+    );
   });
 
   it('데미지 라인은 199999에서 잘린다', () => {
