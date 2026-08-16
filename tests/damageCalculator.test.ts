@@ -8,6 +8,7 @@ import {
   MAX_DAMAGE_PER_LINE,
   MAX_HP_RESOLUTION,
   MIN_DAMAGE_PER_LINE,
+  trapezoidCdf,
 } from '../app/utils/damageCalculator';
 import { Equipment, Monster, Skills, Stats } from '../app/types/calculator';
 import { DEFAULT_ATTACKS_PER_MINUTE } from '../app/data/venom';
@@ -244,7 +245,16 @@ describe('calculateKillProbabilitiesWithinNHits', () => {
       makeMonster({ hp: largeHp })
     );
 
-    assert.deepEqual(large, small);
+    // 축소는 눈금을 성기게 만드는 근사라 완전히 같지는 않다.
+    // CLAUDE.md에 적어 둔 0.1%p 이내인지만 본다.
+    assert.equal(large.length, small.length);
+    for (let i = 0; i < small.length; i++) {
+      assert.equal(large[i].hit, small[i].hit);
+      assert.ok(
+        Math.abs(Number(large[i].accProb) - Number(small[i].accProb)) < 0.1,
+        `${small[i].hit}방: ${small[i].accProb} vs ${large[i].accProb}`
+      );
+    }
   });
 
   describe('경계 케이스', () => {
@@ -328,6 +338,84 @@ describe('calculateKillProbabilitiesWithinNHits', () => {
   });
 });
 
+describe('사다리꼴 CDF', () => {
+  /**
+   * 라인 데미지는 `스탯롤 - 방어롤`이라 균등분포 둘의 차, 곧 사다리꼴이다.
+   * 닫힌 식이 맞는지 유도 경로가 다른 수치적분과 대조한다.
+   */
+  const numericCdf = (alpha: number, beta: number, z: number): number => {
+    if (alpha + beta === 0) return z > 0 ? 1 : 0;
+    if (beta === 0) return Math.max(0, Math.min(1, z / alpha));
+    if (alpha === 0) return Math.max(0, Math.min(1, z / beta));
+    const steps = 200000;
+    let acc = 0;
+    for (let i = 0; i < steps; i++) {
+      const y = ((i + 0.5) / steps) * beta;
+      acc += Math.max(0, Math.min(1, (z - y) / alpha));
+    }
+    return acc / steps;
+  };
+
+  const SHAPES: [number, number][] = [
+    [100, 30],
+    [30, 100],
+    [50, 50],
+    [1000, 60],
+    [123.4, 45.6],
+    [500, 0],
+    [0, 500],
+  ];
+
+  it('수치적분과 일치한다', () => {
+    for (const [alpha, beta] of SHAPES) {
+      const cdf = trapezoidCdf(alpha, beta);
+      for (let k = 0; k <= 20; k++) {
+        const z = ((alpha + beta) * k) / 20;
+        assert.ok(
+          Math.abs(cdf(z) - numericCdf(alpha, beta, z)) < 1e-9,
+          `alpha=${alpha} beta=${beta} z=${z}`
+        );
+      }
+    }
+  });
+
+  it('단조 증가하고 지지구간 밖에서 0과 1이다', () => {
+    for (const [alpha, beta] of [...SHAPES, [0, 0] as [number, number]]) {
+      const cdf = trapezoidCdf(alpha, beta);
+      const total = alpha + beta;
+      assert.equal(cdf(-1), 0, `alpha=${alpha} beta=${beta}`);
+      assert.equal(cdf(total + 1), 1, `alpha=${alpha} beta=${beta}`);
+      let previous = -1;
+      for (let k = 0; k <= 500; k++) {
+        const value = cdf((total * k) / 500);
+        assert.ok(value >= previous - 1e-12, `alpha=${alpha} beta=${beta}`);
+        previous = value;
+      }
+    }
+  });
+
+  it('스탯 롤 구간을 잘라도 전확률 공식이 성립한다', () => {
+    // 난수 순환은 스탯 롤 축을 크리티컬 확률 지점에서 자른다.
+    // 자른 조각을 다시 합치면 원래 분포와 정확히 같아야 한다.
+    for (const [alpha, beta] of SHAPES) {
+      for (const p of [0.21, 0.5, 0.67]) {
+        const full = trapezoidCdf(alpha, beta);
+        const low = trapezoidCdf(alpha * p, beta);
+        const high = trapezoidCdf(alpha * (1 - p), beta);
+        for (let k = 0; k <= 40; k++) {
+          const x = ((alpha + beta) * k) / 40;
+          // 조각마다 지지구간 시작점이 다르다
+          const mixed = p * low(x) + (1 - p) * high(x - alpha * p);
+          assert.ok(
+            Math.abs(full(x) - mixed) < 1e-12,
+            `alpha=${alpha} beta=${beta} p=${p} x=${x}: ${full(x)} vs ${mixed}`
+          );
+        }
+      }
+    }
+  });
+});
+
 describe('데미지 라인 클램프', () => {
   /**
    * 원작 라인은 trunc(clamp(1, 199999, 선형(난수)))라, 하한/상한에 눌리는 구간의
@@ -389,10 +477,8 @@ describe('데미지 라인 클램프', () => {
       const scenario: KillScenario = {
         hp: c.hp,
         hits: c.hits,
-        basic: toInts(c.rawBasic),
-        crit: toInts(c.rawCrit),
-        rawBasic: c.rawBasic,
-        rawCrit: c.rawCrit,
+        basic: c.rawBasic,
+        crit: c.rawCrit,
         shadow: c.shadow,
         critChance: c.critChance / 100,
         hitProb: 1,
@@ -466,25 +552,35 @@ describe('데미지 라인 클램프', () => {
     assert.ok(gap > 0.01, `차이가 너무 작다: ${gap}`);
   });
 
-  it('클램프가 걸리지 않으면 정수 범위를 준 것과 같다', () => {
+  it('방어력 난수 폭을 주면 같은 지지구간이라도 분포가 달라진다', () => {
+    // 지지구간(min~max)은 그대로인데 분포 모양만 균등 -> 사다리꼴로 바뀐다.
     const c = CASES[2];
     const stats = makeStats();
     const monster = makeMonster({ hp: c.hp });
-    const call = (basic: { min: number; max: number }, crit: typeof basic) =>
-      calculateKillProbabilitiesWithinNHits(
-        skillOf(c.hits),
-        basic,
-        crit,
-        c.shadow,
-        c.critChance,
-        c.hp,
-        stats,
-        monster
+    const call = (band: number) =>
+      toAccumulatedProbabilities(
+        calculateKillProbabilitiesWithinNHits(
+          skillOf(c.hits),
+          { ...c.rawBasic, defenseBand: band },
+          { ...c.rawCrit, defenseBand: band },
+          c.shadow,
+          c.critChance,
+          c.hp,
+          stats,
+          monster
+        )
       );
-    assert.deepEqual(
-      call(c.rawBasic, c.rawCrit),
-      call(toInts(c.rawBasic), toInts(c.rawCrit))
-    );
+    const uniform = call(0);
+    const trapezoid = call(180);
+
+    let gap = 0;
+    for (let i = 0; i < uniform.length; i++) {
+      const a = uniform[i];
+      const b = trapezoid[i];
+      if (a === null || b === null) continue;
+      gap = Math.max(gap, Math.abs(a - b));
+    }
+    assert.ok(gap > 0.005, `사다리꼴이 반영되지 않았다: ${gap}`);
   });
 });
 

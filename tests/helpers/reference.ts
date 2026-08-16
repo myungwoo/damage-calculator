@@ -1,25 +1,32 @@
 /**
  * 방컷 확률 검증용 참조 구현.
  *
- * 배포 코드(FFT 컨볼루션)와 독립적으로 작성한 O(n^2) DP와 몬테카를로 시뮬레이션.
- * 두 방식이 배포 코드와 같은 값을 내면 알고리즘이 맞다고 볼 수 있다.
+ * 배포 코드(FFT 컨볼루션 + 사다리꼴 CDF 닫힌 식)와 독립적으로 작성한
+ * O(n^2) DP와 몬테카를로 시뮬레이션.
+ *
+ * 라인 데미지 모델은 원작 그대로다.
+ *   라인 = trunc(clamp(1, 199999, 스탯롤 - 방어롤))
+ *   스탯롤 ~ U 폭 alpha,  방어롤 ~ U 폭 beta(defenseBand),  둘은 독립
+ * DP는 방어 롤 축을 수치적분하고 몬테카를로는 두 난수를 직접 굴린다.
+ * 배포 코드의 닫힌 식과는 유도 경로가 달라 서로 검산이 된다.
  */
+
+/** 클램프 전 실수 지지구간과, 그 안에서 방어력 난수가 차지하는 폭 */
+export interface DamageRange {
+  min: number;
+  max: number;
+  defenseBand?: number;
+}
 
 export interface KillScenario {
   /** 몬스터 HP */
   hp: number;
   /** 스킬 1회당 타격 수 (럭키 세븐 2, 트리플 스로우 3, 그 외 1) */
   hits: number;
-  /** 일반 데미지 범위 (정수) */
-  basic: { min: number; max: number };
-  /** 크리티컬 데미지 범위 (정수) */
-  crit: { min: number; max: number };
-  /**
-   * 클램프 전 실수 범위. 주면 라인 데미지를 `clamp(1, 199999, 선형(난수))`로 본다.
-   * 하한/상한에 눌리는 구간은 한 값에 뭉치는 확률질량이 된다.
-   */
-  rawBasic?: { min: number; max: number };
-  rawCrit?: { min: number; max: number };
+  /** 일반 데미지 범위 */
+  basic: DamageRange;
+  /** 크리티컬 데미지 범위 */
+  crit: DamageRange;
   /** 쉐도우 파트너 비율 (만렙 0.5) */
   shadow: number;
   /** 크리티컬 확률 0~1 */
@@ -30,7 +37,7 @@ export interface KillScenario {
   maxUses?: number;
   /**
    * 난수 순환(원작이 공격 1회당 난수 7칸을 돌려 쓰는 것)을 반영할지.
-   * 3타에서만 의미가 있고, 한 라인의 데미지 난수가 다른 라인의 크리티컬을 결정한다.
+   * 3타에서만 의미가 있고, 한 라인의 스탯 롤이 다른 라인의 크리티컬을 결정한다.
    */
   rngCycling?: boolean;
 }
@@ -38,30 +45,9 @@ export interface KillScenario {
 const LINE_MIN = 1;
 const LINE_MAX = 199999;
 
-const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
-
-/** 클램프 전 실수 범위를 (하한 덩어리 / 선형 구간 / 상한 덩어리)로 나눈다. */
-export const splitClampedRange = (raw: { min: number; max: number }) => {
-  const span = raw.max - raw.min;
-  const lowFraction =
-    span > 0
-      ? clamp01((LINE_MIN - raw.min) / span)
-      : raw.min < LINE_MIN
-        ? 1
-        : 0;
-  const highFraction =
-    span > 0
-      ? clamp01((raw.max - LINE_MAX) / span)
-      : raw.max > LINE_MAX
-        ? 1
-        : 0;
-  return {
-    lowFraction,
-    highFraction,
-    min: Math.floor(Math.max(raw.min, LINE_MIN)),
-    max: Math.floor(Math.min(raw.max, LINE_MAX)),
-  };
-};
+/** 스탯 롤 폭. 지지구간에서 방어력 난수 폭을 뺀 나머지다. */
+export const statSpanOf = (range: DamageRange): number =>
+  Math.max(0, range.max - range.min - Math.max(0, range.defenseBand ?? 0));
 
 /** 타격 1회의 데미지 분포. 인덱스는 누적 데미지, hp 인덱스는 사망(흡수 상태). */
 const singleHitDistribution = (s: KillScenario): number[] => {
@@ -74,30 +60,42 @@ const singleHitDistribution = (s: KillScenario): number[] => {
       weight * s.hitProb;
   };
 
-  const addRange = (
-    range: { min: number; max: number },
-    raw: { min: number; max: number } | undefined,
-    weight: number
-  ): void => {
-    if (!raw) {
-      const count = range.max - range.min + 1;
-      for (let damage = range.min; damage <= range.max; damage++) {
-        add(damage, weight / count);
-      }
+  /** U[lo, lo + width]를 절삭 + 클램프해서 정수 눈금에 담는다. */
+  const addUniform = (lo: number, width: number, weight: number): void => {
+    if (width <= 0) {
+      add(Math.max(LINE_MIN, Math.min(LINE_MAX, Math.floor(lo))), weight);
       return;
     }
-    const { lowFraction, highFraction, min, max } = splitClampedRange(raw);
-    add(LINE_MIN, weight * lowFraction);
-    add(LINE_MAX, weight * highFraction);
-    const count = max - min + 1;
-    if (count > 0) {
-      const middle = (weight * (1 - lowFraction - highFraction)) / count;
-      for (let damage = min; damage <= max; damage++) add(damage, middle);
+    const hi = lo + width;
+    // 하한에 눌리는 구간: 데미지가 2 미만이면 전부 1이 된다
+    if (lo < LINE_MIN + 1) {
+      add(LINE_MIN, ((Math.min(hi, LINE_MIN + 1) - lo) / width) * weight);
+    }
+    if (hi > LINE_MAX) {
+      add(LINE_MAX, ((hi - Math.max(lo, LINE_MAX)) / width) * weight);
+    }
+    const from = Math.max(LINE_MIN + 1, Math.floor(lo));
+    const to = Math.min(LINE_MAX - 1, Math.floor(hi));
+    for (let damage = from; damage <= to; damage++) {
+      const overlap = Math.min(hi, damage + 1) - Math.max(lo, damage);
+      if (overlap > 0) add(damage, (overlap / width) * weight);
     }
   };
 
-  addRange(s.basic, s.rawBasic, 1 - s.critChance);
-  addRange(s.crit, s.rawCrit, s.critChance);
+  const addRange = (range: DamageRange, weight: number): void => {
+    const beta = Math.max(0, range.defenseBand ?? 0);
+    const alpha = statSpanOf(range);
+    // 방어 롤 축을 중점법으로 적분한다. 칸 안에서 적분값이 선형이라
+    // 눈금을 폭보다 촘촘히 잡으면 오차가 사실상 사라진다.
+    const steps = beta > 0 ? Math.max(512, Math.ceil(beta) * 32) : 1;
+    for (let i = 0; i < steps; i++) {
+      const offset = beta > 0 ? ((i + 0.5) / steps) * beta : 0;
+      addUniform(range.min + offset, alpha, weight / steps);
+    }
+  };
+
+  addRange(s.basic, 1 - s.critChance);
+  addRange(s.crit, s.critChance);
   return dist;
 };
 
@@ -157,26 +155,17 @@ export const simulateKillProbabilities = (
   const counts = new Array(maxUses).fill(0);
 
   /**
-   * 데미지 난수 u와 크리티컬 여부로 라인 하나의 데미지(파트너 포함)를 만든다.
+   * 스탯 롤 u와 방어 롤 v로 라인 하나의 데미지(파트너 포함)를 만든다.
    * u에 대해 단조 증가라 난수 순환 결합을 그대로 태울 수 있다.
    */
-  const lineDamage = (crit: boolean, u: number): number => {
+  const lineDamage = (crit: boolean, u: number, v: number): number => {
     const range = crit ? s.crit : s.basic;
-    const raw = crit ? s.rawCrit : s.rawBasic;
-    let damage: number;
-    if (!raw) {
-      damage = range.min + Math.floor(u * (range.max - range.min + 1));
-    } else {
-      const { lowFraction, highFraction, min, max } = splitClampedRange(raw);
-      if (u < lowFraction) {
-        damage = LINE_MIN;
-      } else if (u >= 1 - highFraction) {
-        damage = LINE_MAX;
-      } else {
-        const t = (u - lowFraction) / (1 - lowFraction - highFraction);
-        damage = Math.min(max, min + Math.floor(t * (max - min + 1)));
-      }
-    }
+    const beta = Math.max(0, range.defenseBand ?? 0);
+    const raw = range.min + u * statSpanOf(range) + v * beta;
+    const damage = Math.max(
+      LINE_MIN,
+      Math.min(LINE_MAX, Math.trunc(raw))
+    );
     return damage + Math.floor(damage * s.shadow);
   };
 
@@ -186,22 +175,29 @@ export const simulateKillProbabilities = (
     let accumulated = 0;
     for (let use = 0; use < maxUses; use++) {
       if (coupled) {
-        // 라인 B의 데미지 난수가 라인 C의 크리티컬 판정을 그대로 결정한다.
+        // 라인 B의 스탯 롤이 라인 C의 크리티컬 판정을 그대로 결정한다.
         const aHit = random() < s.hitProb;
         const aCrit = random() < s.critChance;
         const aU = random();
+        const aV = random();
         const bHit = random() < s.hitProb;
         const bCrit = random() < s.critChance;
         const bU = random();
+        const bV = random();
         const cHit = random() < s.hitProb;
         const cU = random();
-        if (aHit) accumulated += lineDamage(aCrit, aU);
-        if (bHit) accumulated += lineDamage(bCrit, bU);
-        if (cHit) accumulated += lineDamage(bU < s.critChance, cU);
+        const cV = random();
+        if (aHit) accumulated += lineDamage(aCrit, aU, aV);
+        if (bHit) accumulated += lineDamage(bCrit, bU, bV);
+        if (cHit) accumulated += lineDamage(bU < s.critChance, cU, cV);
       } else {
         for (let hit = 0; hit < s.hits; hit++) {
           if (random() >= s.hitProb) continue;
-          accumulated += lineDamage(random() < s.critChance, random());
+          accumulated += lineDamage(
+            random() < s.critChance,
+            random(),
+            random()
+          );
         }
       }
       if (accumulated >= s.hp) {

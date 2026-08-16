@@ -61,6 +61,52 @@ const toDamageLine = (damage: number): number =>
     Math.max(MIN_DAMAGE_PER_LINE, Math.min(MAX_DAMAGE_PER_LINE, damage))
   );
 
+/**
+ * 방컷 확률 계산에 넘기는 데미지 라인 정보.
+ *
+ * min / max는 **클램프 전 실수 지지구간**이다. defenseBand는 그 안에서
+ * 방어력 난수가 차지하는 폭이고, 나머지가 스탯 롤 몫이다.
+ * 생략하면 방어력 난수가 없는 것으로 보고 균등분포가 된다.
+ */
+export interface DamageRangeInput {
+  min: number;
+  max: number;
+  defenseBand?: number;
+}
+
+/**
+ * 폭 alpha와 beta인 독립 균등분포 두 개의 합에 대한 CDF.
+ *
+ * 원작 라인 데미지는 `스탯롤 - 방어롤`이라 균등분포 둘의 차이고,
+ * 부호만 뒤집으면 합과 같은 사다리꼴이 된다.
+ * 반환하는 함수는 지지구간 시작점을 0으로 옮긴 좌표에서 P(Z < z)를 준다.
+ *
+ * 둘 중 하나가 0이면 사다리꼴이 삼각형이 아니라 직사각형(= 균등)으로 무너진다.
+ */
+export const trapezoidCdf = (
+  alpha: number,
+  beta: number
+): ((z: number) => number) => {
+  const total = alpha + beta;
+  if (total <= 0) return (z) => (z > 0 ? 1 : 0);
+
+  const narrow = Math.min(alpha, beta);
+  const wide = Math.max(alpha, beta);
+  const twiceArea = 2 * alpha * beta;
+
+  return (z) => {
+    if (z <= 0) return 0;
+    if (z >= total) return 1;
+    // 올라가는 구간
+    if (narrow > 0 && z < narrow) return (z * z) / twiceArea;
+    // 평평한 구간
+    if (z <= wide) return (z - narrow / 2) / wide;
+    // 내려가는 구간
+    const remaining = total - z;
+    return 1 - (remaining * remaining) / twiceArea;
+  };
+};
+
 /** 스킬 1회당 본체 타격 수 (럭키 세븐 2, 트리플 스로우 3, 그 외 1) */
 export const getHitCount = (skillType: AttackSkillType): number =>
   skillType === 'tripleThrow' ? 3 : skillType === 'lucky7' ? 2 : 1;
@@ -186,7 +232,13 @@ const calculateDamageWithModifiers = (
     (baseMin * levelMultiplier - monster.physicalDefense * 0.6) *
     totalMultiplier;
 
-  return { min, max };
+  return {
+    min,
+    max,
+    // 원작은 U[PDD*0.5, PDD*0.6]을 스탯 롤과 독립으로 뺀다.
+    // 그 난수 폭이 데미지 분포를 균등이 아니라 사다리꼴로 만든다.
+    defenseBand: monster.physicalDefense * 0.1 * totalMultiplier,
+  };
 };
 
 /**
@@ -210,8 +262,8 @@ const calculateDamageWithModifiers = (
 export const calculateKillProbabilitiesWithinNHits = (
   skillType: AttackSkillType,
   /** 클램프 전 실수 데미지 범위. [1, 199999] 클램프는 여기서 건다. */
-  basicDamage: { min: number; max: number },
-  criticalDamage: { min: number; max: number },
+  basicDamage: DamageRangeInput,
+  criticalDamage: DamageRangeInput,
   shadowMultiplier: number,
   criticalChance: number,
   monsterHp: number,
@@ -239,61 +291,14 @@ export const calculateKillProbabilitiesWithinNHits = (
   }
 
   /**
-   * 데미지 라인 하나를 "데미지 난수 -> 축소 후 정수 데미지" 조각으로 나눈 것.
+   * 데미지 난수(스탯 롤) 폭. 방어력 난수 폭을 뺀 나머지가 스탯 롤 몫이다.
    *
-   * 원작 라인은 `trunc(clamp(1, 199999, 선형(난수)))`라, 하한/상한에 눌리는 구간이
-   * 있으면 그 구간의 난수가 전부 같은 값으로 뭉친다. 균등분포에는 이 덩어리가
-   * 들어갈 자리가 없어서, 눌린 구간을 별도 확률질량으로 떼어 놓아야 한다.
-   *
-   * 떼어 놓지 않고 `[1, max]` 위 균등으로 보면 그 질량이 구간 전체로 퍼져
-   * 데미지를 과대평가한다(실측 평균 1.14배, 방컷 확률 최대 98%p).
+   *   라인 데미지 = trunc(clamp(1, 199999, 스탯롤 - 방어롤))
+   *   스탯롤 ~ U 폭 alpha,  방어롤 ~ U 폭 beta,  둘은 독립
+   *   -> 합쳐진 분포는 균등이 아니라 사다리꼴이고, 지지구간이 [min, max]다.
    */
-  interface LineRange {
-    /** 하한에 눌리는 난수 비율과 그때의 데미지 */
-    lowFraction: number;
-    lowDamage: number;
-    /** 상한에 눌리는 난수 비율과 그때의 데미지 */
-    highFraction: number;
-    highDamage: number;
-    /** 눌리지 않은 구간의 정수 데미지 범위. min > max면 가운데가 비었다는 뜻 */
-    min: number;
-    max: number;
-  }
-
-  /**
-   * 클램프 전 실수 범위를 조각으로 나눈다.
-   *
-   * 클램프는 반드시 축소 전 원본 값에 걸어야 한다. 축소된 눈금에 하한 1을
-   * 강제하면 1 눈금이 원본 1/damageScale 데미지라 오히려 부풀어 오른다.
-   */
-  const toLineRange = (raw: { min: number; max: number }): LineRange => {
-    const span = raw.max - raw.min;
-    const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
-    const lowFraction =
-      span > 0
-        ? clamp01((MIN_DAMAGE_PER_LINE - raw.min) / span)
-        : raw.min < MIN_DAMAGE_PER_LINE
-          ? 1
-          : 0;
-    const highFraction =
-      span > 0
-        ? clamp01((raw.max - MAX_DAMAGE_PER_LINE) / span)
-        : raw.max > MAX_DAMAGE_PER_LINE
-          ? 1
-          : 0;
-    const scaled = (damage: number) => Math.round(damage * damageScale);
-    return {
-      lowFraction,
-      lowDamage: scaled(MIN_DAMAGE_PER_LINE),
-      highFraction,
-      highDamage: scaled(MAX_DAMAGE_PER_LINE),
-      min: scaled(Math.floor(Math.max(raw.min, MIN_DAMAGE_PER_LINE))),
-      max: scaled(Math.floor(Math.min(raw.max, MAX_DAMAGE_PER_LINE))),
-    };
-  };
-
-  const basicRange = toLineRange(basicDamage);
-  const criticalRange = toLineRange(criticalDamage);
+  const statSpan = (raw: DamageRangeInput) =>
+    Math.max(0, raw.max - raw.min - Math.max(0, raw.defenseBand ?? 0));
 
   // 베놈은 축소 후 HP 축 위에서 계산해야 공격 데미지와 눈금이 맞는다.
   const venomSurvivals = venomConfig
@@ -341,66 +346,64 @@ export const calculateKillProbabilitiesWithinNHits = (
 
   const criticalProb = criticalChance / 100;
 
-  /** 본체 데미지 하나를 파트너까지 더한 뒤 HP 흡수 상태로 눌러 담는다. */
+  /**
+   * 본체 데미지(축소 전 정수) 하나를 파트너까지 더하고, 축소한 뒤
+   * HP 흡수 상태로 눌러 담는다.
+   *
+   * 클램프와 파트너 계산은 반드시 축소 전 값에서 끝내야 한다. 축소된 눈금에
+   * 하한 1을 강제하면 1 눈금이 원본 1/damageScale 데미지라 오히려 부풀어 오른다.
+   */
   const addDamage = (dist: Float64Array, damage: number, weight: number) => {
     if (weight <= 0) return;
-    dist[
-      Math.min(
-        // 쉐도우 파트너는 본체 데미지가 확정된 뒤 그 데미지의 고정 비율(만렙 50%,
-        // 내림)을 그대로 따라간다. 크리티컬 여부도 본체를 따르므로 독립적으로
-        // 굴리지 않고 본체 데미지에서 바로 계산한다.
-        damage + Math.floor(damage * shadowMultiplier),
-        monsterHp
-      )
-    ] += weight;
+    // 쉐도우 파트너는 본체 데미지가 확정된 뒤 그 데미지의 고정 비율(만렙 50%,
+    // 내림)을 그대로 따라간다. 크리티컬 여부도 본체를 따르므로 독립적으로
+    // 굴리지 않고 본체 데미지에서 바로 계산한다.
+    const total = damage + Math.floor(damage * shadowMultiplier);
+    dist[Math.min(Math.round(total * damageScale), monsterHp)] += weight;
   };
 
   /**
    * 데미지 난수가 [uFrom, uTo) 구간일 때의 질량 weight를 분포에 더한다.
    *
-   * 난수 축은 [하한에 눌린 구간 | 선형 구간 | 상한에 눌린 구간] 셋으로 나뉜다.
-   * 눌린 구간은 통째로 한 값에 얹고, 선형 구간만 정수 눈금에 비례 배분한다.
+   * 그 구간에서 스탯 롤은 폭 `alpha`의 균등분포이고, 방어 롤은 폭 `beta`의
+   * 균등분포다. 둘의 차는 사다리꼴이라 CDF가 닫힌 식으로 나온다.
+   * 여기서 정수 절삭과 [1, 199999] 클램프를 한 번에 처리한다.
+   *
+   *   데미지 1  <- 데미지가 2 미만인 모든 경우 (클램프 + 절삭이 겹친다)
+   *   데미지 d  <- [d, d + 1)
+   *   데미지 상한 <- 상한 이상인 모든 경우
    */
   const addDamageSlice = (
     dist: Float64Array,
-    range: LineRange,
+    raw: DamageRangeInput,
     uFrom: number,
     uTo: number,
     weight: number
   ) => {
     if (weight <= 0 || uTo <= uFrom) return;
-    const scale = weight / (uTo - uFrom);
 
-    const midFrom = range.lowFraction;
-    const midTo = 1 - range.highFraction;
+    const beta = Math.max(0, raw.defenseBand ?? 0);
+    const fullAlpha = statSpan(raw);
+    const alpha = fullAlpha * (uTo - uFrom);
+    // 이 구간에서 가능한 최솟값. 스탯 롤이 uFrom 지점부터 시작한다.
+    const origin = raw.min + fullAlpha * uFrom;
+    const cdf = trapezoidCdf(alpha, beta);
+    /** P(데미지 < x) */
+    const below = (x: number) => cdf(x - origin);
 
-    // 하한 / 상한 덩어리
-    addDamage(dist, range.lowDamage, (Math.min(uTo, midFrom) - uFrom) * scale);
-    addDamage(dist, range.highDamage, (uTo - Math.max(uFrom, midTo)) * scale);
+    const lowest = MIN_DAMAGE_PER_LINE;
+    const highest = MAX_DAMAGE_PER_LINE;
 
-    // 선형 구간
-    const start = Math.max(uFrom, midFrom);
-    const end = Math.min(uTo, midTo);
-    if (end <= start || range.max < range.min) return;
+    addDamage(dist, lowest, weight * below(lowest + 1));
+    addDamage(dist, highest, weight * (1 - below(highest)));
 
-    const count = range.max - range.min + 1;
-    const toCell = (u: number) => ((u - midFrom) / (midTo - midFrom)) * count;
-    const from = toCell(start);
-    const to = toCell(end);
-    const cellScale = ((end - start) * scale) / (to - from);
-
-    let index = Math.floor(from);
-    for (; index < to; index++) {
-      const damage = range.min + index;
-      if (damage > monsterHp) break;
-      addDamage(
-        dist,
-        damage,
-        (Math.min(to, index + 1) - Math.max(from, index)) * cellScale
-      );
-    }
-    if (index < to) {
-      dist[monsterHp] += (to - Math.max(from, index)) * cellScale;
+    const from = Math.max(lowest + 1, Math.floor(origin));
+    const to = Math.min(highest - 1, Math.floor(origin + alpha + beta));
+    let previous = below(from);
+    for (let damage = from; damage <= to; damage++) {
+      const next = below(damage + 1);
+      addDamage(dist, damage, weight * (next - previous));
+      previous = next;
     }
   };
 
@@ -418,8 +421,8 @@ export const calculateKillProbabilitiesWithinNHits = (
   ): Float64Array => {
     const dist = new Float64Array(size);
     dist[0] += 1 - hitProb;
-    addDamageSlice(dist, basicRange, uFrom, uTo, basicWeight * hitProb);
-    addDamageSlice(dist, criticalRange, uFrom, uTo, critWeight * hitProb);
+    addDamageSlice(dist, basicDamage, uFrom, uTo, basicWeight * hitProb);
+    addDamageSlice(dist, criticalDamage, uFrom, uTo, critWeight * hitProb);
     return dist;
   };
 
