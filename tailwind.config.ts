@@ -21,6 +21,12 @@ export default {
         crit: 'rgb(var(--crit) / <alpha-value>)',
         venom: 'rgb(var(--venom) / <alpha-value>)',
         danger: 'rgb(var(--danger) / <alpha-value>)',
+        // 입력칸 전용 레이어. bg-field / border-field-line / bg-field-disabled로 쓴다.
+        field: {
+          DEFAULT: 'rgb(var(--field) / <alpha-value>)',
+          line: 'rgb(var(--field-line) / <alpha-value>)',
+          disabled: 'rgb(var(--field-disabled) / <alpha-value>)',
+        },
       },
       fontFamily: {
         sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],

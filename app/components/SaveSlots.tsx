@@ -102,7 +102,7 @@ export default function SaveSlots({
                   className={`inline-flex h-7 items-center justify-center rounded-lg border px-2 text-xs font-medium transition-colors ${
                     pendingDelete === index
                       ? 'border-danger bg-danger text-white'
-                      : 'border-line bg-sunken text-muted hover:border-danger/50 hover:text-danger'
+                      : 'border-field-line bg-sunken text-muted hover:border-danger hover:text-danger'
                   }`}
                 >
                   {pendingDelete === index ? (

@@ -42,7 +42,7 @@ export default function SegmentedControl<T extends string>({
             className={`rounded-lg border px-3 py-2 text-left transition-colors ${
               selected
                 ? 'border-brand bg-brand/12 text-brand'
-                : 'border-line bg-sunken text-muted hover:border-brand/40 hover:text-ink'
+                : 'border-field-line bg-field text-muted hover:border-brand hover:text-ink'
             }`}
           >
             <span className="block text-sm font-semibold">{option.label}</span>
