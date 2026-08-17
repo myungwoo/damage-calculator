@@ -36,15 +36,20 @@ export default function HitDamage({ monster, stats }: HitDamageProps) {
     ...(monster.physicalAttack > 0
       ? [{ key: 'body', label: '몸박', entry: breakdown.body }]
       : []),
-    ...(breakdown.attack
-      ? [{ key: 'attack', label: '물리 공격', entry: breakdown.attack }]
-      : []),
+    // 물리 공격이 여럿이면 번호를 붙여 전부 세운다. 하나로 묶어 버리면 나머지
+    // 공격에 맞았을 때 화면에 없는 숫자가 되고, 그 순간 계산기를 못 믿게 된다.
+    ...breakdown.attacks.map((entry, index) => ({
+      key: `attack-${index}`,
+      label:
+        breakdown.attacks.length > 1 ? `물리 공격 ${index + 1}` : '물리 공격',
+      entry,
+    })),
     ...(hasMagic
       ? [{ key: 'magic', label: '마법 공격', entry: breakdown.magic }]
       : []),
   ];
 
-  // 방어력 1당 감소폭은 공격력과 무관해서 물리 세 줄이 전부 같다. 한 번만 적는다.
+  // 방어력 1당 감소폭은 공격력과 무관해서 물리 줄이 전부 같다. 한 번만 적는다.
   const perDefense = [
     monster.physicalAttack > 0 && !breakdown.body.atMinimum
       ? `물리방어력 +1 → -${breakdown.body.reducePerDefense.toFixed(2)}`
@@ -56,11 +61,11 @@ export default function HitDamage({ monster, stats }: HitDamageProps) {
 
   const footnotes = [
     '회피 · 페이크로 흘리지 못한 타격에 들어오는 값',
-    // 공격업이 "방어력 감면 뒤에" 붙는다는 것만 남긴다. 원작 스킬 번호까지 적으면
-    // 정작 읽어야 할 증가폭이 묻힌다 (근거는 CLAUDE.md에 있다).
-    `공격업은 방어력 감면 뒤에 ${MOB_ATTACK_UP_TIERS.map(
+    // 원작이 방어력 감면·감소 버프를 전부 끝낸 뒤 맨 마지막에 곱하는 값이라
+    // "정해진 데미지가 그만큼 커진다"가 정확한 설명이다.
+    `공격업은 정해진 데미지를 ${MOB_ATTACK_UP_TIERS.map(
       (tier) => `${tier.stage}단계 +${tier.percent - 100}%`
-    ).join(' · ')}로 붙는다`,
+    ).join(' · ')} 올린다`,
     stats.physicalDefense === undefined || stats.magicalDefense === undefined
       ? '방어력 미입력 시 0으로 본다'
       : null,

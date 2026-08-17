@@ -121,9 +121,9 @@ export default function MonsterPanel({
                 입력칸의 물리 공격력은 몸박 기준이라, 그보다 센 공격이 따로 있으면
                 여기서 알려 준다. 피격 데미지가 그 값을 대표값으로 쓴다.
               */}
-              {selectedPreset.strongestPhysicalAttack !== undefined && (
+              {selectedPreset.physicalAttackPowers !== undefined && (
                 <span className="chip">
-                  가장 센 공격 {selectedPreset.strongestPhysicalAttack}
+                  물리 공격 {selectedPreset.physicalAttackPowers.join(' · ')}
                 </span>
               )}
               {selectedPreset.hasMagicAttack !== true &&

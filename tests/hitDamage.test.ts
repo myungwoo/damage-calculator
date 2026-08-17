@@ -127,13 +127,21 @@ const referenceMagicDamage = (
 };
 
 describe('몬스터 프리셋의 공격 정보', () => {
-  it('가장 센 공격은 몸박보다 세게만 적는다', () => {
+  it('물리 공격 목록은 몸박보다 센 값만 오름차순으로 담는다', () => {
     // 원작이 max(몹 기본, 공격별)을 쓰므로, 몸박 이하인 값은 프리셋에 남길 이유가 없다.
     for (const preset of monsterPresets) {
-      if (preset.strongestPhysicalAttack === undefined) continue;
+      const powers = preset.physicalAttackPowers;
+      if (powers === undefined) continue;
+
+      assert.ok(powers.length > 0, `${preset.name}의 물리 공격 목록이 비었다`);
       assert.ok(
-        preset.strongestPhysicalAttack > preset.physicalAttack,
-        `${preset.name}의 가장 센 공격이 몸박보다 세지 않다`
+        powers.every((power) => power > preset.physicalAttack),
+        `${preset.name}에 몸박보다 세지 않은 공격이 들어 있다`
+      );
+      assert.deepEqual(
+        powers,
+        [...new Set(powers)].sort((a, b) => a - b),
+        `${preset.name}의 물리 공격 목록이 정렬·중복 제거되어 있지 않다`
       );
     }
   });
@@ -355,45 +363,73 @@ describe('피격 데미지', () => {
     assert.deepEqual(beyond.magic.damage, capped.magic.damage);
   });
 
-  it('몸박보다 센 공격이 있으면 몸박과 따로 나온다', () => {
-    const monster = makeMonster({ strongestPhysicalAttack: 755 });
+  it('물리 공격이 여럿이면 각각 한 줄씩 나온다', () => {
+    const monster = makeMonster({ physicalAttackPowers: [700, 755] });
     const stats = makeStats();
     const breakdown = calculateHitDamageBreakdown(monster, stats);
     const bodyOnly = calculateHitDamageBreakdown(makeMonster(), stats);
 
-    assert.notEqual(breakdown.attack, null);
+    assert.equal(breakdown.attacks.length, 2);
     // 몸박 줄은 공격이 뭐가 있든 그대로다.
     assert.deepEqual(breakdown.body.damage, bodyOnly.body.damage);
-    // 공격 줄은 몸박보다 세다. 공격업도 그 값을 따라간다.
-    assert.ok(breakdown.attack!.damage.max > breakdown.body.damage.max);
+    // 약한 순으로 나오고 전부 몸박보다 세다. 공격업도 각자 값을 따라간다.
+    assert.ok(breakdown.body.damage.max < breakdown.attacks[0].damage.max);
     assert.ok(
-      breakdown.attack!.poweredUp[0].damage.max >
-        breakdown.body.poweredUp[0].damage.max
+      breakdown.attacks[0].damage.max < breakdown.attacks[1].damage.max
     );
-    // 방어력 1당 감소폭은 공격력과 무관해서 두 줄이 같다 (화면에 한 번만 적는 근거).
+    assert.ok(
+      breakdown.attacks[0].poweredUp[0].damage.max <
+        breakdown.attacks[1].poweredUp[0].damage.max
+    );
+    // 방어력 1당 감소폭은 공격력과 무관해서 모든 줄이 같다 (한 번만 적는 근거).
     // 큰 값끼리 빼서 만든 차이라 부동소수점 끝자리만 갈린다.
-    assert.ok(
-      Math.abs(
-        breakdown.attack!.reducePerDefense - breakdown.body.reducePerDefense
-      ) < 1e-6
-    );
+    for (const entry of breakdown.attacks) {
+      assert.ok(
+        Math.abs(entry.reducePerDefense - breakdown.body.reducePerDefense) <
+          1e-6
+      );
+    }
   });
 
-  it('몸박이 가장 센 공격이면 공격 줄이 없다', () => {
+  it('몸박보다 세지 않은 공격은 줄을 만들지 않는다', () => {
     const breakdown = calculateHitDamageBreakdown(makeMonster(), makeStats());
-    assert.equal(breakdown.attack, null);
+    assert.deepEqual(breakdown.attacks, []);
 
-    // 공격별 공격력이 몸박보다 낮게 적힌 몹도 원작이 max를 쓰므로 몸박이 대표값이다.
+    // 공격별 공격력이 몸박보다 낮게 적힌 몹도 원작이 max를 쓰므로 몸박과 같아진다.
     const weaker = calculateHitDamageBreakdown(
-      makeMonster({ strongestPhysicalAttack: 100 }),
+      makeMonster({ physicalAttackPowers: [100] }),
       makeStats()
     );
-    assert.equal(weaker.attack, null);
+    assert.deepEqual(weaker.attacks, []);
     assert.deepEqual(weaker.body.damage, breakdown.body.damage);
   });
 
+  it('공격업은 정해진 데미지를 그 비율만큼 올린다', () => {
+    // 화면 각주가 "정해진 데미지를 1단계 +15% · 2단계 +30% 올린다"라고 적는 근거다.
+    // 원작이 방어력 감면과 감소 버프를 전부 끝낸 뒤 맨 마지막에 곱하기 때문에,
+    // 절삭 오차 1을 빼면 완성된 데미지에 그 비율을 곱한 값과 같다.
+    const breakdown = calculateHitDamageBreakdown(
+      makeMonster({ physicalAttackPowers: [755] }),
+      makeStats()
+    );
+
+    for (const entry of [
+      breakdown.body,
+      ...breakdown.attacks,
+      breakdown.magic,
+    ]) {
+      for (const tier of entry.poweredUp) {
+        const expected = entry.damage.max * (tier.percent / 100);
+        assert.ok(
+          Math.abs(tier.damage.max - expected) <= 1,
+          `공격업 ${tier.stage}단계가 ${expected}에서 1을 넘게 벗어났다`
+        );
+      }
+    }
+  });
+
   it('망각의 수호대장 실측 제보 케이스', () => {
-    // 프리셋 8200012: 몸박 645 / 가장 센 공격 755 / 마공 725.
+    // 프리셋 8200012: 몸박 645 / 물리 공격 700 · 755 / 마공 725.
     // 마법 최대(3,995)보다 큰 4,000~4,100을 맞았다는 제보가 있었고,
     // 그 값은 마법이 아니라 attack2(755) 물리 범위 안이다.
     const monster = makeMonster({
@@ -404,7 +440,7 @@ describe('피격 데미지', () => {
       avoid: 47,
       accuracy: 230,
       physicalAttack: 645,
-      strongestPhysicalAttack: 755,
+      physicalAttackPowers: [700, 755],
       magicAttack: 725,
       hasMagicAttack: true,
     });
@@ -423,7 +459,8 @@ describe('피격 데미지', () => {
     const breakdown = calculateHitDamageBreakdown(monster, stats);
 
     assert.deepEqual(breakdown.body.damage, { min: 2613, max: 2821 });
-    assert.deepEqual(breakdown.attack?.damage, { min: 3845, max: 4130 });
+    assert.deepEqual(breakdown.attacks[0].damage, { min: 3204, max: 3449 });
+    assert.deepEqual(breakdown.attacks[1].damage, { min: 3845, max: 4130 });
     assert.deepEqual(breakdown.magic.damage, { min: 3732, max: 3995 });
   });
 

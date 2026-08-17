@@ -679,8 +679,8 @@ export interface HitDamageEntry {
 export interface HitDamageBreakdown {
   /** 몸박. 몹 기본 물리 공격력을 쓴다 */
   body: HitDamageEntry;
-  /** 몸박보다 센 물리 공격이 있으면 그중 가장 센 것. 없으면 null */
-  attack: HitDamageEntry | null;
+  /** 몸박보다 센 물리 공격들 (약한 순). 프리셋에 없으면 빈 배열 */
+  attacks: HitDamageEntry[];
   /** 마법 공격 */
   magic: HitDamageEntry;
 }
@@ -729,16 +729,13 @@ export const calculateHitDamageBreakdown = (
       stats.physicalDefense
     );
 
-  // 원작은 공격별 공격력이 몹 기본보다 낮게 적혀 있어도 max를 쓰므로,
-  // 몸박보다 세지 않은 공격은 몸박과 값이 같아진다. 그럴 땐 줄을 만들지 않는다.
-  const strongestAttack = monster.strongestPhysicalAttack ?? 0;
-
   return {
     body: physical(monster.physicalAttack),
-    attack:
-      strongestAttack > monster.physicalAttack
-        ? physical(strongestAttack)
-        : null,
+    // 원작은 공격별 공격력이 몹 기본보다 낮게 적혀 있어도 max를 쓰므로,
+    // 몸박보다 세지 않은 공격은 몸박과 값이 같아진다. 그런 공격은 거른다.
+    attacks: (monster.physicalAttackPowers ?? [])
+      .filter((power) => power > monster.physicalAttack)
+      .map(physical),
     magic: summarize(
       (defense) => magicHitDamageRaw(monster, stats, defense),
       stats.magicalDefense
