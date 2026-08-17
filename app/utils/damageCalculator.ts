@@ -136,6 +136,109 @@ export const trapezoidCdf = (
 export const getHitCount = (skillType: AttackSkillType): number =>
   skillType === 'tripleThrow' ? 3 : skillType === 'lucky7' ? 2 : 1;
 
+/**
+ * 데미지 난수(스탯 롤) 폭. 지지구간에서 방어력 난수 폭을 뺀 나머지다.
+ *
+ *   라인 데미지 = trunc(clamp(1, 199999, 스탯롤 - 방어롤))
+ *   스탯롤 ~ U 폭 alpha,  방어롤 ~ U 폭 beta,  둘은 독립
+ */
+const statRollSpan = (raw: DamageRangeInput): number =>
+  Math.max(0, raw.max - raw.min - Math.max(0, raw.defenseBand ?? 0));
+
+/** 스탯 롤이 u 이상인 구간에서 가능한 최소 d (방어 롤이 가장 유리할 때) */
+const damageAxisFrom = (raw: DamageRangeInput, u: number): number =>
+  raw.min + statRollSpan(raw) * u;
+
+/** 스탯 롤이 u 미만인 구간에서 가능한 최대 d (방어 롤이 가장 불리할 때) */
+const damageAxisTo = (raw: DamageRangeInput, u: number): number =>
+  raw.min + statRollSpan(raw) * u + Math.max(0, raw.defenseBand ?? 0);
+
+/**
+ * 난수 순환의 타격 간 결합을 반영할지.
+ *
+ * 원작은 공격 1회당 난수를 7칸만 뽑아 돌려 쓴다. 트리플 스로우 3라인에서는
+ * 그 결과로 한 라인의 데미지 난수가 다른 라인의 크리티컬 판정을 그대로 결정한다
+ * (메이플랜드 실측 40시전 40/40). 타격이 하나뿐인 스킬은 겹칠 상대가 없고,
+ * 크리티컬 확률이 0이나 100%면 결합이 있어도 분포가 달라지지 않는다.
+ *
+ * 방컷 확률과 총 데미지 범위가 같은 조건을 봐야 하므로 여기를 단일 출처로 둔다.
+ */
+export const isRngCyclingCoupled = (
+  skillType: AttackSkillType,
+  criticalProb: number,
+  rngCycling: boolean
+): boolean =>
+  rngCycling &&
+  getHitCount(skillType) === 3 &&
+  criticalProb > 0 &&
+  criticalProb < 1;
+
+/**
+ * 시전 1회 총 데미지의 최솟값 / 최댓값 (본체 + 쉐도우 파트너, 타격 수만큼 합산).
+ *
+ * 독립 가정에서는 "라인 하나의 극값 x 타격 수"가 그대로 답이지만,
+ * 난수 순환이 걸리면 그 조합이 실제로 나오지 않는다. 라인 C의 크리티컬이
+ * 라인 B의 데미지 난수 u로 정해지기 때문에 두 라인의 극값을 동시에 가질 수 없다.
+ *
+ *   최솟값: 3라인 모두 일반이려면 C가 일반 -> u >= p -> B의 데미지가 최소일 수 없다.
+ *           반대로 B를 최소로 두면 C가 강제로 크리티컬이 된다. -> 최솟값이 올라간다.
+ *   최댓값: 3라인 모두 크리티컬이려면 C가 크리티컬 -> u < p -> B의 데미지가 상위
+ *           구간에 못 간다. B를 최대로 두면 C가 일반이 된다. -> 최댓값이 내려간다.
+ *
+ * 라인 값이 d에 대해 단조 증가하므로 두 분기 각각의 극값은 구간 끝에서 나온다.
+ * u가 자르는 것은 스탯 롤 축뿐이고 방어 롤 폭은 그대로라, 구간 끝은
+ * `damageAxisFrom` / `damageAxisTo`가 준다.
+ */
+export const calculateTotalDamageRange = (
+  basicLine: DamageRangeInput,
+  criticalLine: DamageRangeInput,
+  shadowMultiplier: number,
+  criticalProb: number,
+  hitCount: number,
+  coupled: boolean
+): { min: number; max: number } => {
+  /** 타격 1회(본체 + 파트너)의 총 데미지. 파트너도 같은 클램프를 받는다. */
+  const hitTotal = (raw: DamageRangeInput, base: number): number => {
+    const line = toDamageLine(
+      damageLineValue(base, raw.skillMultiplier ?? 1, raw.criticalAdd ?? 0)
+    );
+    return (
+      line + (shadowMultiplier > 0 ? toDamageLine(line * shadowMultiplier) : 0)
+    );
+  };
+
+  const basicMin = hitTotal(basicLine, basicLine.min);
+  const basicMax = hitTotal(basicLine, basicLine.max);
+  const critMin = hitTotal(criticalLine, criticalLine.min);
+  const critMax = hitTotal(criticalLine, criticalLine.max);
+
+  if (!coupled) {
+    return { min: basicMin * hitCount, max: critMax * hitCount };
+  }
+
+  // 라인 A는 완전 독립이라 양 끝을 그대로 쓴다.
+  // 라인 B와 C는 u = 크리티컬 확률을 기준으로 갈린 두 분기를 비교한다.
+  const p = criticalProb;
+  return {
+    min:
+      basicMin +
+      Math.min(
+        // u < p: C가 크리티컬. B는 데미지 난수를 최소로 둘 수 있다.
+        basicMin + critMin,
+        // u >= p: C가 일반. B의 데미지 난수가 p 지점부터 시작한다.
+        hitTotal(basicLine, damageAxisFrom(basicLine, p)) + basicMin
+      ),
+    max:
+      critMax +
+      Math.max(
+        // u < p: C가 크리티컬. B의 데미지 난수가 p 지점에서 잘린다.
+        hitTotal(criticalLine, damageAxisTo(criticalLine, p)) + critMax,
+        // u >= p: B는 최대까지 갈 수 있지만 C가 일반이다.
+        critMax + basicMax
+      ),
+  };
+};
+
 export const calculateTotalStats = (
   stats: Stats
 ): { totalStr: number; totalDex: number; totalLuk: number } => {
@@ -504,16 +607,6 @@ export const calculateKillProbabilitiesWithinNHits = (
     monsterHp = MAX_HP_RESOLUTION;
   }
 
-  /**
-   * 데미지 난수(스탯 롤) 폭. 방어력 난수 폭을 뺀 나머지가 스탯 롤 몫이다.
-   *
-   *   라인 데미지 = trunc(clamp(1, 199999, 스탯롤 - 방어롤))
-   *   스탯롤 ~ U 폭 alpha,  방어롤 ~ U 폭 beta,  둘은 독립
-   *   -> 합쳐진 분포는 균등이 아니라 사다리꼴이고, 지지구간이 [min, max]다.
-   */
-  const statSpan = (raw: DamageRangeInput) =>
-    Math.max(0, raw.max - raw.min - Math.max(0, raw.defenseBand ?? 0));
-
   // 베놈은 축소 후 HP 축 위에서 계산해야 공격 데미지와 눈금이 맞는다.
   const venomSurvivals = venomConfig
     ? calculateVenomSurvivals(venomConfig, monsterHp, damageScale, maxHits)
@@ -609,7 +702,7 @@ export const calculateKillProbabilitiesWithinNHits = (
     const skill = raw.skillMultiplier ?? 1;
     const critAdd = raw.criticalAdd ?? 0;
     const beta = Math.max(0, raw.defenseBand ?? 0);
-    const fullAlpha = statSpan(raw);
+    const fullAlpha = statRollSpan(raw);
     const alpha = fullAlpha * (uTo - uFrom);
     // 이 구간에서 가능한 최솟값. 스탯 롤이 uFrom 지점부터 시작한다.
     const origin = raw.min + fullAlpha * uFrom;
@@ -678,16 +771,7 @@ export const calculateKillProbabilitiesWithinNHits = (
   //    럭키 세븐은 2회 타격이고, 트리플 스로우는 3회 타격
   const hitCount = getHitCount(skillType);
 
-  /**
-   * 난수 순환을 반영할지.
-   *
-   * 원작은 공격 1회당 난수를 7칸만 뽑아 돌려 쓴다. 트리플 스로우 3라인에서는
-   * 그 결과로 한 라인의 데미지 난수가 다른 라인의 크리티컬 판정을 그대로 결정한다
-   * (메이플랜드 실측 40시전 40/40). 타격이 하나뿐인 스킬은 겹칠 상대가 없고,
-   * 크리티컬 확률이 0이나 100%면 결합이 있어도 분포가 달라지지 않는다.
-   */
-  const coupled =
-    rngCycling && hitCount === 3 && criticalProb > 0 && criticalProb < 1;
+  const coupled = isRngCyclingCoupled(skillType, criticalProb, rngCycling);
 
   let singleSkillDist: Float64Array;
   if (coupled) {
@@ -904,9 +988,20 @@ export const calculateDamage = (
     max: shadowLine(criticalDamage.max),
   };
 
-  // Calculate final damage ranges (본체 + 쉐도우 파트너, 타격 1회 기준)
-  let totalMin = basicDamage.min + shadowBasic.min;
-  let totalMax = criticalDamage.max + shadowCritical.max;
+  // Calculate final damage ranges (본체 + 쉐도우 파트너, 시전 1회 기준)
+  //
+  // 난수 순환이 걸리면 라인 B의 데미지 난수가 라인 C의 크리티컬을 정하기 때문에
+  // "모든 라인이 동시에 극값"인 조합이 나오지 않는다. 방컷 확률 막대는 이걸 이미
+  // 반영하므로 총 데미지 범위도 같은 조건을 봐야 한다.
+  const criticalProb = criticalChance / 100;
+  const { min: totalMin, max: totalMax } = calculateTotalDamageRange(
+    basicLine,
+    criticalLine,
+    shadowMultiplier,
+    criticalProb,
+    getHitCount(skills.type),
+    isRngCyclingCoupled(skills.type, criticalProb, skills.rngCyclingEnabled)
+  );
 
   // 베놈 설정
   //
@@ -962,18 +1057,19 @@ export const calculateDamage = (
     skills.rngCyclingEnabled
   );
 
-  // Calculate critical probability
-  const criticalProb = criticalChance / 100;
-
   // Calculate expected damage
+  //
+  // 난수 순환은 난수의 결합분포만 바꾸고 각 난수의 주변부 분포는 그대로 두므로
+  // 기댓값에는 영향이 없다. 극값(totalMin / totalMax)만 좁아진다.
   const expectedBasicDamage =
     ((basicDamage.min + basicDamage.max) / 2) * (1 + shadowMultiplier);
   const expectedCriticalDamage =
     ((criticalDamage.min + criticalDamage.max) / 2) * (1 + shadowMultiplier);
-  let totalExpected = Math.floor(
-    expectedBasicDamage * (1 - criticalProb) +
-      expectedCriticalDamage * criticalProb
-  );
+  const totalExpected =
+    Math.floor(
+      expectedBasicDamage * (1 - criticalProb) +
+        expectedCriticalDamage * criticalProb
+    ) * getHitCount(skills.type);
 
   // Calculate HP absorption range for Drain skill
   let hpAbsorption = { min: 0, max: 0, expected: 0 };
@@ -993,20 +1089,6 @@ export const calculateDamage = (
       max: Math.min(rawAbsorptionMax, monster.hp),
       expected: Math.min(expectedAbsorption, monster.hp),
     };
-  }
-
-  // Apply Lucky7 double damage
-  if (skills.type === 'lucky7') {
-    totalMin = totalMin * 2;
-    totalMax = totalMax * 2;
-    totalExpected = totalExpected * 2;
-  }
-
-  // Apply Triple Throw triple damage
-  if (skills.type === 'tripleThrow') {
-    totalMin = totalMin * 3;
-    totalMax = totalMax * 3;
-    totalExpected = totalExpected * 3;
   }
 
   return {

@@ -193,6 +193,54 @@ export const createRandom = (seed: number): (() => number) => {
   };
 };
 
+/**
+ * 스탯 롤 u와 방어 롤 v로 라인 하나의 데미지(파트너 포함)를 만든다.
+ * u에 대해 단조 증가라 난수 순환 결합을 그대로 태울 수 있다.
+ */
+export const lineTotalOf = (
+  s: KillScenario,
+  crit: boolean,
+  u: number,
+  v: number
+): number => {
+  const range = crit ? s.crit : s.basic;
+  const beta = Math.max(0, range.defenseBand ?? 0);
+  const base = range.min + u * statSpanOf(range) + v * beta;
+  const damage = clampLine(lineValueOf(range, base));
+  return damage + partnerLine(damage, s.shadow);
+};
+
+/** 시전 1회의 총 데미지를 굴린다. 난수 소비 순서가 곧 결합 모델이다. */
+export const rollUseDamage = (
+  s: KillScenario,
+  random: () => number
+): number => {
+  let total = 0;
+  if (s.rngCycling === true && s.hits === 3) {
+    // 라인 B의 스탯 롤이 라인 C의 크리티컬 판정을 그대로 결정한다.
+    const aHit = random() < s.hitProb;
+    const aCrit = random() < s.critChance;
+    const aU = random();
+    const aV = random();
+    const bHit = random() < s.hitProb;
+    const bCrit = random() < s.critChance;
+    const bU = random();
+    const bV = random();
+    const cHit = random() < s.hitProb;
+    const cU = random();
+    const cV = random();
+    if (aHit) total += lineTotalOf(s, aCrit, aU, aV);
+    if (bHit) total += lineTotalOf(s, bCrit, bU, bV);
+    if (cHit) total += lineTotalOf(s, bU < s.critChance, cU, cV);
+  } else {
+    for (let hit = 0; hit < s.hits; hit++) {
+      if (random() >= s.hitProb) continue;
+      total += lineTotalOf(s, random() < s.critChance, random(), random());
+    }
+  }
+  return total;
+};
+
 /** 게임 진행을 그대로 흉내 내는 몬테카를로 시뮬레이션 */
 export const simulateKillProbabilities = (
   s: KillScenario,
@@ -203,49 +251,10 @@ export const simulateKillProbabilities = (
   const random = createRandom(seed);
   const counts = new Array(maxUses).fill(0);
 
-  /**
-   * 스탯 롤 u와 방어 롤 v로 라인 하나의 데미지(파트너 포함)를 만든다.
-   * u에 대해 단조 증가라 난수 순환 결합을 그대로 태울 수 있다.
-   */
-  const lineDamage = (crit: boolean, u: number, v: number): number => {
-    const range = crit ? s.crit : s.basic;
-    const beta = Math.max(0, range.defenseBand ?? 0);
-    const base = range.min + u * statSpanOf(range) + v * beta;
-    const damage = clampLine(lineValueOf(range, base));
-    return damage + partnerLine(damage, s.shadow);
-  };
-
-  const coupled = s.rngCycling === true && s.hits === 3;
-
   for (let trial = 0; trial < trials; trial++) {
     let accumulated = 0;
     for (let use = 0; use < maxUses; use++) {
-      if (coupled) {
-        // 라인 B의 스탯 롤이 라인 C의 크리티컬 판정을 그대로 결정한다.
-        const aHit = random() < s.hitProb;
-        const aCrit = random() < s.critChance;
-        const aU = random();
-        const aV = random();
-        const bHit = random() < s.hitProb;
-        const bCrit = random() < s.critChance;
-        const bU = random();
-        const bV = random();
-        const cHit = random() < s.hitProb;
-        const cU = random();
-        const cV = random();
-        if (aHit) accumulated += lineDamage(aCrit, aU, aV);
-        if (bHit) accumulated += lineDamage(bCrit, bU, bV);
-        if (cHit) accumulated += lineDamage(bU < s.critChance, cU, cV);
-      } else {
-        for (let hit = 0; hit < s.hits; hit++) {
-          if (random() >= s.hitProb) continue;
-          accumulated += lineDamage(
-            random() < s.critChance,
-            random(),
-            random()
-          );
-        }
-      }
+      accumulated += rollUseDamage(s, random);
       if (accumulated >= s.hp) {
         counts[use]++;
         break;
