@@ -155,6 +155,12 @@ export default function SkillsPanel({
                   <strong>N방 컷 확률은 몬스터 HP가 N시전 누적 평균</strong>
                   보다 낮으면 올라가고 높으면 내려간다.
                 </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-muted">
+                  총 데미지 범위도 같은 이유로 좁아진다. 셋째 줄이 일반이려면
+                  둘째 줄의 데미지가 최소일 수 없고, 셋째 줄이 크리티컬이려면
+                  둘째 줄의 데미지가 최대일 수 없어서{' '}
+                  <strong>세 줄이 동시에 최소(또는 최대)가 되지 않는다.</strong>
+                </p>
               </div>
               <Toggle
                 checked={skills.rngCyclingEnabled}

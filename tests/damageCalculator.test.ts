@@ -1,10 +1,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  DamageRangeInput,
   calculateDamage,
   calculateHitProbability,
   calculateKillProbabilitiesWithinNHits,
   calculateRequiredHitRatio,
+  calculateTotalDamageRange,
+  isRngCyclingCoupled,
   MAX_DAMAGE_PER_LINE,
   MAX_HP_RESOLUTION,
   MIN_DAMAGE_PER_LINE,
@@ -17,6 +20,8 @@ import {
   KillScenario,
   referenceKillProbabilities,
   createRandom,
+  lineTotalOf,
+  rollUseDamage,
   simulateKillProbabilities,
   toAccumulatedProbabilities,
 } from './helpers/reference';
@@ -847,6 +852,225 @@ describe('난수 순환 (트리플 스로우)', () => {
   });
 });
 
+describe('총 데미지 범위 (난수 순환)', () => {
+  /**
+   * 난수 순환이 걸리면 "모든 라인이 동시에 극값"인 조합이 나오지 않는다.
+   * 닫힌 식이 실제 도달 가능한 극값과 맞는지, 모델을 그대로 훑어서 확인한다.
+   */
+  const RANGE_CASES: {
+    name: string;
+    basic: DamageRangeInput;
+    crit: DamageRangeInput;
+    shadow: number;
+    critChance: number;
+  }[] = [
+    {
+      name: '트리플 스로우 30 + 크리티컬 스로우 30',
+      basic: {
+        min: 1000,
+        max: 2000,
+        defenseBand: 40,
+        skillMultiplier: 1.5,
+        criticalAdd: 0,
+      },
+      crit: {
+        min: 1000,
+        max: 2000,
+        defenseBand: 40,
+        skillMultiplier: 1.5,
+        criticalAdd: 1,
+      },
+      shadow: 0.5,
+      critChance: 0.5,
+    },
+    {
+      name: '크리티컬 확률이 낮은 경우',
+      basic: {
+        min: 700,
+        max: 1500,
+        defenseBand: 120,
+        skillMultiplier: 1.5,
+        criticalAdd: 0,
+      },
+      crit: {
+        min: 700,
+        max: 1500,
+        defenseBand: 120,
+        skillMultiplier: 1.5,
+        criticalAdd: 1.4,
+      },
+      shadow: 0.5,
+      critChance: 0.21,
+    },
+    {
+      name: '쉐도우 파트너 없음 + 방어력 난수 없음',
+      basic: {
+        min: 300,
+        max: 900,
+        skillMultiplier: 1.2,
+        criticalAdd: 0,
+      },
+      crit: {
+        min: 300,
+        max: 900,
+        skillMultiplier: 1.2,
+        criticalAdd: 0.8,
+      },
+      shadow: 0,
+      critChance: 0.35,
+    },
+    {
+      name: '방어력에 눌려 하한에 붙는 경우',
+      basic: {
+        min: -50,
+        max: 120,
+        defenseBand: 60,
+        skillMultiplier: 1.5,
+        criticalAdd: 0,
+      },
+      crit: {
+        min: -50,
+        max: 120,
+        defenseBand: 60,
+        skillMultiplier: 1.5,
+        criticalAdd: 1,
+      },
+      shadow: 0.5,
+      critChance: 0.5,
+    },
+  ];
+
+  const scenarioOf = (c: (typeof RANGE_CASES)[number]): KillScenario => ({
+    hp: 10 ** 9,
+    hits: 3,
+    basic: c.basic,
+    crit: c.crit,
+    shadow: c.shadow,
+    critChance: c.critChance,
+    hitProb: 1,
+    rngCycling: true,
+    maxUses: 1,
+  });
+
+  /**
+   * 라인 하나가 [uFrom, uTo] 구간에서 가질 수 있는 값의 범위를 격자로 훑는다.
+   * 닫힌 식과 달리 "극값이 구간 끝에서 나온다"를 가정하지 않으므로,
+   * 자르는 지점을 잘못 잡으면 바로 드러난다.
+   */
+  const scanLine = (
+    s: KillScenario,
+    crit: boolean,
+    uFrom: number,
+    uTo: number
+  ) => {
+    const steps = 400;
+    let min = Infinity;
+    let max = -Infinity;
+    for (let i = 0; i <= steps; i++) {
+      const u = uFrom + ((uTo - uFrom) * i) / steps;
+      for (let j = 0; j <= steps; j++) {
+        const value = lineTotalOf(s, crit, u, j / steps);
+        if (value < min) min = value;
+        if (value > max) max = value;
+      }
+    }
+    return { min, max };
+  };
+
+  for (const c of RANGE_CASES) {
+    it(`도달 가능한 극값과 일치한다 - ${c.name}`, () => {
+      const s = scenarioOf(c);
+      const p = c.critChance;
+
+      // 라인 A는 완전 독립, 라인 B는 u로 잘리고, 라인 C의 크리티컬이 그 u로 정해진다.
+      const a = {
+        min: scanLine(s, false, 0, 1).min,
+        max: scanLine(s, true, 0, 1).max,
+      };
+      const bLow = scanLine(s, false, 0, p).min;
+      const bLowCrit = scanLine(s, true, 0, p).max;
+      const bHigh = scanLine(s, false, p, 1).min;
+      const bHighCrit = scanLine(s, true, p, 1).max;
+      const cCrit = scanLine(s, true, 0, 1);
+      const cBasic = scanLine(s, false, 0, 1);
+
+      const expected = {
+        // u < p면 C가 크리티컬, u >= p면 C가 일반이다.
+        min: a.min + Math.min(bLow + cCrit.min, bHigh + cBasic.min),
+        max: a.max + Math.max(bLowCrit + cCrit.max, bHighCrit + cBasic.max),
+      };
+
+      const actual = calculateTotalDamageRange(
+        c.basic,
+        c.crit,
+        c.shadow,
+        c.critChance,
+        3,
+        true
+      );
+      assert.deepEqual(actual, expected);
+    });
+
+    it(`시뮬레이션이 범위를 벗어나지 않는다 - ${c.name}`, () => {
+      const s = scenarioOf(c);
+      const range = calculateTotalDamageRange(
+        c.basic,
+        c.crit,
+        c.shadow,
+        c.critChance,
+        3,
+        true
+      );
+      const random = createRandom(20260816);
+      let observedMin = Infinity;
+      let observedMax = -Infinity;
+      for (let trial = 0; trial < 200000; trial++) {
+        const total = rollUseDamage(s, random);
+        if (total < observedMin) observedMin = total;
+        if (total > observedMax) observedMax = total;
+      }
+      assert.ok(
+        observedMin >= range.min,
+        `최솟값 ${range.min}보다 낮은 ${observedMin}이 나왔다`
+      );
+      assert.ok(
+        observedMax <= range.max,
+        `최댓값 ${range.max}보다 높은 ${observedMax}이 나왔다`
+      );
+    });
+  }
+
+  it('독립 가정보다 좁다', () => {
+    let narrowed = 0;
+    for (const c of RANGE_CASES) {
+      const args = [c.basic, c.crit, c.shadow, c.critChance, 3] as const;
+      const independent = calculateTotalDamageRange(...args, false);
+      const coupled = calculateTotalDamageRange(...args, true);
+      assert.ok(
+        coupled.min >= independent.min,
+        `${c.name}: 최솟값이 내려갔다 (${independent.min} -> ${coupled.min})`
+      );
+      assert.ok(
+        coupled.max < independent.max,
+        `${c.name}: 최댓값이 내려가지 않았다 (${independent.max} -> ${coupled.max})`
+      );
+      if (coupled.min > independent.min) narrowed++;
+    }
+    // 하한 클램프에 눌린 케이스는 최솟값이 이미 라인당 1이라 더 오를 자리가 없다.
+    assert.equal(narrowed, RANGE_CASES.length - 1);
+  });
+
+  it('결합 조건은 방컷 확률과 같은 단일 출처를 쓴다', () => {
+    // 3타가 아니거나 크리티컬 확률이 0 / 100%면 결합이 분포를 바꾸지 않는다.
+    assert.equal(isRngCyclingCoupled('tripleThrow', 0.5, true), true);
+    assert.equal(isRngCyclingCoupled('tripleThrow', 0.5, false), false);
+    assert.equal(isRngCyclingCoupled('tripleThrow', 0, true), false);
+    assert.equal(isRngCyclingCoupled('tripleThrow', 1, true), false);
+    assert.equal(isRngCyclingCoupled('lucky7', 0.5, true), false);
+    assert.equal(isRngCyclingCoupled('avenger', 0.5, true), false);
+  });
+});
+
 describe('명중률', () => {
   it('필요 명중률은 (55 + 레벨차) * 회피율 / 15 이다', () => {
     assert.equal(calculateRequiredHitRatio(100, 90, 15), 65);
@@ -1034,6 +1258,55 @@ describe('calculateDamage', () => {
     );
     assert.equal(result.shadowBasic.min, 0);
     assert.equal(result.shadowCritical.max, 0);
+  });
+
+  it('난수 순환을 켜면 트리플 스로우 총 데미지 범위가 좁아진다', () => {
+    const stats = makeStats();
+    const skills = makeSkills({ type: 'tripleThrow', level: 30 });
+    const off = calculateDamage(monster, stats, equipment, skills);
+    const on = calculateDamage(monster, stats, equipment, {
+      ...skills,
+      rngCyclingEnabled: true,
+    });
+
+    assert.ok(
+      on.totalDamageRange.min > off.totalDamageRange.min,
+      `최솟값 ${off.totalDamageRange.min} -> ${on.totalDamageRange.min}`
+    );
+    assert.ok(
+      on.totalDamageRange.max < off.totalDamageRange.max,
+      `최댓값 ${off.totalDamageRange.max} -> ${on.totalDamageRange.max}`
+    );
+
+    // 라인별 표시값과 기댓값은 그대로다. 결합은 난수의 결합분포만 바꾸고
+    // 각 난수의 주변부 분포는 건드리지 않는다.
+    assert.equal(on.basic.min, off.basic.min);
+    assert.equal(on.critical.max, off.critical.max);
+    assert.equal(on.totalDamageRange.expected, off.totalDamageRange.expected);
+  });
+
+  it('난수 순환은 3타가 아니거나 크리티컬이 없으면 범위를 바꾸지 않는다', () => {
+    const stats = makeStats();
+    const cases: Partial<Skills>[] = [
+      { type: 'lucky7', level: 20 },
+      { type: 'avenger', level: 30 },
+      { type: 'drain', level: 30 },
+      // 크리티컬 확률이 0이면 결합해도 분포가 달라지지 않는다
+      { type: 'tripleThrow', level: 30, criticalThrow: 0 },
+    ];
+    for (const overrides of cases) {
+      const skills = makeSkills(overrides);
+      const off = calculateDamage(monster, stats, equipment, skills);
+      const on = calculateDamage(monster, stats, equipment, {
+        ...skills,
+        rngCyclingEnabled: true,
+      });
+      assert.deepEqual(
+        on.totalDamageRange,
+        off.totalDamageRange,
+        `${overrides.type}에서 범위가 달라졌다`
+      );
+    }
   });
 
   it('레벨 차이가 클수록 데미지가 줄어든다', () => {
