@@ -3,6 +3,7 @@ import {
   Stats,
   Equipment,
   Skills,
+  DamageRange,
   DamageResult,
   isLucky7Effect,
   isAvengerEffect,
@@ -16,6 +17,9 @@ import {
 } from '../types/calculator';
 import { getSkillEffect } from '../data/skillEffects';
 import { throwingStars } from '../data/weapons';
+import { getStandardPhysicalDefense } from '../data/standardPDD';
+import { MOB_ATTACK_UP_TIERS } from '../data/mobBuffs';
+import { PURE_INT } from '../constants/calculator';
 import {
   fftForward,
   fftConvolveWithSpectrum,
@@ -272,7 +276,7 @@ export const calculatePureLuk = (
 ): number => {
   const totalPureStats =
     20 + level * 5 + (level >= 70 ? 5 : 0) + (level >= 120 ? 5 : 0);
-  return Math.max(0, totalPureStats - str - dex - 4); // 4 = INT
+  return Math.max(0, totalPureStats - str - dex - PURE_INT);
 };
 
 export const calculateRequiredHitRatio = (
@@ -497,6 +501,221 @@ export const calculateAvoidBreakdown = (
         characterLevel,
         monsterAccuracy
       )
+    ),
+  };
+};
+
+/**
+ * 피격 데미지 상·하한.
+ *
+ * 원작 `CalcDamage::PDamage` / `MDamage`가 마지막에 `max(1, min(99999, damage))`로
+ * 자른 뒤 정수로 절삭한다. **상한은 메이플랜드에서도 99999 그대로로 둔다.**
+ * 199999로 올라간 것은 캐릭터가 주는 데미지 라인 쪽이고, 몹 공격력이 1999에서
+ * 잘리는 이상 피격은 애초에 34000을 넘지 못해 상한에 닿지 않는다.
+ */
+export const MIN_HIT_DAMAGE = 1;
+export const MAX_HIT_DAMAGE = 99999;
+
+/** 몹 공격력과 캐릭터 방어력은 원작에서 0~1999로 잘린 뒤 식에 들어간다. */
+const clampToStatCap = (value: number): number =>
+  Math.min(1999, Math.max(0, Math.trunc(value)));
+
+/** 실수 데미지를 원작과 같은 순서(클램프 -> 절삭)로 정수화한다. */
+const toHitDamage = (damage: number): number =>
+  Math.trunc(Math.min(MAX_HIT_DAMAGE, Math.max(MIN_HIT_DAMAGE, damage)));
+
+/**
+ * 몹 공격력 롤.
+ *
+ * 원작은 `U[low * 공격력, high * 공격력]`을 굴린 뒤 다시 `공격력 * 0.01`을 곱한다.
+ * 그래서 피격 데미지는 몹 공격력의 **2차식**이다. 난수는 이 롤 하나뿐이고
+ * 방어력 쪽에는 난수가 없어서, 공격 데미지와 달리 분포가 사다리꼴이 아니라 균등이다.
+ */
+const rollMobAttack = (
+  attack: number,
+  lowRatio: number,
+  highRatio: number,
+  roll: number
+): number => {
+  const low = attack * lowRatio;
+  const high = attack * highRatio;
+  return ((high - low) * roll + low) * (attack * 0.01);
+};
+
+/** 클램프·절삭 전의 실수 데미지 범위. 방어력 1당 감소폭을 재려면 이 값이 필요하다. */
+interface RawHitDamageRange {
+  min: number;
+  max: number;
+}
+
+/**
+ * 몹의 **물리 공격**(몸박 포함)으로 캐릭터가 받는 데미지.
+ *
+ * 원작 `CalcDamage::PDamage(MobStat*, MobAttackInfo*, …)`를 그대로 옮겼다.
+ *
+ * ```
+ * 기본  = U[0.8 * 공격력, 0.85 * 공격력] * 공격력 * 0.01
+ * 스탯항 = trunc(INT/9 + DEX/3.5 + STR*0.4 + LUK*0.25)      // 전사가 아닌 직업
+ * 감면  = 표준방어력차항 + (스탯항 * 0.00125 + 0.28) * 방어력
+ * 데미지 = trunc(clamp(1, 99999, 기본 - 감면))
+ * ```
+ *
+ * 방어력은 절댓값이 아니라 **레벨대의 표준 방어력과의 차이**로 들어간다
+ * (`getStandardPhysicalDefense`). 표준보다 낮으면 차이가 음수라 감면이 줄어들고,
+ * 그 구간에서만 레벨 차이가 개입한다.
+ *
+ * 몹의 공격업(`PowerUp_`) 배율은 여기가 아니라 `calculateHitDamageBreakdown`이
+ * 단계별로 붙인다. 반영하지 않은 항은 `ss->nInvincible_`(데미지 감소 버프) 비율
+ * 감면과 메소 가드다. 나이트로드가 상시로 걸고 다니는 값이 아니라 0으로 두었다.
+ */
+const physicalHitDamageRaw = (
+  monster: Monster,
+  stats: Stats,
+  defense: number
+): RawHitDamageRange => {
+  const attack = clampToStatCap(monster.physicalAttack);
+  const { totalStr, totalDex, totalLuk } = calculateTotalStats(stats);
+  const totalInt = PURE_INT + stats.additionalInt;
+
+  // 원작은 전사(직업군 1)만 다른 계수를 쓴다. 나이트로드는 그 밖의 가지다.
+  const statBase = Math.trunc(
+    totalInt * 0.1111111111111111 +
+      totalDex * 0.2857142857142857 +
+      totalStr * 0.4 +
+      totalLuk * 0.25
+  );
+
+  const standardDefense = getStandardPhysicalDefense(stats.level);
+  const defenseGap = defense - standardDefense;
+  const gapReduce =
+    standardDefense > defense
+      ? (stats.level * 0.001818181818181818 + statBase * 0.00125 + 0.28) *
+        defenseGap *
+        (stats.level >= monster.level
+          ? 13.0 / (stats.level - monster.level + 13.0)
+          : 1.3)
+      : (statBase * 0.0011111111111111 +
+          stats.level * 0.0007692307692307692 +
+          0.28) *
+        defenseGap *
+        0.7;
+
+  const reduce = gapReduce + (statBase * 0.00125 + 0.28) * defense;
+
+  return {
+    min: rollMobAttack(attack, 0.8, 0.85, 0) - reduce,
+    max: rollMobAttack(attack, 0.8, 0.85, 1) - reduce,
+  };
+};
+
+/**
+ * 몹의 **마법 공격**으로 캐릭터가 받는 데미지.
+ *
+ * 원작 `CalcDamage::MDamage(MobStat*, MobAttackInfo*, …)`는 물리와 구조가 아예 다르다.
+ * 표준 방어력 표도, 레벨 차이도, 데미지 감소 버프도 개입하지 않고 스탯과 마법 방어력을
+ * 그대로 뺀다. 게다가 **공격 정보를 아예 안 본다** — 물리는 공격마다 다른 공격력을
+ * 쓰는데 마법은 몹의 마법 공격력 하나로 끝난다.
+ *
+ * ```
+ * 기본  = U[0.75 * 마공, 0.8 * 마공] * 마공 * 0.01
+ * 감면  = (STR/7 + LUK*0.2 + DEX/6 + 마법방어력) * 0.25   // 마법사면 0.3
+ * 데미지 = trunc(clamp(1, 99999, 기본 - 감면))
+ * ```
+ */
+const magicHitDamageRaw = (
+  monster: Monster,
+  stats: Stats,
+  defense: number
+): RawHitDamageRange => {
+  const attack = clampToStatCap(monster.magicAttack);
+  const { totalStr, totalDex, totalLuk } = calculateTotalStats(stats);
+
+  // 마법사(직업군 2)만 0.3을 쓴다. 나이트로드는 0.25다.
+  const reduce =
+    (totalStr * 0.14285714285714 +
+      totalLuk * 0.2 +
+      totalDex * 0.1666666666667 +
+      defense) *
+    0.25;
+
+  return {
+    min: rollMobAttack(attack, 0.75, 0.8, 0) - reduce,
+    max: rollMobAttack(attack, 0.75, 0.8, 1) - reduce,
+  };
+};
+
+/** 몹 공격업 한 단계에서의 피격 데미지. */
+export interface PoweredHitDamage {
+  /** 공격업 단계 (1, 2) */
+  stage: number;
+  /** 원작 `PowerUp_` / `MagicUp_`에 들어가는 배율 (%) */
+  percent: number;
+  damage: DamageRange;
+}
+
+/** 피격 데미지 한 종류(물리 또는 마법)의 요약. */
+export interface HitDamageEntry {
+  /** 화면에 뜨는 정수 데미지 범위 */
+  damage: DamageRange;
+  /** 몹이 공격업을 걸었을 때의 데미지 (단계 순서대로) */
+  poweredUp: PoweredHitDamage[];
+  /** 방어력을 1 올렸을 때 줄어드는 데미지 (클램프·절삭 전 실수 기준) */
+  reducePerDefense: number;
+  /** 방어력이 더 올라가도 데미지가 하한 1에서 멈춰 있는 상태인지 */
+  atMinimum: boolean;
+}
+
+export interface HitDamageBreakdown {
+  physical: HitDamageEntry;
+  magic: HitDamageEntry;
+}
+
+/**
+ * 물리 / 마법 피격 데미지와 방어력 1당 감소폭을 한 번에 낸다.
+ *
+ * 감소폭은 기울기를 그대로 쓰지 않고 **방어력을 실제로 1 올려 본 차이**다.
+ * 물리는 표준 방어력을 넘는 순간 감면 식이 갈리기 때문에, 미분값을 쓰면 경계에서
+ * 실제와 다른 숫자가 적힌다. 회피 확률의 증가폭을 재는 방식과 같다.
+ *
+ * 공격업 배율은 **방어력 감면이 끝난 값에 곱한 뒤** 클램프·절삭한다. 원작이
+ * `damage *= 배율 * 0.01`을 클램프 직전에 두기 때문이다. 몹 공격력을 올려서 계산하면
+ * 감면이 그대로 남아 값이 달라진다(공격력은 2차식으로 들어가는 것도 다르다).
+ */
+export const calculateHitDamageBreakdown = (
+  monster: Monster,
+  stats: Stats
+): HitDamageBreakdown => {
+  const summarize = (
+    raw: (defense: number) => RawHitDamageRange,
+    defense: number | undefined
+  ): HitDamageEntry => {
+    const current = clampToStatCap(defense ?? 0);
+    const here = raw(current);
+    const next = raw(clampToStatCap(current + 1));
+
+    return {
+      damage: { min: toHitDamage(here.min), max: toHitDamage(here.max) },
+      poweredUp: MOB_ATTACK_UP_TIERS.map(({ stage, percent }) => ({
+        stage,
+        percent,
+        damage: {
+          min: toHitDamage(here.min * percent * 0.01),
+          max: toHitDamage(here.max * percent * 0.01),
+        },
+      })),
+      reducePerDefense: here.max - next.max,
+      atMinimum: here.max <= MIN_HIT_DAMAGE,
+    };
+  };
+
+  return {
+    physical: summarize(
+      (defense) => physicalHitDamageRaw(monster, stats, defense),
+      stats.physicalDefense
+    ),
+    magic: summarize(
+      (defense) => magicHitDamageRaw(monster, stats, defense),
+      stats.magicalDefense
     ),
   };
 };

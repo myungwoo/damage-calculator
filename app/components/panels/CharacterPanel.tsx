@@ -5,6 +5,7 @@ import {
   SHADOW_SHIFTER_MAX_LEVEL,
   getShadowShifterProp,
 } from '../../data/shadowShifter';
+import { PURE_INT } from '../../constants/calculator';
 import NumberInput from '../NumberInput';
 import Card from '../ui/Card';
 import Field from '../ui/Field';
@@ -29,32 +30,43 @@ export default function CharacterPanel({
   onLevelChange,
 }: CharacterPanelProps) {
   // LUK 순 스탯은 레벨과 STR/DEX에서 역산되는 값이라 직접 입력받지 않는다.
-  const statRows = [
+  // INT 순 스탯은 AP를 주지 않으므로 시작값 4에서 멈춘다.
+  const statRows: {
+    label: string;
+    pure: number;
+    additional: number;
+    /** 순 스탯을 직접 고칠 수 있는 스탯만 갖는다 (없으면 읽기 전용으로 그린다) */
+    onPure?: (value: number) => void;
+    onAdditional: (value: number) => void;
+  }[] = [
     {
-      key: 'str' as const,
       label: 'STR',
       pure: stats.str,
       additional: stats.additionalStr,
-      editablePure: true,
-      onAdditional: (value: number) =>
+      onPure: (value) => onPureStatChange('str', value),
+      onAdditional: (value) =>
         setStats((prev) => ({ ...prev, additionalStr: value })),
     },
     {
-      key: 'dex' as const,
       label: 'DEX',
       pure: stats.dex,
       additional: stats.additionalDex,
-      editablePure: true,
-      onAdditional: (value: number) =>
+      onPure: (value) => onPureStatChange('dex', value),
+      onAdditional: (value) =>
         setStats((prev) => ({ ...prev, additionalDex: value })),
     },
     {
-      key: 'luk' as const,
+      label: 'INT',
+      pure: PURE_INT,
+      additional: stats.additionalInt,
+      onAdditional: (value) =>
+        setStats((prev) => ({ ...prev, additionalInt: value })),
+    },
+    {
       label: 'LUK',
       pure: stats.luk,
       additional: stats.additionalLuk,
-      editablePure: false,
-      onAdditional: (value: number) =>
+      onAdditional: (value) =>
         setStats((prev) => ({ ...prev, additionalLuk: value })),
     },
   ];
@@ -112,19 +124,19 @@ export default function CharacterPanel({
           <div className="space-y-2">
             {statRows.map((row) => (
               <div
-                key={row.key}
+                key={row.label}
                 className="grid grid-cols-[2.6rem_1fr_1fr_1fr] items-center gap-2"
               >
                 <span className="text-xs font-bold text-muted">
                   {row.label}
                 </span>
-                {row.editablePure ? (
+                {row.onPure ? (
                   <NumberInput
                     value={row.pure}
                     ariaLabel={`순수 ${row.label}`}
                     onChange={(value) => {
                       if (value !== undefined) {
-                        onPureStatChange(row.key, value);
+                        row.onPure?.(value);
                       }
                     }}
                     className="text-center"
@@ -150,7 +162,8 @@ export default function CharacterPanel({
             ))}
           </div>
           <p className="mt-2 text-xs text-muted">
-            LUK 순수 스탯은 레벨과 STR / DEX에서 역산한다
+            LUK 순수 스탯은 레벨과 STR / DEX에서 역산한다. INT는 순수 {PURE_INT}
+            에서 멈추고, 공격 데미지가 아니라 물리 피격 데미지에만 들어간다
           </p>
         </div>
 
@@ -179,6 +192,31 @@ export default function CharacterPanel({
               ariaLabel="회피율"
               onChange={(value) =>
                 setStats((prev) => ({ ...prev, avoid: value }))
+              }
+              placeholder="입력 안 하면 0"
+              allowUndefined
+            />
+          </Field>
+
+          {/* 방어력은 데미지에는 영향이 없고 피격 데미지에만 들어간다. */}
+          <Field label="물리 방어력">
+            <NumberInput
+              value={stats.physicalDefense}
+              ariaLabel="물리 방어력"
+              onChange={(value) =>
+                setStats((prev) => ({ ...prev, physicalDefense: value }))
+              }
+              placeholder="입력 안 하면 0"
+              allowUndefined
+            />
+          </Field>
+
+          <Field label="마법 방어력">
+            <NumberInput
+              value={stats.magicalDefense}
+              ariaLabel="마법 방어력"
+              onChange={(value) =>
+                setStats((prev) => ({ ...prev, magicalDefense: value }))
               }
               placeholder="입력 안 하면 0"
               allowUndefined
