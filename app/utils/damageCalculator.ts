@@ -668,11 +668,20 @@ export interface HitDamageEntry {
   atMinimum: boolean;
 }
 
+/**
+ * 피격 경로별 데미지.
+ *
+ * 원작 엔진은 몹의 행동을 **공격(`attack{n}`)과 스킬(`MobSkill`)로 나누고**,
+ * 데미지를 주는 것은 공격뿐이다(스킬은 상태이상·버프·소환 전용이다).
+ * 그 공격이 다시 물리와 마법으로 갈리고, 접촉 데미지(몸박)는 공격 정보 없이
+ * 몹 기본 공격력을 쓴다. 세 갈래는 공격력도 판정도 달라서 하나로 못 합친다.
+ */
 export interface HitDamageBreakdown {
-  /** 가장 센 물리 공격 기준 (공격별 공격력을 모르면 몸박과 같다) */
-  physical: HitDamageEntry;
-  /** 몸박 기준. 가장 센 물리 공격이 곧 몸박이면 null */
-  bodyPhysical: HitDamageEntry | null;
+  /** 몸박. 몹 기본 물리 공격력을 쓴다 */
+  body: HitDamageEntry;
+  /** 몸박보다 센 물리 공격이 있으면 그중 가장 센 것. 없으면 null */
+  attack: HitDamageEntry | null;
+  /** 마법 공격 */
   magic: HitDamageEntry;
 }
 
@@ -714,31 +723,21 @@ export const calculateHitDamageBreakdown = (
     };
   };
 
-  // 몸박보다 센 공격이 있으면 그쪽이 대표값이다. 실제로 맞는 최댓값이 그 값이라,
-  // 몸박만 보여주면 화면값보다 큰 데미지를 맞고 계산이 틀렸다고 읽게 된다.
-  const strongestAttack = Math.max(
-    monster.physicalAttack,
-    monster.strongestPhysicalAttack ?? 0
-  );
+  const physical = (attack: number) =>
+    summarize(
+      (defense) => physicalHitDamageRaw(monster, stats, defense, attack),
+      stats.physicalDefense
+    );
+
+  // 원작은 공격별 공격력이 몹 기본보다 낮게 적혀 있어도 max를 쓰므로,
+  // 몸박보다 세지 않은 공격은 몸박과 값이 같아진다. 그럴 땐 줄을 만들지 않는다.
+  const strongestAttack = monster.strongestPhysicalAttack ?? 0;
 
   return {
-    physical: summarize(
-      (defense) =>
-        physicalHitDamageRaw(monster, stats, defense, strongestAttack),
-      stats.physicalDefense
-    ),
-    bodyPhysical:
+    body: physical(monster.physicalAttack),
+    attack:
       strongestAttack > monster.physicalAttack
-        ? summarize(
-            (defense) =>
-              physicalHitDamageRaw(
-                monster,
-                stats,
-                defense,
-                monster.physicalAttack
-              ),
-            stats.physicalDefense
-          )
+        ? physical(strongestAttack)
         : null,
     magic: summarize(
       (defense) => magicHitDamageRaw(monster, stats, defense),

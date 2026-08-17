@@ -207,9 +207,9 @@ describe('피격 데미지', () => {
         const magic = referenceMagicDamage(monster, stats, roll);
 
         assert.ok(
-          physical >= breakdown.physical.damage.min &&
-            physical <= breakdown.physical.damage.max,
-          `물리 ${physical}이 ${breakdown.physical.damage.min}~${breakdown.physical.damage.max} 밖이다`
+          physical >= breakdown.body.damage.min &&
+            physical <= breakdown.body.damage.max,
+          `물리 ${physical}이 ${breakdown.body.damage.min}~${breakdown.body.damage.max} 밖이다`
         );
         assert.ok(
           magic >= breakdown.magic.damage.min &&
@@ -219,7 +219,7 @@ describe('피격 데미지', () => {
       }
 
       // 공격업 단계도 같은 참조 구현과 맞아야 한다.
-      for (const tier of breakdown.physical.poweredUp) {
+      for (const tier of breakdown.body.poweredUp) {
         assert.equal(
           referencePhysicalDamage(monster, stats, 0, tier.percent),
           tier.damage.min
@@ -243,11 +243,11 @@ describe('피격 데미지', () => {
       // 양 끝은 실제로 나오는 값이어야 한다. 안 그러면 범위가 헐겁다는 뜻이다.
       assert.equal(
         referencePhysicalDamage(monster, stats, 0),
-        breakdown.physical.damage.min
+        breakdown.body.damage.min
       );
       assert.equal(
         referencePhysicalDamage(monster, stats, 1),
-        breakdown.physical.damage.max
+        breakdown.body.damage.max
       );
       assert.equal(
         referenceMagicDamage(monster, stats, 0),
@@ -263,11 +263,11 @@ describe('피격 데미지', () => {
   it('듀얼 비틀에게 맞는 120레벨 기준 값이 고정돼 있다', () => {
     const breakdown = calculateHitDamageBreakdown(makeMonster(), makeStats());
 
-    assert.deepEqual(breakdown.physical.damage, { min: 453, max: 498 });
+    assert.deepEqual(breakdown.body.damage, { min: 453, max: 498 });
     assert.deepEqual(breakdown.magic.damage, { min: 797, max: 858 });
 
     assert.deepEqual(
-      breakdown.physical.poweredUp.map((tier) => tier.damage),
+      breakdown.body.poweredUp.map((tier) => tier.damage),
       [
         { min: 521, max: 573 },
         { min: 589, max: 648 },
@@ -288,16 +288,16 @@ describe('피격 데미지', () => {
     const breakdown = calculateHitDamageBreakdown(monster, stats);
 
     assert.deepEqual(
-      breakdown.physical.poweredUp.map((tier) => [tier.stage, tier.percent]),
+      breakdown.body.poweredUp.map((tier) => [tier.stage, tier.percent]),
       MOB_ATTACK_UP_TIERS.map((tier) => [tier.stage, tier.percent])
     );
 
-    for (const tier of breakdown.physical.poweredUp) {
-      assert.ok(tier.damage.max > breakdown.physical.damage.max);
+    for (const tier of breakdown.body.poweredUp) {
+      assert.ok(tier.damage.max > breakdown.body.damage.max);
       // 절삭은 곱한 뒤에 한 번만 한다. 화면에 뜬 정수에 곱하면 1씩 어긋난다.
       assert.ok(
         tier.damage.max >=
-          Math.trunc(breakdown.physical.damage.max * tier.percent * 0.01)
+          Math.trunc(breakdown.body.damage.max * tier.percent * 0.01)
       );
       // 몹 공격력에 같은 배율을 먹인 것과는 달라야 한다 (2차식 + 감면이 남는다).
       const boostedAttack = calculateHitDamageBreakdown(
@@ -306,7 +306,7 @@ describe('피격 데미지', () => {
         }),
         stats
       );
-      assert.notEqual(tier.damage.max, boostedAttack.physical.damage.max);
+      assert.notEqual(tier.damage.max, boostedAttack.body.damage.max);
     }
   });
 
@@ -316,8 +316,8 @@ describe('피격 데미지', () => {
       makeStats({ physicalDefense: 1999 })
     );
 
-    assert.ok(breakdown.physical.atMinimum);
-    for (const tier of breakdown.physical.poweredUp) {
+    assert.ok(breakdown.body.atMinimum);
+    for (const tier of breakdown.body.poweredUp) {
       assert.deepEqual(tier.damage, {
         min: MIN_HIT_DAMAGE,
         max: MIN_HIT_DAMAGE,
@@ -334,11 +334,11 @@ describe('피격 데미지', () => {
       makeStats({ physicalDefense: 600, magicalDefense: 500 })
     );
 
-    assert.ok(next.physical.damage.max < here.physical.damage.max);
+    assert.ok(next.body.damage.max < here.body.damage.max);
     assert.ok(next.magic.damage.max < here.magic.damage.max);
     // 마법은 방어력 1당 정확히 0.25씩 깎인다 (감면 계수가 그대로 곱해진다).
     assert.ok(Math.abs(here.magic.reducePerDefense - 0.25) < 1e-9);
-    assert.ok(here.physical.reducePerDefense > 0);
+    assert.ok(here.body.reducePerDefense > 0);
   });
 
   it('몹 공격력은 1999에서 잘린다', () => {
@@ -351,38 +351,45 @@ describe('피격 데미지', () => {
       makeStats()
     );
 
-    assert.deepEqual(beyond.physical.damage, capped.physical.damage);
+    assert.deepEqual(beyond.body.damage, capped.body.damage);
     assert.deepEqual(beyond.magic.damage, capped.magic.damage);
   });
 
-  it('몸박보다 센 공격이 있으면 그쪽이 대표값이 되고 몸박은 따로 나온다', () => {
+  it('몸박보다 센 공격이 있으면 몸박과 따로 나온다', () => {
     const monster = makeMonster({ strongestPhysicalAttack: 755 });
     const stats = makeStats();
     const breakdown = calculateHitDamageBreakdown(monster, stats);
     const bodyOnly = calculateHitDamageBreakdown(makeMonster(), stats);
 
-    assert.notEqual(breakdown.bodyPhysical, null);
-    // 대표값은 센 공격 기준, 몸박 줄은 예전 값 그대로다.
-    assert.ok(breakdown.physical.damage.max > bodyOnly.physical.damage.max);
-    assert.deepEqual(breakdown.bodyPhysical?.damage, bodyOnly.physical.damage);
-    // 공격업도 대표값을 따라간다.
+    assert.notEqual(breakdown.attack, null);
+    // 몸박 줄은 공격이 뭐가 있든 그대로다.
+    assert.deepEqual(breakdown.body.damage, bodyOnly.body.damage);
+    // 공격 줄은 몸박보다 세다. 공격업도 그 값을 따라간다.
+    assert.ok(breakdown.attack!.damage.max > breakdown.body.damage.max);
     assert.ok(
-      breakdown.physical.poweredUp[0].damage.max >
-        bodyOnly.physical.poweredUp[0].damage.max
+      breakdown.attack!.poweredUp[0].damage.max >
+        breakdown.body.poweredUp[0].damage.max
+    );
+    // 방어력 1당 감소폭은 공격력과 무관해서 두 줄이 같다 (화면에 한 번만 적는 근거).
+    // 큰 값끼리 빼서 만든 차이라 부동소수점 끝자리만 갈린다.
+    assert.ok(
+      Math.abs(
+        breakdown.attack!.reducePerDefense - breakdown.body.reducePerDefense
+      ) < 1e-6
     );
   });
 
-  it('몸박이 가장 센 공격이면 몸박 줄이 없다', () => {
+  it('몸박이 가장 센 공격이면 공격 줄이 없다', () => {
     const breakdown = calculateHitDamageBreakdown(makeMonster(), makeStats());
-    assert.equal(breakdown.bodyPhysical, null);
+    assert.equal(breakdown.attack, null);
 
     // 공격별 공격력이 몸박보다 낮게 적힌 몹도 원작이 max를 쓰므로 몸박이 대표값이다.
     const weaker = calculateHitDamageBreakdown(
       makeMonster({ strongestPhysicalAttack: 100 }),
       makeStats()
     );
-    assert.equal(weaker.bodyPhysical, null);
-    assert.deepEqual(weaker.physical.damage, breakdown.physical.damage);
+    assert.equal(weaker.attack, null);
+    assert.deepEqual(weaker.body.damage, breakdown.body.damage);
   });
 
   it('망각의 수호대장 실측 제보 케이스', () => {
@@ -415,8 +422,8 @@ describe('피격 데미지', () => {
     });
     const breakdown = calculateHitDamageBreakdown(monster, stats);
 
-    assert.deepEqual(breakdown.physical.damage, { min: 3845, max: 4130 });
-    assert.deepEqual(breakdown.bodyPhysical?.damage, { min: 2613, max: 2821 });
+    assert.deepEqual(breakdown.body.damage, { min: 2613, max: 2821 });
+    assert.deepEqual(breakdown.attack?.damage, { min: 3845, max: 4130 });
     assert.deepEqual(breakdown.magic.damage, { min: 3732, max: 3995 });
   });
 
@@ -427,7 +434,7 @@ describe('피격 데미지', () => {
       makeStats({ physicalDefense: 1999, magicalDefense: 1999 })
     );
 
-    assert.deepEqual(breakdown.physical.damage, {
+    assert.deepEqual(breakdown.body.damage, {
       min: MIN_HIT_DAMAGE,
       max: MIN_HIT_DAMAGE,
     });
@@ -435,7 +442,7 @@ describe('피격 데미지', () => {
       min: MIN_HIT_DAMAGE,
       max: MIN_HIT_DAMAGE,
     });
-    assert.ok(breakdown.physical.atMinimum);
+    assert.ok(breakdown.body.atMinimum);
     assert.ok(breakdown.magic.atMinimum);
   });
 
@@ -447,7 +454,7 @@ describe('피격 데미지', () => {
       makeStats({ additionalInt: 100 })
     );
 
-    assert.ok(withInt.physical.damage.max < withoutInt.physical.damage.max);
+    assert.ok(withInt.body.damage.max < withoutInt.body.damage.max);
     assert.deepEqual(withInt.magic.damage, withoutInt.magic.damage);
   });
 
@@ -464,8 +471,6 @@ describe('피격 데미지', () => {
     );
 
     // 몹 레벨이 캐릭터보다 높으면 감면이 더 크게 깎여서 더 아프다.
-    assert.ok(
-      higherMonster.physical.damage.max > sameLevel.physical.damage.max
-    );
+    assert.ok(higherMonster.body.damage.max > sameLevel.body.damage.max);
   });
 });
