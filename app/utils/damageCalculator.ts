@@ -552,6 +552,8 @@ interface RawHitDamageRange {
  * 몹의 **물리 공격**(몸박 포함)으로 캐릭터가 받는 데미지.
  *
  * 원작 `CalcDamage::PDamage(MobStat*, MobAttackInfo*, …)`를 그대로 옮겼다.
+ * `monsterAttack`은 그 타격의 공격력이다 — 몸박이면 몹 기본 공격력이고,
+ * 스킬 공격이면 원작이 쓰는 `max(몹 기본, 공격별 PADamage)`다.
  *
  * ```
  * 기본  = U[0.8 * 공격력, 0.85 * 공격력] * 공격력 * 0.01
@@ -571,9 +573,10 @@ interface RawHitDamageRange {
 const physicalHitDamageRaw = (
   monster: Monster,
   stats: Stats,
-  defense: number
+  defense: number,
+  monsterAttack: number
 ): RawHitDamageRange => {
-  const attack = clampToStatCap(monster.physicalAttack);
+  const attack = clampToStatCap(monsterAttack);
   const { totalStr, totalDex, totalLuk } = calculateTotalStats(stats);
   const totalInt = PURE_INT + stats.additionalInt;
 
@@ -666,7 +669,10 @@ export interface HitDamageEntry {
 }
 
 export interface HitDamageBreakdown {
+  /** 가장 센 물리 공격 기준 (공격별 공격력을 모르면 몸박과 같다) */
   physical: HitDamageEntry;
+  /** 몸박 기준. 가장 센 물리 공격이 곧 몸박이면 null */
+  bodyPhysical: HitDamageEntry | null;
   magic: HitDamageEntry;
 }
 
@@ -708,11 +714,32 @@ export const calculateHitDamageBreakdown = (
     };
   };
 
+  // 몸박보다 센 공격이 있으면 그쪽이 대표값이다. 실제로 맞는 최댓값이 그 값이라,
+  // 몸박만 보여주면 화면값보다 큰 데미지를 맞고 계산이 틀렸다고 읽게 된다.
+  const strongestAttack = Math.max(
+    monster.physicalAttack,
+    monster.strongestPhysicalAttack ?? 0
+  );
+
   return {
     physical: summarize(
-      (defense) => physicalHitDamageRaw(monster, stats, defense),
+      (defense) =>
+        physicalHitDamageRaw(monster, stats, defense, strongestAttack),
       stats.physicalDefense
     ),
+    bodyPhysical:
+      strongestAttack > monster.physicalAttack
+        ? summarize(
+            (defense) =>
+              physicalHitDamageRaw(
+                monster,
+                stats,
+                defense,
+                monster.physicalAttack
+              ),
+            stats.physicalDefense
+          )
+        : null,
     magic: summarize(
       (defense) => magicHitDamageRaw(monster, stats, defense),
       stats.magicalDefense

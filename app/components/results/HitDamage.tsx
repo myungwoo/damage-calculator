@@ -1,5 +1,6 @@
-import { Monster, Stats } from '../../types/calculator';
+import { DamageRange, Monster, Stats } from '../../types/calculator';
 import {
+  HitDamageEntry,
   MIN_HIT_DAMAGE,
   calculateHitDamageBreakdown,
 } from '../../utils/damageCalculator';
@@ -24,24 +25,46 @@ const fmt = (value: number) => value.toLocaleString('ko-KR');
 export default function HitDamage({ monster, stats }: HitDamageProps) {
   const breakdown = calculateHitDamageBreakdown(monster, stats);
 
-  const columns = [
+  // 마법 공격이 없는 몹은 마법 공격력이 0보다 커도 마법으로는 안 맞는다.
+  const magicAttack =
+    monster.hasMagicAttack === false ? 0 : monster.magicAttack;
+
+  const columns: {
+    key: string;
+    label: string;
+    hint: string;
+    entry: HitDamageEntry;
+    attack: number;
+    emptyNote: string;
+    defenseLabel: string;
+    /** 대표값과 다른 기준의 값 (물리에서 몸박) */
+    extra: { label: string; damage: DamageRange } | null;
+  }[] = [
     {
       key: 'physical',
       label: '물리',
-      hint: '몸박 기준',
+      // 대표값은 가장 센 공격이다. 몸박만 띄우면 실제로 맞는 최댓값을 놓친다.
+      hint: breakdown.bodyPhysical ? '가장 센 공격' : '몸박 기준',
       entry: breakdown.physical,
       attack: monster.physicalAttack,
-      defense: stats.physicalDefense,
+      emptyNote: '물리 공격력이 0인 몹이다',
       defenseLabel: '물리방어력',
+      extra: breakdown.bodyPhysical
+        ? { label: '몸박', damage: breakdown.bodyPhysical.damage }
+        : null,
     },
     {
       key: 'magic',
       label: '마법',
       hint: '몹 마법 공격',
       entry: breakdown.magic,
-      attack: monster.magicAttack,
-      defense: stats.magicalDefense,
+      attack: magicAttack,
+      emptyNote:
+        monster.hasMagicAttack === false
+          ? '마법 공격이 없는 몹이다'
+          : '마법 공격력이 0인 몹이다',
       defenseLabel: '마법방어력',
+      extra: null,
     },
   ];
 
@@ -84,7 +107,7 @@ export default function HitDamage({ monster, stats }: HitDamageProps) {
                   —
                 </div>
                 <p className="mt-1.5 text-[0.7rem] leading-relaxed text-muted">
-                  {column.label} 공격력이 0인 몹이다
+                  {column.emptyNote}
                 </p>
               </>
             ) : (
@@ -104,18 +127,24 @@ export default function HitDamage({ monster, stats }: HitDamageProps) {
                   바로 읽어야 하는 값이지, 설정해서 보는 값이 아니다.
                 */}
                 <div className="mt-1 space-y-0.5">
-                  {column.entry.poweredUp.map((tier) => (
+                  {[
+                    ...(column.extra ? [column.extra] : []),
+                    ...column.entry.poweredUp.map((tier) => ({
+                      label: `공격업 ${tier.stage}단계`,
+                      damage: tier.damage,
+                    })),
+                  ].map((row) => (
                     <div
-                      key={tier.stage}
+                      key={row.label}
                       className="flex items-baseline justify-between gap-1 text-[0.7rem] leading-relaxed"
                     >
                       <span className="whitespace-nowrap text-muted">
-                        공격업 {tier.stage}단계
+                        {row.label}
                       </span>
                       <span className="tabular-nums text-ink">
-                        {fmt(tier.damage.min)}
+                        {fmt(row.damage.min)}
                         <span className="mx-0.5 text-muted">~</span>
-                        {fmt(tier.damage.max)}
+                        {fmt(row.damage.max)}
                       </span>
                     </div>
                   ))}

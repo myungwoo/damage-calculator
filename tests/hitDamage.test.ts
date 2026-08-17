@@ -7,6 +7,7 @@ import {
 } from '../app/utils/damageCalculator';
 import { getStandardPhysicalDefense } from '../app/data/standardPDD';
 import { MOB_ATTACK_UP_TIERS } from '../app/data/mobBuffs';
+import { monsterPresets } from '../app/data/monsterPresets';
 import { PURE_INT } from '../app/constants/calculator';
 import { createRandom } from './helpers/reference';
 
@@ -124,6 +125,30 @@ const referenceMagicDamage = (
   if (result >= 99999.0) result = 99999.0;
   return Math.trunc(result);
 };
+
+describe('몬스터 프리셋의 공격 정보', () => {
+  it('가장 센 공격은 몸박보다 세게만 적는다', () => {
+    // 원작이 max(몹 기본, 공격별)을 쓰므로, 몸박 이하인 값은 프리셋에 남길 이유가 없다.
+    for (const preset of monsterPresets) {
+      if (preset.strongestPhysicalAttack === undefined) continue;
+      assert.ok(
+        preset.strongestPhysicalAttack > preset.physicalAttack,
+        `${preset.name}의 가장 센 공격이 몸박보다 세지 않다`
+      );
+    }
+  });
+
+  it('마법 공격이 없는 몹은 마법 공격력이 있어도 마법으로 안 때린다', () => {
+    const withMad = monsterPresets.filter((preset) => preset.magicAttack > 0);
+    const noMagicAttack = withMad.filter(
+      (preset) => preset.hasMagicAttack !== true
+    );
+
+    // 마공만 보고 마법 피격을 그리면 이 몹들에서 없는 데미지를 만들어 낸다.
+    assert.ok(noMagicAttack.length > 0);
+    assert.ok(withMad.length > noMagicAttack.length);
+  });
+});
 
 describe('표준 물리 방어력 표', () => {
   it('표에 없는 레벨은 바로 아래 칸의 값을 그대로 쓴다', () => {
@@ -328,6 +353,71 @@ describe('피격 데미지', () => {
 
     assert.deepEqual(beyond.physical.damage, capped.physical.damage);
     assert.deepEqual(beyond.magic.damage, capped.magic.damage);
+  });
+
+  it('몸박보다 센 공격이 있으면 그쪽이 대표값이 되고 몸박은 따로 나온다', () => {
+    const monster = makeMonster({ strongestPhysicalAttack: 755 });
+    const stats = makeStats();
+    const breakdown = calculateHitDamageBreakdown(monster, stats);
+    const bodyOnly = calculateHitDamageBreakdown(makeMonster(), stats);
+
+    assert.notEqual(breakdown.bodyPhysical, null);
+    // 대표값은 센 공격 기준, 몸박 줄은 예전 값 그대로다.
+    assert.ok(breakdown.physical.damage.max > bodyOnly.physical.damage.max);
+    assert.deepEqual(breakdown.bodyPhysical?.damage, bodyOnly.physical.damage);
+    // 공격업도 대표값을 따라간다.
+    assert.ok(
+      breakdown.physical.poweredUp[0].damage.max >
+        bodyOnly.physical.poweredUp[0].damage.max
+    );
+  });
+
+  it('몸박이 가장 센 공격이면 몸박 줄이 없다', () => {
+    const breakdown = calculateHitDamageBreakdown(makeMonster(), makeStats());
+    assert.equal(breakdown.bodyPhysical, null);
+
+    // 공격별 공격력이 몸박보다 낮게 적힌 몹도 원작이 max를 쓰므로 몸박이 대표값이다.
+    const weaker = calculateHitDamageBreakdown(
+      makeMonster({ strongestPhysicalAttack: 100 }),
+      makeStats()
+    );
+    assert.equal(weaker.bodyPhysical, null);
+    assert.deepEqual(weaker.physical.damage, breakdown.physical.damage);
+  });
+
+  it('망각의 수호대장 실측 제보 케이스', () => {
+    // 프리셋 8200012: 몸박 645 / 가장 센 공격 755 / 마공 725.
+    // 마법 최대(3,995)보다 큰 4,000~4,100을 맞았다는 제보가 있었고,
+    // 그 값은 마법이 아니라 attack2(755) 물리 범위 안이다.
+    const monster = makeMonster({
+      level: 131,
+      hp: 141000,
+      physicalDefense: 1060,
+      magicalDefense: 680,
+      avoid: 47,
+      accuracy: 230,
+      physicalAttack: 645,
+      strongestPhysicalAttack: 755,
+      magicAttack: 725,
+      hasMagicAttack: true,
+    });
+    const stats = makeStats({
+      level: 194,
+      str: 4,
+      dex: 37,
+      luk: 955,
+      additionalStr: 56,
+      additionalDex: 129,
+      additionalLuk: 273,
+      additionalInt: 52,
+      physicalDefense: 672,
+      magicalDefense: 556,
+    });
+    const breakdown = calculateHitDamageBreakdown(monster, stats);
+
+    assert.deepEqual(breakdown.physical.damage, { min: 3845, max: 4130 });
+    assert.deepEqual(breakdown.bodyPhysical?.damage, { min: 2613, max: 2821 });
+    assert.deepEqual(breakdown.magic.damage, { min: 3732, max: 3995 });
   });
 
   it('방어력이 아주 높으면 하한 1에서 멈춘다', () => {

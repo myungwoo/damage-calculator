@@ -31,8 +31,23 @@ export interface Monster {
   accuracy: number;
   /** 몬스터 물리 공격력. 몸박 피격 데미지의 기준값이다. */
   physicalAttack: number;
+  /**
+   * 몸박보다 센 물리 공격이 있는 몹의, 그 공격 공격력.
+   *
+   * 원작은 공격마다 자기 `PADamage`를 가질 수 있고 `max(몹 기본, 공격별)`을 쓴다.
+   * 몸박만 보여주면 실제로 맞는 최댓값을 놓친다(블러드붐은 몸박의 2.2배다).
+   * 없으면 가장 센 물리 공격이 곧 몸박이라는 뜻이다.
+   */
+  strongestPhysicalAttack?: number;
   /** 몬스터 마법 공격력. 마법 피격 데미지의 기준값이다. */
   magicAttack: number;
+  /**
+   * 마법 공격(원작 `attack{n}/info/magic`)을 가진 몹인지.
+   *
+   * 마법 공격이 없으면 마법 공격력이 0보다 커도 마법 피격은 들어오지 않는다.
+   * 프리셋 368종 중 73종이 여기 해당한다.
+   */
+  hasMagicAttack?: boolean;
   /**
    * 독 속성 저항 (원작 Mob.wz elemAttr의 S 항목).
    * 1 = 무효, 2 = 반감, 3 = 약점. 1과 2에는 베놈이 걸리지 않는다.
