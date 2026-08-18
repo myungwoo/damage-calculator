@@ -5,11 +5,13 @@ import { monsterPresets } from '../../data/monsterPresets';
 import { REGION_ORDER } from '../../constants/calculator';
 import { parseElementAttributes } from '../../utils/calculatorUtils';
 import { getMobSkillInfo } from '../../data/mobSkills';
+import { MOB_DEFENSE_UP_TIERS } from '../../data/mobBuffs';
 import MonsterDropdown from '../MonsterDropdown';
 import MonsterSprite from '../MonsterSprite';
 import NumberInput from '../NumberInput';
 import Card from '../ui/Card';
 import Field from '../ui/Field';
+import SegmentedControl from '../ui/SegmentedControl';
 
 interface MonsterPanelProps {
   monster: Monster;
@@ -37,6 +39,14 @@ export default function MonsterPanel({
   // 둬야 여러 몹을 훑어볼 때 매번 다시 누르지 않는다.
   const [spriteOpen, setSpriteOpen] = useState(false);
 
+  // 이 몹이 실제로 쓰는 방어업 배율. 입력 옆에 근거로 적어 준다.
+  const ownDefenseUp = (selectedPreset?.mobSkills ?? [])
+    .filter((skill) => skill.id === 102 || skill.id === 112)
+    .map((skill) => skill.x)
+    .filter(
+      (percent): percent is number => percent !== undefined && percent < 100
+    );
+
   // 소환 대상이 프리셋에 있는지 한 번만 훑어 둔다.
   const presetIds = new Set(monsterPresets.map((preset) => preset.id));
 
@@ -44,6 +54,8 @@ export default function MonsterPanel({
   const elementAttributes = parseElementAttributes(
     selectedPreset?.elementAttributes
   );
+
+  const defenseUpPercent = monster.defenseUpPercent ?? 100;
 
   const numericFields = [
     {
@@ -149,6 +161,71 @@ export default function MonsterPanel({
             고른다.
           </p>
         )}
+
+        {/*
+          방어업은 몹 수치가 아니라 "이 상황을 가정하고 계산해 달라"는 입력이라
+          잠긴 프리셋 칸과 섞이지 않게 아래에 따로 둔다. 걸린 뒤로는 방컷 확률이
+          통째로 달라지므로 결과가 아니라 입력 쪽에 있어야 한다.
+        */}
+        <div className="space-y-2 rounded-xl border border-line bg-sunken/40 p-3">
+          <Field
+            label="방어업"
+            hint={
+              defenseUpPercent >= 100
+                ? '몹이 방어업을 건 상황을 가정해서 방컷 확률을 다시 계산한다'
+                : `걸린 뒤로는 내 데미지가 ${defenseUpPercent}%가 된다. 쉐도우 파트너 몫도 같이 줄어든다`
+            }
+          >
+            <SegmentedControl
+              ariaLabel="몹 방어업 단계"
+              columns={4}
+              value={String(defenseUpPercent)}
+              onChange={(value) =>
+                setMonster((prev) => ({
+                  ...prev,
+                  defenseUpPercent: Number(value),
+                }))
+              }
+              options={[
+                { value: '100', label: '없음' },
+                ...MOB_DEFENSE_UP_TIERS.map((tier) => ({
+                  value: String(tier.percent),
+                  label: `${tier.stage}단계`,
+                  meta: `-${100 - tier.percent}%`,
+                })),
+              ]}
+            />
+          </Field>
+
+          {defenseUpPercent < 100 && (
+            <Field
+              label="적용 시작"
+              hint="이 방수부터 방어업이 걸린 것으로 본다"
+            >
+              <NumberInput
+                value={monster.defenseUpFromHit ?? 1}
+                ariaLabel="방어업 적용 시작 방"
+                onChange={(value) =>
+                  setMonster((prev) => ({
+                    ...prev,
+                    defenseUpFromHit: Math.max(1, value ?? 1),
+                  }))
+                }
+                suffix="방부터"
+              />
+            </Field>
+          )}
+
+          {selectedPreset && (
+            <p className="text-xs text-muted">
+              {ownDefenseUp.length > 0
+                ? `이 몹은 방어업 ${ownDefenseUp
+                    .map((percent) => `-${100 - percent}%`)
+                    .join(' · ')}를 쓴다`
+                : '이 몹은 방어업을 쓰지 않는다'}
+            </p>
+          )}
+        </div>
 
         {selectedPreset && (
           <div className="space-y-2">

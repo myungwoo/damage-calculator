@@ -47,6 +47,11 @@ export interface KillScenario {
    * 3타에서만 의미가 있고, 한 라인의 스탯 롤이 다른 라인의 크리티컬을 결정한다.
    */
   rngCycling?: boolean;
+  /**
+   * 몹 방어업. `fromUse`번째 시전부터 라인 데미지가 `percent`%로 줄어든다.
+   * 원작은 크리티컬 가산까지 끝난 실수 값에 곱하고 그 뒤에 절삭한다.
+   */
+  defenseUp?: { percent: number; fromUse: number };
 }
 
 const LINE_MIN = 1;
@@ -70,14 +75,23 @@ export const partnerLine = (damage: number, shadow: number): number =>
  * 라인 데미지 한 값. 원작은 크리티컬 가산항에 스킬% 적용 전 값을 정수화해서 쓴다.
  *   damage = trunc(skill * d + criticalAdd * trunc(d))
  */
-export const lineValueOf = (range: DamageRange, base: number): number =>
+export const lineValueOf = (
+  range: DamageRange,
+  base: number,
+  /** 방어업 배율. 원작은 절삭 **전** 실수 값에 곱한다 */
+  multiplier: number = 1
+): number =>
   Math.trunc(
-    (range.skillMultiplier ?? 1) * base +
-      (range.criticalAdd ?? 0) * Math.trunc(base)
+    multiplier *
+      ((range.skillMultiplier ?? 1) * base +
+        (range.criticalAdd ?? 0) * Math.trunc(base))
   );
 
 /** 타격 1회의 데미지 분포. 인덱스는 누적 데미지, hp 인덱스는 사망(흡수 상태). */
-const singleHitDistribution = (s: KillScenario): number[] => {
+const singleHitDistribution = (
+  s: KillScenario,
+  multiplier: number = 1
+): number[] => {
   const dist = new Array(s.hp + 1).fill(0);
   dist[0] += 1 - s.hitProb;
 
@@ -98,13 +112,13 @@ const singleHitDistribution = (s: KillScenario): number[] => {
     weight: number
   ): void => {
     if (width <= 0) {
-      add(clampLine(lineValueOf(range, lo)), weight);
+      add(clampLine(lineValueOf(range, lo, multiplier)), weight);
       return;
     }
     const skill = range.skillMultiplier ?? 1;
     const critAdd = range.criticalAdd ?? 0;
     const hi = lo + width;
-    const step = Math.max(skill + critAdd, 1e-9);
+    const step = Math.max(multiplier * (skill + critAdd), 1e-9);
 
     // 음수 구간은 전부 하한으로 눌린다. 위쪽도 마찬가지라 미리 잘라 둔다.
     const first = Math.max(Math.floor(lo), 0);
@@ -120,11 +134,12 @@ const singleHitDistribution = (s: KillScenario): number[] => {
       const b = Math.min(hi, bucket + 1);
       if (b <= a) continue;
       const offset = critAdd * bucket;
-      const from = Math.floor(skill * a + offset);
-      const to = Math.floor(skill * b + offset);
+      const from = Math.floor(multiplier * (skill * a + offset));
+      const to = Math.floor(multiplier * (skill * b + offset));
       for (let value = from; value <= to; value++) {
-        const dFrom = Math.max(a, (value - offset) / skill);
-        const dTo = Math.min(b, (value + 1 - offset) / skill);
+        // value = trunc(m * (skill * d + offset)) 를 d에 대해 뒤집는다.
+        const dFrom = Math.max(a, (value / multiplier - offset) / skill);
+        const dTo = Math.min(b, ((value + 1) / multiplier - offset) / skill);
         if (dTo <= dFrom) continue;
         add(clampLine(value), ((dTo - dFrom) / width) * weight);
       }
@@ -164,18 +179,29 @@ const convolve = (a: number[], b: number[], hp: number): number[] => {
 /** N회 시전 안에 잡을 누적 확률 배열 (0-indexed: [0]이 1방컷) */
 export const referenceKillProbabilities = (s: KillScenario): number[] => {
   const maxUses = s.maxUses ?? 20;
-  const singleHit = singleHitDistribution(s);
 
-  let perUse = singleHit;
-  for (let i = 1; i < s.hits; i++) {
-    perUse = convolve(perUse, singleHit, s.hp);
-  }
+  const perUseWith = (multiplier: number): number[] => {
+    const singleHit = singleHitDistribution(s, multiplier);
+    let perUse = singleHit;
+    for (let i = 1; i < s.hits; i++) {
+      perUse = convolve(perUse, singleHit, s.hp);
+    }
+    return perUse;
+  };
+
+  const normal = perUseWith(1);
+  const reduced = s.defenseUp ? perUseWith(s.defenseUp.percent / 100) : null;
+  // 방어업이 걸린 뒤의 시전은 줄어든 분포를 쓴다.
+  const perUseAt = (useNumber: number): number[] =>
+    reduced && s.defenseUp && useNumber >= s.defenseUp.fromUse
+      ? reduced
+      : normal;
 
   const accumulated: number[] = [];
-  let current = perUse;
+  let current = perUseAt(1);
   accumulated.push(current[s.hp]);
   while (accumulated.length < maxUses) {
-    current = convolve(current, perUse, s.hp);
+    current = convolve(current, perUseAt(accumulated.length + 1), s.hp);
     accumulated.push(current[s.hp]);
   }
   return accumulated;
@@ -201,19 +227,24 @@ export const lineTotalOf = (
   s: KillScenario,
   crit: boolean,
   u: number,
-  v: number
+  v: number,
+  /** 방어업 배율 (1이면 안 걸린 상태) */
+  multiplier: number = 1
 ): number => {
   const range = crit ? s.crit : s.basic;
   const beta = Math.max(0, range.defenseBand ?? 0);
   const base = range.min + u * statSpanOf(range) + v * beta;
-  const damage = clampLine(lineValueOf(range, base));
+  // 원작은 방어업을 곱한 뒤 클램프하고, 파트너는 그렇게 확정된 값에서 나온다.
+  const damage = clampLine(lineValueOf(range, base, multiplier));
   return damage + partnerLine(damage, s.shadow);
 };
 
 /** 시전 1회의 총 데미지를 굴린다. 난수 소비 순서가 곧 결합 모델이다. */
 export const rollUseDamage = (
   s: KillScenario,
-  random: () => number
+  random: () => number,
+  /** 방어업 배율 (1이면 안 걸린 상태) */
+  multiplier: number = 1
 ): number => {
   let total = 0;
   if (s.rngCycling === true && s.hits === 3) {
@@ -229,13 +260,19 @@ export const rollUseDamage = (
     const cHit = random() < s.hitProb;
     const cU = random();
     const cV = random();
-    if (aHit) total += lineTotalOf(s, aCrit, aU, aV);
-    if (bHit) total += lineTotalOf(s, bCrit, bU, bV);
-    if (cHit) total += lineTotalOf(s, bU < s.critChance, cU, cV);
+    if (aHit) total += lineTotalOf(s, aCrit, aU, aV, multiplier);
+    if (bHit) total += lineTotalOf(s, bCrit, bU, bV, multiplier);
+    if (cHit) total += lineTotalOf(s, bU < s.critChance, cU, cV, multiplier);
   } else {
     for (let hit = 0; hit < s.hits; hit++) {
       if (random() >= s.hitProb) continue;
-      total += lineTotalOf(s, random() < s.critChance, random(), random());
+      total += lineTotalOf(
+        s,
+        random() < s.critChance,
+        random(),
+        random(),
+        multiplier
+      );
     }
   }
   return total;
@@ -254,7 +291,11 @@ export const simulateKillProbabilities = (
   for (let trial = 0; trial < trials; trial++) {
     let accumulated = 0;
     for (let use = 0; use < maxUses; use++) {
-      accumulated += rollUseDamage(s, random);
+      const multiplier =
+        s.defenseUp && use + 1 >= s.defenseUp.fromUse
+          ? s.defenseUp.percent / 100
+          : 1;
+      accumulated += rollUseDamage(s, random, multiplier);
       if (accumulated >= s.hp) {
         counts[use]++;
         break;

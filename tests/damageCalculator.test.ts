@@ -1329,3 +1329,183 @@ describe('calculateDamage', () => {
     assert.ok(higher.basic.max < same.basic.max);
   });
 });
+
+describe('몹 방어업 (방컷 확률)', () => {
+  const DEFENSE_UP_CASES: {
+    name: string;
+    skillType: 'lucky7' | 'tripleThrow' | 'avenger';
+    hp: number;
+    basic: { min: number; max: number; defenseBand?: number };
+    crit: { min: number; max: number; defenseBand?: number };
+    shadow: number;
+    criticalChance: number;
+    percent: number;
+    fromUse: number;
+  }[] = [
+    {
+      name: '럭키 세븐 · 1단계(-15%) · 1방부터',
+      skillType: 'lucky7',
+      hp: 400,
+      basic: { min: 90, max: 180 },
+      crit: { min: 150, max: 300 },
+      shadow: 0.5,
+      criticalChance: 50,
+      percent: 85,
+      fromUse: 1,
+    },
+    {
+      name: '트리플 스로우 · 1단계(-15%) · 3방부터',
+      skillType: 'tripleThrow',
+      // 방어업이 걸리는 3방보다 뒤에서 죽어야 적용 구간이 실제로 검사된다.
+      hp: 1600,
+      basic: { min: 50, max: 100, defenseBand: 12 },
+      crit: { min: 83, max: 166, defenseBand: 20 },
+      shadow: 0.5,
+      criticalChance: 50,
+      percent: 85,
+      fromUse: 3,
+    },
+    {
+      name: '어벤져 · 2단계(-40%) · 2방부터',
+      skillType: 'avenger',
+      hp: 350,
+      basic: { min: 120, max: 200, defenseBand: 24 },
+      crit: { min: 200, max: 333, defenseBand: 40 },
+      shadow: 0.5,
+      criticalChance: 40,
+      percent: 60,
+      fromUse: 2,
+    },
+  ];
+
+  const run = (c: (typeof DEFENSE_UP_CASES)[number], percent: number) => {
+    const stats = makeStats({ hitRatio: 99999 });
+    const monster = makeMonster({ hp: c.hp, level: 120, avoid: 0 });
+    const rows = calculateKillProbabilitiesWithinNHits(
+      c.skillType,
+      { ...c.basic },
+      { ...c.crit },
+      c.shadow,
+      c.criticalChance,
+      c.hp,
+      stats,
+      monster,
+      20,
+      null,
+      false,
+      percent >= 100 ? null : { multiplier: percent / 100, fromUse: c.fromUse }
+    );
+    const scenario: KillScenario = {
+      hp: c.hp,
+      hits: HIT_COUNT[c.skillType],
+      basic: c.basic,
+      crit: c.crit,
+      shadow: c.shadow,
+      critChance: c.criticalChance / 100,
+      hitProb: 1,
+      ...(percent >= 100 ? {} : { defenseUp: { percent, fromUse: c.fromUse } }),
+    };
+    return { actual: toAccumulatedProbabilities(rows), scenario };
+  };
+
+  for (const c of DEFENSE_UP_CASES) {
+    it(`참조 DP와 일치한다 - ${c.name}`, () => {
+      const { actual, scenario } = run(c, c.percent);
+      const expected = referenceKillProbabilities(scenario);
+
+      let compared = 0;
+      for (let i = 0; i < expected.length; i++) {
+        const value = actual[i];
+        if (value === null) continue;
+        compared++;
+        assert.ok(
+          Math.abs(value - expected[i]) < 1e-4,
+          `${i + 1}방: ${value} !== ${expected[i]}`
+        );
+      }
+      assert.ok(compared > 0, '비교할 행이 없다');
+    });
+
+    it(`몬테카를로와 일치한다 - ${c.name}`, () => {
+      const { actual, scenario } = run(c, c.percent);
+      const simulated = simulateKillProbabilities(scenario, 200000, 4242);
+
+      for (let i = 0; i < simulated.length; i++) {
+        const value = actual[i];
+        if (value === null) continue;
+        assert.ok(
+          Math.abs(value - simulated[i]) < 0.006,
+          `${i + 1}방: ${value} vs 시뮬레이션 ${simulated[i]}`
+        );
+      }
+    });
+  }
+
+  it('배율 100%는 방어업을 안 건 것과 같다', () => {
+    const c = DEFENSE_UP_CASES[0];
+    assert.deepEqual(run(c, 100).actual, run(c, 100).actual);
+    const none = run(c, 100).actual;
+    const off = calculateKillProbabilitiesWithinNHits(
+      c.skillType,
+      { ...c.basic },
+      { ...c.crit },
+      c.shadow,
+      c.criticalChance,
+      c.hp,
+      makeStats({ hitRatio: 99999 }),
+      makeMonster({ hp: c.hp, level: 120, avoid: 0 })
+    );
+    assert.deepEqual(none, toAccumulatedProbabilities(off));
+  });
+
+  it('방어업이 걸리면 같은 방수의 누적 확률이 낮아진다', () => {
+    const c = DEFENSE_UP_CASES[1];
+    const before = run(c, 100).actual;
+    const after = run(c, c.percent).actual;
+
+    // 방어업 전 구간(1~2방)은 그대로고, 걸린 뒤부터 벌어진다.
+    for (let i = 0; i < c.fromUse - 1; i++) {
+      if (before[i] === null || after[i] === null) continue;
+      assert.ok(
+        Math.abs(before[i]! - after[i]!) < 1e-9,
+        `${i + 1}방이 달라졌다`
+      );
+    }
+    let dropped = false;
+    for (let i = c.fromUse - 1; i < before.length; i++) {
+      if (before[i] === null || after[i] === null) continue;
+      assert.ok(after[i]! <= before[i]! + 1e-9, `${i + 1}방이 오히려 올랐다`);
+      if (after[i]! < before[i]! - 1e-6) dropped = true;
+    }
+    assert.ok(dropped, '방어업을 걸었는데 확률이 그대로다');
+  });
+
+  it('적용 시점이 계산 범위 밖이면 영향이 없다', () => {
+    const c = DEFENSE_UP_CASES[0];
+    const stats = makeStats({ hitRatio: 99999 });
+    const monster = makeMonster({ hp: c.hp, level: 120, avoid: 0 });
+    const args = [
+      c.skillType,
+      { ...c.basic },
+      { ...c.crit },
+      c.shadow,
+      c.criticalChance,
+      c.hp,
+      stats,
+      monster,
+      20,
+      null,
+      false,
+    ] as const;
+
+    assert.deepEqual(
+      toAccumulatedProbabilities(
+        calculateKillProbabilitiesWithinNHits(...args, {
+          multiplier: 0.6,
+          fromUse: 999,
+        })
+      ),
+      toAccumulatedProbabilities(calculateKillProbabilitiesWithinNHits(...args))
+    );
+  });
+});
