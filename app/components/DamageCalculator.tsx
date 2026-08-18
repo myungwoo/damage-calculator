@@ -7,6 +7,7 @@ import { calculateDamage } from '../utils/damageCalculator';
 import { CALCULATION_DEBOUNCE_MS } from '../constants/calculator';
 import { findHeadlineKill } from '../utils/calculatorUtils';
 import { useCalculatorState } from '../hooks/useCalculatorState';
+import { useMonsterHistory } from '../hooks/useMonsterHistory';
 import { monsterPresets } from '../data/monsterPresets';
 import MonsterPanel from './panels/MonsterPanel';
 import CharacterPanel from './panels/CharacterPanel';
@@ -54,6 +55,17 @@ export default function DamageCalculator() {
     handleSharpEyesToggle,
     handleSharpEyesLevelChange,
   } = useCalculatorState();
+
+  // 소환 대상으로 넘어간 것만 히스토리에 쌓아서 뒤로가기로 되돌릴 수 있게 한다.
+  // 직접 입력이면 selectedMonsterId가 이미 'custom'이라 그대로 넘긴다.
+  const pushMonsterHistory = useMonsterHistory(
+    selectedMonsterId,
+    handleMonsterSelect
+  );
+  const handleSummonSelect = (monsterId: string) => {
+    pushMonsterHistory(monsterId);
+    handleMonsterSelect(monsterId);
+  };
 
   const [damageResult, setDamageResult] = useState<DamageResult>(EMPTY_RESULT);
   // 모바일에서는 결과를 하단 시트로 접어 둔다.
@@ -136,6 +148,7 @@ export default function DamageCalculator() {
                   selectedMonsterId={selectedMonsterId}
                   isCustomMonster={isCustomMonster}
                   onMonsterSelect={handleMonsterSelect}
+                  onSummonSelect={handleSummonSelect}
                   selectedPreset={selectedPreset}
                   venomBlocked={venomBlocked}
                 />
