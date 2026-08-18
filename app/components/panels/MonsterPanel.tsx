@@ -5,11 +5,13 @@ import { monsterPresets } from '../../data/monsterPresets';
 import { REGION_ORDER } from '../../constants/calculator';
 import { parseElementAttributes } from '../../utils/calculatorUtils';
 import { getMobSkillInfo } from '../../data/mobSkills';
+import { MOB_DEFENSE_UP_TIERS } from '../../data/mobBuffs';
 import MonsterDropdown from '../MonsterDropdown';
 import MonsterSprite from '../MonsterSprite';
 import NumberInput from '../NumberInput';
 import Card from '../ui/Card';
 import Field from '../ui/Field';
+import SegmentedControl from '../ui/SegmentedControl';
 
 interface MonsterPanelProps {
   monster: Monster;
@@ -37,6 +39,14 @@ export default function MonsterPanel({
   // 둬야 여러 몹을 훑어볼 때 매번 다시 누르지 않는다.
   const [spriteOpen, setSpriteOpen] = useState(false);
 
+  // 이 몹이 실제로 쓰는 방어업 배율. 입력 옆에 근거로 적어 준다.
+  const ownDefenseUp = (selectedPreset?.mobSkills ?? [])
+    .filter((skill) => skill.id === 102 || skill.id === 112)
+    .map((skill) => skill.x)
+    .filter(
+      (percent): percent is number => percent !== undefined && percent < 100
+    );
+
   // 소환 대상이 프리셋에 있는지 한 번만 훑어 둔다.
   const presetIds = new Set(monsterPresets.map((preset) => preset.id));
 
@@ -44,6 +54,8 @@ export default function MonsterPanel({
   const elementAttributes = parseElementAttributes(
     selectedPreset?.elementAttributes
   );
+
+  const defenseUpPercent = monster.defenseUpPercent ?? 100;
 
   const numericFields = [
     {
@@ -149,6 +161,73 @@ export default function MonsterPanel({
             고른다.
           </p>
         )}
+
+        {/*
+          방어업은 몹 수치가 아니라 "이 상황을 가정하고 계산해 달라"는 입력이라
+          잠긴 프리셋 칸과 섞이지 않게 선 하나로 갈라 둔다. 자주 만지는 값이 아니라서
+          한 줄짜리 좁은 형태로 두고, 몹이 실제로 쓰는 배율은 라벨 옆 빈 자리에 적는다.
+        */}
+        <div className="space-y-1.5 border-t border-line pt-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="field-label">방어업</span>
+            {selectedPreset && (
+              <span className="text-[0.7rem] text-muted">
+                {ownDefenseUp.length > 0
+                  ? `이 몹은 ${ownDefenseUp
+                      .map((percent) => `-${100 - percent}%`)
+                      .join(' · ')}`
+                  : '이 몹은 안 쓴다'}
+              </span>
+            )}
+          </div>
+
+          <SegmentedControl
+            ariaLabel="몹 방어업 단계"
+            columns={3}
+            dense
+            value={String(defenseUpPercent)}
+            onChange={(value) =>
+              setMonster((prev) => ({
+                ...prev,
+                defenseUpPercent: Number(value),
+              }))
+            }
+            options={[
+              { value: '100', label: '없음' },
+              ...MOB_DEFENSE_UP_TIERS.map((tier) => ({
+                value: String(tier.percent),
+                label: `${tier.stage}단계`,
+                meta: `-${100 - tier.percent}%`,
+              })),
+            ]}
+          />
+
+          {/*
+            입력칸을 문장 한가운데 끼워 넣으면(예: "[3]방부터 데미지가 준다") 글줄과
+            네모칸의 높이가 안 맞아 어색하다. 단위는 입력칸 안 suffix로 넣고, 라벨은
+            왼쪽에 세워서 다른 입력들과 같은 모양으로 맞춘다.
+            배율은 이미 고른 버튼에 적혀 있어서 문장으로 또 적지 않는다.
+          */}
+          {defenseUpPercent < 100 && (
+            <div className="flex items-center justify-between gap-2">
+              <span className="field-label">걸리는 시점</span>
+              <div className="w-28 shrink-0">
+                <NumberInput
+                  value={monster.defenseUpFromHit ?? 1}
+                  ariaLabel="방어업이 걸리는 방수"
+                  onChange={(value) =>
+                    setMonster((prev) => ({
+                      ...prev,
+                      defenseUpFromHit: Math.max(1, value ?? 1),
+                    }))
+                  }
+                  suffix="방부터"
+                  className="py-1.5"
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
         {selectedPreset && (
           <div className="space-y-2">

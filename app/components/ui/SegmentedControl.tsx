@@ -10,7 +10,12 @@ interface SegmentedControlProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
   ariaLabel: string;
-  columns?: 2 | 4;
+  columns?: 2 | 3 | 4;
+  /**
+   * 한 줄짜리 좁은 형태. 부가 정보(`meta`)를 아래가 아니라 라벨 오른쪽에 붙인다.
+   * 공격 스킬처럼 고르는 데 시간이 걸리는 값이 아니라, 옆에 딸린 옵션에 쓴다.
+   */
+  dense?: boolean;
 }
 
 /**
@@ -23,12 +28,20 @@ export default function SegmentedControl<T extends string>({
   onChange,
   ariaLabel,
   columns = 2,
+  dense = false,
 }: SegmentedControlProps<T>) {
+  const columnClass =
+    columns === 2
+      ? 'grid-cols-2'
+      : columns === 3
+        ? 'grid-cols-3'
+        : 'grid-cols-4';
+
   return (
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className={`grid gap-1.5 ${columns === 2 ? 'grid-cols-2' : 'grid-cols-4'}`}
+      className={`grid ${dense ? 'gap-1' : 'gap-1.5'} ${columnClass}`}
     >
       {options.map((option) => {
         const selected = option.value === value;
@@ -39,18 +52,31 @@ export default function SegmentedControl<T extends string>({
             role="radio"
             aria-checked={selected}
             onClick={() => onChange(option.value)}
-            className={`rounded-lg border px-3 py-2 text-left transition-colors ${
+            className={`rounded-lg border transition-colors ${
+              dense ? 'px-2 py-1 text-center' : 'px-3 py-2 text-left'
+            } ${
               selected
                 ? 'border-brand bg-brand/12 text-brand'
                 : 'border-field-line bg-field text-muted hover:border-brand hover:text-ink'
             }`}
           >
-            <span className="block text-sm font-semibold">{option.label}</span>
-            {option.meta && (
-              <span className="mt-0.5 block text-[0.7rem] opacity-80">
-                {option.meta}
-              </span>
-            )}
+            <span
+              className={
+                dense ? 'text-xs font-semibold' : 'block text-sm font-semibold'
+              }
+            >
+              {option.label}
+            </span>
+            {option.meta &&
+              (dense ? (
+                <span className="ml-1 text-[0.65rem] opacity-70">
+                  {option.meta}
+                </span>
+              ) : (
+                <span className="mt-0.5 block text-[0.7rem] opacity-80">
+                  {option.meta}
+                </span>
+              ))}
           </button>
         );
       })}

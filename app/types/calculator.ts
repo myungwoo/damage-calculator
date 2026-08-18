@@ -56,6 +56,16 @@ export interface Monster {
   poisonAttribute?: number;
   /** 보스 여부. 보스에게는 베놈이 걸리지 않는다. */
   isBoss?: boolean;
+  /**
+   * 몹 방어업이 걸렸다고 보고 계산할 배율 (%). 100이면 안 걸린 상태다.
+   *
+   * 원작 `PGuardUp_` 값을 그대로 쓴다(1단계 85 = 내 데미지 -15%).
+   * 몹 데이터가 아니라 "이 상황을 가정하고 계산해 달라"는 입력이라 프리셋을 바꿔도
+   * 그대로 남는다.
+   */
+  defenseUpPercent?: number;
+  /** 방어업이 걸렸다고 볼 시점 (N방부터). 비워 두면 1방부터 */
+  defenseUpFromHit?: number;
 }
 
 export interface Stats {

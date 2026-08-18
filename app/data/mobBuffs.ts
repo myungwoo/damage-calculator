@@ -16,3 +16,19 @@ export const MOB_ATTACK_UP_TIERS = [
   { stage: 1, percent: 115 },
   { stage: 2, percent: 130 },
 ] as const;
+
+/**
+ * 몹 방어업 단계별 배율 (%).
+ *
+ * 원작 `MobSkill.img`의 **102(자기) / 112(주변 몹 전체)** 다. 공격업과 마찬가지로
+ * `Mob::DoSkill_StateChange`가 그 레벨의 `x`를 `PGuardUp_`에 넣고,
+ * `CalcDamage::PDamage`가 **크리티컬 가산까지 끝낸 값에** `damage *= x * 0.01`로 곱한다
+ * (쉐도우 파트너와 클램프는 그 뒤라, 파트너 몫도 같이 줄어든다).
+ *
+ * WZ에 실제로 있는 값은 `85 / 60 / 100`이고, 100은 안 걸린 것과 같다.
+ * 프리셋에서는 112가 전부 85고, 102에만 60이 하나 있다.
+ */
+export const MOB_DEFENSE_UP_TIERS = [
+  { stage: 1, percent: 85 },
+  { stage: 2, percent: 60 },
+] as const;

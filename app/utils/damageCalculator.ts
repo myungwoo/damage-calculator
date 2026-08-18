@@ -99,9 +99,14 @@ export interface DamageRangeInput {
 export const damageLineValue = (
   base: number,
   skillMultiplier: number,
-  criticalAdd: number
+  criticalAdd: number,
+  /** 몹 방어업 배율. 원작은 절삭 **전** 실수 값에 곱한다 */
+  defenseUpMultiplier: number = 1
 ): number =>
-  Math.trunc(skillMultiplier * base + criticalAdd * Math.trunc(base));
+  Math.trunc(
+    defenseUpMultiplier *
+      (skillMultiplier * base + criticalAdd * Math.trunc(base))
+  );
 
 /**
  * 폭 alpha와 beta인 독립 균등분포 두 개의 합에 대한 CDF.
@@ -838,7 +843,12 @@ export const calculateKillProbabilitiesWithinNHits = (
   monster: Monster,
   maxHits: number = 20,
   venomConfig: VenomConfig | null = null,
-  rngCycling: boolean = false
+  rngCycling: boolean = false,
+  /**
+   * 몹 방어업. `fromUse`번째 시전부터 라인 데미지가 `multiplier`배가 된다.
+   * 걸린 뒤와 걸리기 전은 분포가 아예 다르므로 시전 분포를 두 벌 만들어 쓴다.
+   */
+  defenseUp: { multiplier: number; fromUse: number } | null = null
 ) => {
   // 명중률 계산
   const hitProb = calculateHitProbability(
@@ -945,7 +955,9 @@ export const calculateKillProbabilitiesWithinNHits = (
     raw: DamageRangeInput,
     uFrom: number,
     uTo: number,
-    weight: number
+    weight: number,
+    /** 몹 방어업 배율. 라인 값 전체에 곱한 뒤 절삭한다 */
+    guard: number
   ) => {
     if (weight <= 0 || uTo <= uFrom) return;
 
@@ -969,8 +981,9 @@ export const calculateKillProbabilitiesWithinNHits = (
       );
 
     // d의 정수 구간마다 trunc(d)가 상수라, 그 안에서는 기울기 skill인 직선이다.
-    // 구간을 넘어갈 때마다 라인 값이 critAdd만큼 건너뛴다.
-    const step = skill + critAdd;
+    // 구간을 넘어갈 때마다 라인 값이 critAdd만큼 건너뛴다. 방어업이 걸리면
+    // 그 계단 전체가 guard배로 눌린다 (원작이 절삭 전에 곱하기 때문이다).
+    const step = guard * (skill + critAdd);
     const first = Math.max(Math.floor(origin), 0);
     const last = Math.min(
       Math.floor(ceiling),
@@ -986,12 +999,13 @@ export const calculateKillProbabilitiesWithinNHits = (
       const high = Math.min(ceiling, bucket + 1);
       if (high <= low) continue;
       const offset = critAdd * bucket;
-      const valueFrom = Math.floor(skill * low + offset);
-      const valueTo = Math.floor(skill * high + offset);
+      const valueFrom = Math.floor(guard * (skill * low + offset));
+      const valueTo = Math.floor(guard * (skill * high + offset));
       for (let value = valueFrom; value <= valueTo; value++) {
-        // 라인 값이 value가 되는 d 구간
-        const dFrom = Math.max(low, (value - offset) / skill);
-        const dTo = Math.min(high, (value + 1 - offset) / skill);
+        // 라인 값이 value가 되는 d 구간.
+        // value = trunc(guard * (skill * d + offset)) 를 d에 대해 뒤집는다.
+        const dFrom = Math.max(low, (value / guard - offset) / skill);
+        const dTo = Math.min(high, ((value + 1) / guard - offset) / skill);
         if (dTo <= dFrom) continue;
         put(value, below(dTo) - below(dFrom));
       }
@@ -1008,12 +1022,20 @@ export const calculateKillProbabilitiesWithinNHits = (
     uFrom: number,
     uTo: number,
     basicWeight: number,
-    critWeight: number
+    critWeight: number,
+    guard: number
   ): Float64Array => {
     const dist = new Float64Array(size);
     dist[0] += 1 - hitProb;
-    addDamageSlice(dist, basicDamage, uFrom, uTo, basicWeight * hitProb);
-    addDamageSlice(dist, criticalDamage, uFrom, uTo, critWeight * hitProb);
+    addDamageSlice(dist, basicDamage, uFrom, uTo, basicWeight * hitProb, guard);
+    addDamageSlice(
+      dist,
+      criticalDamage,
+      uFrom,
+      uTo,
+      critWeight * hitProb,
+      guard
+    );
     return dist;
   };
 
@@ -1023,43 +1045,63 @@ export const calculateKillProbabilitiesWithinNHits = (
 
   const coupled = isRngCyclingCoupled(skillType, criticalProb, rngCycling);
 
-  let singleSkillDist: Float64Array;
-  if (coupled) {
-    // 라인 A는 완전 독립, 라인 B의 데미지 난수가 라인 C의 크리티컬을 결정한다.
-    //   P(1시전) = A * [ p * (B|난수<p) * (C=크리) + (1-p) * (B|난수>=p) * (C=일반) ]
-    // 크리티컬 판정이 "난수 < 크리확률"이라 B를 자르는 지점이 곧 크리확률이다.
-    const p = criticalProb;
-    const lineA = buildHitDist(0, 1, 1 - p, p);
-    const lineBLow = buildHitDist(0, p, 1 - p, p);
-    const lineBHigh = buildHitDist(p, 1, 1 - p, p);
-    const lineCCrit = buildHitDist(0, 1, 0, 1);
-    const lineCBasic = buildHitDist(0, 1, 1, 0);
+  /** 방어업 배율 guard가 걸린 상태에서의 "스킬 1회" 분포. */
+  const buildSingleSkillDist = (guard: number): Float64Array => {
+    if (coupled) {
+      // 라인 A는 완전 독립, 라인 B의 데미지 난수가 라인 C의 크리티컬을 결정한다.
+      //   P(1시전) = A * [ p * (B|난수<p) * (C=크리) + (1-p) * (B|난수>=p) * (C=일반) ]
+      // 크리티컬 판정이 "난수 < 크리확률"이라 B를 자르는 지점이 곧 크리확률이다.
+      const p = criticalProb;
+      const lineA = buildHitDist(0, 1, 1 - p, p, guard);
+      const lineBLow = buildHitDist(0, p, 1 - p, p, guard);
+      const lineBHigh = buildHitDist(p, 1, 1 - p, p, guard);
+      const lineCCrit = buildHitDist(0, 1, 0, 1, guard);
+      const lineCBasic = buildHitDist(0, 1, 1, 0, guard);
 
-    const low = convolveDistFFT(lineBLow, fftForward(lineCCrit, fftSize));
-    const high = convolveDistFFT(lineBHigh, fftForward(lineCBasic, fftSize));
+      const low = convolveDistFFT(lineBLow, fftForward(lineCCrit, fftSize));
+      const high = convolveDistFFT(lineBHigh, fftForward(lineCBasic, fftSize));
 
-    const pair = new Float64Array(size);
-    for (let i = 0; i < size; i++) {
-      pair[i] = p * low[i] + (1 - p) * high[i];
+      const pair = new Float64Array(size);
+      for (let i = 0; i < size; i++) {
+        pair[i] = p * low[i] + (1 - p) * high[i];
+      }
+      return convolveDistFFT(lineA, fftForward(pair, fftSize));
     }
-    singleSkillDist = convolveDistFFT(lineA, fftForward(pair, fftSize));
-  } else {
+
     const singleHitDistMain = buildHitDist(
       0,
       1,
       1 - criticalProb,
-      criticalProb
+      criticalProb,
+      guard
     );
     const singleHitSpectrum = fftForward(singleHitDistMain, fftSize);
-    singleSkillDist = singleHitDistMain;
+    let dist = singleHitDistMain;
     for (let i = 1; i < hitCount; i++) {
-      singleSkillDist = convolveDistFFT(singleSkillDist, singleHitSpectrum);
+      dist = convolveDistFFT(dist, singleHitSpectrum);
     }
-  }
+    return dist;
+  };
 
   // 3. 스킬 1회 분포를 반복 합성해 N회 시전 후의 누적 데미지 분포를 구한다.
   //    같은 분포를 계속 곱하므로 정방향 변환은 한 번만 해 두고 재사용한다.
+  //    방어업이 걸리면 그 뒤로는 분포가 통째로 달라져서 두 벌을 준비한다.
+  const singleSkillDist = buildSingleSkillDist(1);
   const singleSkillSpectrum = fftForward(singleSkillDist, fftSize);
+
+  const guardedSkillDist =
+    defenseUp && defenseUp.multiplier !== 1
+      ? buildSingleSkillDist(defenseUp.multiplier)
+      : null;
+  const guardedSkillSpectrum = guardedSkillDist
+    ? fftForward(guardedSkillDist, fftSize)
+    : null;
+
+  /** useNumber번째(1부터) 시전에 쓸 분포가 방어업이 걸린 쪽인지 */
+  const isGuarded = (useNumber: number): boolean =>
+    guardedSkillDist !== null &&
+    defenseUp !== null &&
+    useNumber >= defenseUp.fromUse;
 
   /**
    * 시전 useIndex + 1회 시점의 사망 확률.
@@ -1080,14 +1122,22 @@ export const calculateKillProbabilitiesWithinNHits = (
 
   const skillUseProbabilities = [];
 
-  let distN: Float64Array = singleSkillDist;
+  let distN: Float64Array = isGuarded(1)
+    ? (guardedSkillDist as Float64Array)
+    : singleSkillDist;
   skillUseProbabilities.push(killProbability(distN, 0));
 
   while (
     skillUseProbabilities.length < maxHits &&
     skillUseProbabilities[skillUseProbabilities.length - 1] < 0.999999
   ) {
-    distN = convolveDistFFT(distN, singleSkillSpectrum);
+    const useNumber = skillUseProbabilities.length + 1;
+    distN = convolveDistFFT(
+      distN,
+      isGuarded(useNumber)
+        ? (guardedSkillSpectrum as Spectrum)
+        : singleSkillSpectrum
+    );
     skillUseProbabilities.push(
       killProbability(distN, skillUseProbabilities.length)
     );
@@ -1107,6 +1157,24 @@ export const calculateKillProbabilitiesWithinNHits = (
     prev = skillUseProbabilities[i];
   }
   return result;
+};
+
+/**
+ * 몬스터 입력에서 방어업 설정을 꺼낸다.
+ *
+ * 방어업은 몹이 **거는 순간부터** 데미지를 줄이는 상태라, "몇 방부터 걸렸다고 볼지"가
+ * 같이 있어야 뜻이 선다. 배율이 100%면(= 안 걸림) 계산을 두 벌 돌릴 이유가 없으므로
+ * 아예 null로 돌려보낸다.
+ */
+const resolveDefenseUp = (
+  monster: Monster
+): { multiplier: number; fromUse: number } | null => {
+  const percent = monster.defenseUpPercent ?? 100;
+  if (percent >= 100) return null;
+  return {
+    multiplier: percent / 100,
+    fromUse: Math.max(1, Math.trunc(monster.defenseUpFromHit ?? 1)),
+  };
 };
 
 export const calculateDamage = (
@@ -1304,7 +1372,8 @@ export const calculateDamage = (
     monster,
     20,
     venomConfig,
-    skills.rngCyclingEnabled
+    skills.rngCyclingEnabled,
+    resolveDefenseUp(monster)
   );
 
   // Calculate expected damage
