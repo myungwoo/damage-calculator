@@ -202,26 +202,29 @@ export default function MonsterPanel({
             ]}
           />
 
+          {/*
+            입력칸을 문장 한가운데 끼워 넣으면(예: "[3]방부터 데미지가 준다") 글줄과
+            네모칸의 높이가 안 맞아 어색하다. 단위는 입력칸 안 suffix로 넣고, 라벨은
+            왼쪽에 세워서 다른 입력들과 같은 모양으로 맞춘다.
+            배율은 이미 고른 버튼에 적혀 있어서 문장으로 또 적지 않는다.
+          */}
           {defenseUpPercent < 100 && (
-            <div className="flex items-center gap-1.5 text-xs text-muted">
-              {/* 입력칸은 w-full이라 폭은 바깥에서 잡아 준다 */}
-              <div className="w-14 shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="field-label">걸리는 시점</span>
+              <div className="w-28 shrink-0">
                 <NumberInput
                   value={monster.defenseUpFromHit ?? 1}
-                  ariaLabel="방어업 적용 시작 방"
+                  ariaLabel="방어업이 걸리는 방수"
                   onChange={(value) =>
                     setMonster((prev) => ({
                       ...prev,
                       defenseUpFromHit: Math.max(1, value ?? 1),
                     }))
                   }
-                  className="px-2 py-1.5 text-center"
+                  suffix="방부터"
+                  className="py-1.5"
                 />
               </div>
-              <span>
-                방부터 내 데미지가{' '}
-                <b className="text-ink">{defenseUpPercent}%</b>가 된다
-              </span>
             </div>
           )}
         </div>
