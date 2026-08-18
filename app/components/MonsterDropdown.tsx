@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { Check, ChevronsUpDown, Pencil, Search } from 'lucide-react';
+import { Check, ChevronsUpDown, Pencil, Search, X } from 'lucide-react';
 import { MonsterPreset, Region } from '../types/calculator';
 
 interface MonsterDropdownProps {
@@ -26,6 +26,7 @@ export default function MonsterDropdown({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   // 트리거 버튼까지 포함해야 열린 상태에서 버튼을 눌렀을 때 곧바로 닫힌다.
   const rootRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   // 드롭다운 외부 클릭 감지
   useEffect(() => {
@@ -44,11 +45,17 @@ export default function MonsterDropdown({
     };
   }, [isOpen]);
 
-  // 드롭다운이 닫힐 때 검색어와 선택 인덱스 초기화
+  /**
+   * 검색어는 **닫아도 지우지 않는다.**
+   *
+   * "자쿰"으로 좁혀 놓고 자쿰 · 자쿰팔을 번갈아 골라 보는 게 흔한 사용 방식인데,
+   * 닫을 때마다 지우면 그때마다 다시 타이핑해야 한다. 대신 다시 열면 입력칸의
+   * 글자를 통째로 선택해 둬서, 새로 검색할 사람은 그냥 타이핑하면 덮어써진다.
+   * 선택 인덱스는 목록이 다시 그려지므로 초기화한다.
+   */
   useEffect(() => {
     if (!isOpen) {
       setSelectedIndex(-1);
-      setSearchQuery('');
       return;
     }
     // 열자마자 지금 고른 몬스터가 보이게 한다. 목록이 수백 줄이라 없으면 매번 찾아 내려가야 한다.
@@ -196,16 +203,33 @@ export default function MonsterDropdown({
           <div className="relative border-b border-line p-2">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
+              ref={searchRef}
               type="text"
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setSelectedIndex(-1);
               }}
+              // 남아 있는 검색어를 통째로 잡아 둬야 새 검색이 타이핑 한 번으로 끝난다.
+              onFocus={(e) => e.target.select()}
               placeholder="몬스터 이름 검색"
-              className="field-input pl-9"
+              className={`field-input pl-9 ${searchQuery ? 'pr-9' : ''}`}
               autoFocus
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedIndex(-1);
+                  searchRef.current?.focus();
+                }}
+                aria-label="검색어 지우기"
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted transition-colors hover:text-ink"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
           <div className="thin-scroll max-h-72 overflow-auto">
             <button
