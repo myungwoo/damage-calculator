@@ -539,6 +539,31 @@ describe('몬스터 프리셋의 몹 스킬', () => {
     }
   });
 
+  it('소환 대상의 이름은 프리셋 이름과 같다', () => {
+    // 화면 두 곳(드롭다운과 소환 줄)이 같은 몹을 다른 이름으로 부르면 안 되고,
+    // 이름을 눌러 넘어간 뒤 이름이 바뀌면 잘못 눌렀다고 읽는다.
+    const byId = new Map(monsterPresets.map((preset) => [preset.id, preset]));
+    let linkable = 0;
+
+    for (const preset of monsterPresets) {
+      for (const skill of preset.mobSkills ?? []) {
+        for (const target of skill.summons ?? []) {
+          const found = byId.get(target.id);
+          if (!found) continue;
+          linkable += 1;
+          assert.equal(
+            target.name,
+            found.name,
+            `${preset.name}이 부르는 ${target.id}의 이름이 프리셋과 다르다`
+          );
+        }
+      }
+    }
+
+    // 대부분의 소환 대상은 프리셋에 있다. 하나도 없으면 ID 형식이 어긋난 것이다.
+    assert.ok(linkable > 0);
+  });
+
   it('소환 목록은 소환 스킬에만 붙는다', () => {
     const SUMMON = 200;
     for (const preset of monsterPresets) {
@@ -552,7 +577,10 @@ describe('몬스터 프리셋의 몹 스킬', () => {
         assert.ok(skill.summons.length > 0);
         assert.ok(
           skill.summons.every(
-            (target) => target.name.length > 0 && target.count >= 1
+            (target) =>
+              /^\d+$/.test(target.id) &&
+              target.name.length > 0 &&
+              target.count >= 1
           ),
           `${preset.name}의 소환 목록에 빈 값이 있다`
         );

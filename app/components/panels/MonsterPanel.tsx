@@ -34,6 +34,9 @@ export default function MonsterPanel({
   // 둬야 여러 몹을 훑어볼 때 매번 다시 누르지 않는다.
   const [spriteOpen, setSpriteOpen] = useState(false);
 
+  // 소환 대상이 프리셋에 있는지 한 번만 훑어 둔다.
+  const presetIds = new Set(monsterPresets.map((preset) => preset.id));
+
   // 'F2S3' 같은 원작 코드는 사람이 못 읽으므로 속성별로 풀어서 칩으로 보여준다.
   const elementAttributes = parseElementAttributes(
     selectedPreset?.elementAttributes
@@ -238,15 +241,33 @@ export default function MonsterPanel({
                     .map((skill) => (
                       <p
                         key={`summons-${skill.id}`}
-                        className="text-xs text-muted"
+                        className="text-xs leading-relaxed text-muted"
                       >
                         <b className="text-ink">소환</b>{' '}
-                        {skill
-                          .summons!.map(
-                            (target) =>
-                              `${target.name}${target.count > 1 ? ` x${target.count}` : ''}`
-                          )
-                          .join(' · ')}
+                        {skill.summons!.map((target, index) => (
+                          <span key={target.id}>
+                            {index > 0 && ' · '}
+                            {/*
+                              소환 대상도 대부분 프리셋에 있는 몹이다. 이름을 눌러 바로
+                              넘어갈 수 있으면 "얘도 같이 나오는데 몇 방인가"를 확인하려고
+                              목록을 다시 뒤질 필요가 없다. 프리셋에 없는 몹(키메라가
+                              부르는 둘)은 누를 것이 없으므로 글자로만 둔다.
+                            */}
+                            {presetIds.has(target.id) ? (
+                              <button
+                                type="button"
+                                onClick={() => onMonsterSelect(target.id)}
+                                title={`${target.name} 프리셋으로 이동`}
+                                className="rounded-sm text-brand underline decoration-brand/40 underline-offset-2 transition-colors hover:decoration-brand"
+                              >
+                                {target.name}
+                              </button>
+                            ) : (
+                              target.name
+                            )}
+                            {target.count > 1 && ` x${target.count}`}
+                          </span>
+                        ))}
                       </p>
                     ))}
                   {selectedPreset.mobSkills.some(

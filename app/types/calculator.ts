@@ -341,7 +341,12 @@ export interface MonsterPreset extends Monster {
      * 원작은 스킬 레벨마다 소환 대상이 다르고 한 몹이 소환 스킬을 여러 개 갖기도
      * 해서(자쿰은 HP 구간마다 다른 몹을 부른다), 그 몹이 부르는 대상을 전부 모아 둔다.
      */
-    summons?: { name: string; count: number }[];
+    summons?: {
+      /** 소환되는 몹의 Mob.wz ID. 프리셋에 있는 몹이면 클릭해서 그 몹으로 넘어간다 */
+      id: string;
+      name: string;
+      count: number;
+    }[];
   }[];
   region: string;
 }
