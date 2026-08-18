@@ -17,6 +17,8 @@ interface MonsterPanelProps {
   selectedMonsterId: string;
   isCustomMonster: boolean;
   onMonsterSelect: (id: string) => void;
+  /** 소환 대상 이름으로 넘어갈 때. 뒤로가기로 되돌릴 수 있게 히스토리를 쌓는다 */
+  onSummonSelect: (id: string) => void;
   selectedPreset: MonsterPreset | null | undefined;
   venomBlocked: boolean;
 }
@@ -27,6 +29,7 @@ export default function MonsterPanel({
   selectedMonsterId,
   isCustomMonster,
   onMonsterSelect,
+  onSummonSelect,
   selectedPreset,
   venomBlocked,
 }: MonsterPanelProps) {
@@ -256,8 +259,8 @@ export default function MonsterPanel({
                             {presetIds.has(target.id) ? (
                               <button
                                 type="button"
-                                onClick={() => onMonsterSelect(target.id)}
-                                title={`${target.name} 프리셋으로 이동`}
+                                onClick={() => onSummonSelect(target.id)}
+                                title={`${target.name} 프리셋으로 이동 (뒤로가기로 복귀)`}
                                 className="rounded-sm text-brand underline decoration-brand/40 underline-offset-2 transition-colors hover:decoration-brand"
                               >
                                 {target.name}
