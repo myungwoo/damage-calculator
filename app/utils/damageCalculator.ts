@@ -681,8 +681,13 @@ export interface HitDamageBreakdown {
   body: HitDamageEntry;
   /** 몸박보다 센 물리 공격들 (약한 순). 프리셋에 없으면 빈 배열 */
   attacks: HitDamageEntry[];
-  /** 마법 공격 */
-  magic: HitDamageEntry;
+  /**
+   * 마법 공격. **마법 공격이 없는 몹이면 null이다.**
+   *
+   * 마법 공격력이 0보다 큰데 마법 공격을 안 가진 몹이 73종 있어서, 공격력만 보고
+   * 그리면 실제로는 들어올 수 없는 데미지를 화면에 만들어 낸다.
+   */
+  magic: HitDamageEntry | null;
 }
 
 /**
@@ -736,10 +741,13 @@ export const calculateHitDamageBreakdown = (
     attacks: (monster.physicalAttackPowers ?? [])
       .filter((power) => power > monster.physicalAttack)
       .map(physical),
-    magic: summarize(
-      (defense) => magicHitDamageRaw(monster, stats, defense),
-      stats.magicalDefense
-    ),
+    magic:
+      monster.hasMagicAttack && monster.magicAttack > 0
+        ? summarize(
+            (defense) => magicHitDamageRaw(monster, stats, defense),
+            stats.magicalDefense
+          )
+        : null,
   };
 };
 

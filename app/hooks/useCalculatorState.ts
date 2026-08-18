@@ -30,7 +30,7 @@ const DEFAULT_STATE = {
     physicalAttack: monsterPresets[0].physicalAttack,
     physicalAttackPowers: monsterPresets[0].physicalAttackPowers,
     magicAttack: monsterPresets[0].magicAttack,
-    hasMagicAttack: monsterPresets[0].hasMagicAttack,
+    hasMagicAttack: monsterPresets[0].hasMagicAttack ?? false,
     poisonAttribute: monsterPresets[0].poisonAttribute,
     isBoss: monsterPresets[0].isBoss,
   } as Monster,
@@ -107,7 +107,11 @@ const resolveMonsterSelection = (savedMonster: Monster) => {
       magicAttack: savedMonster.magicAttack ?? matchingPreset?.magicAttack ?? 0,
       // 공격별 공격력과 마법 공격 유무는 프리셋에만 있는 정보라 항상 다시 붙인다.
       physicalAttackPowers: matchingPreset?.physicalAttackPowers,
-      hasMagicAttack: matchingPreset?.hasMagicAttack,
+      // 프리셋은 마법 공격 유무를 다 알고 있다 — 값이 없으면 "없다"는 뜻이다.
+      // 직접 입력 몬스터만 알 수 없으므로 켜 둔 채로 둔다.
+      hasMagicAttack: matchingPreset
+        ? (matchingPreset.hasMagicAttack ?? false)
+        : true,
       poisonAttribute: matchingPreset?.poisonAttribute,
       isBoss: matchingPreset?.isBoss,
     },
@@ -177,6 +181,8 @@ export const useCalculatorState = () => {
         ...prev,
         isCustomMonster: true,
         selectedMonsterId: 'custom',
+        // 직접 입력은 마법 공격 유무를 알 수 없으니, 마법 공격력을 넣으면 보이게 둔다.
+        monster: { ...prev.monster, hasMagicAttack: true },
       }));
     } else {
       const selectedPreset = monsterPresets.find(
@@ -198,7 +204,7 @@ export const useCalculatorState = () => {
             physicalAttack: selectedPreset.physicalAttack,
             physicalAttackPowers: selectedPreset.physicalAttackPowers,
             magicAttack: selectedPreset.magicAttack,
-            hasMagicAttack: selectedPreset.hasMagicAttack,
+            hasMagicAttack: selectedPreset.hasMagicAttack ?? false,
             poisonAttribute: selectedPreset.poisonAttribute,
             isBoss: selectedPreset.isBoss,
           },

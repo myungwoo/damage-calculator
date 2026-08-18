@@ -1,10 +1,12 @@
-import { Dispatch, SetStateAction } from 'react';
-import { AlertTriangle, Skull } from 'lucide-react';
+import { Dispatch, SetStateAction, useState } from 'react';
+import { AlertTriangle, ImageIcon, Skull } from 'lucide-react';
 import { Monster, MonsterPreset } from '../../types/calculator';
 import { monsterPresets } from '../../data/monsterPresets';
 import { REGION_ORDER } from '../../constants/calculator';
 import { parseElementAttributes } from '../../utils/calculatorUtils';
+import { getMobSkillInfo } from '../../data/mobSkills';
 import MonsterDropdown from '../MonsterDropdown';
+import MonsterSprite from '../MonsterSprite';
 import NumberInput from '../NumberInput';
 import Card from '../ui/Card';
 import Field from '../ui/Field';
@@ -28,6 +30,10 @@ export default function MonsterPanel({
   selectedPreset,
   venomBlocked,
 }: MonsterPanelProps) {
+  // 그림은 공간을 크게 먹어서 기본은 접어 둔다. 한 번 열면 몹을 바꿔도 열린 채로
+  // 둬야 여러 몹을 훑어볼 때 매번 다시 누르지 않는다.
+  const [spriteOpen, setSpriteOpen] = useState(false);
+
   // 'F2S3' 같은 원작 코드는 사람이 못 읽으므로 속성별로 풀어서 칩으로 보여준다.
   const elementAttributes = parseElementAttributes(
     selectedPreset?.elementAttributes
@@ -76,7 +82,25 @@ export default function MonsterPanel({
       title="몬스터"
       icon={<Skull className="h-4 w-4" />}
       aside={
-        selectedPreset && <span className="chip">{selectedPreset.region}</span>
+        <div className="flex items-center gap-2">
+          {selectedPreset && (
+            <span className="chip">{selectedPreset.region}</span>
+          )}
+          {selectedPreset && (
+            <button
+              type="button"
+              onClick={() => setSpriteOpen((prev) => !prev)}
+              aria-pressed={spriteOpen}
+              aria-label={spriteOpen ? '몬스터 그림 접기' : '몬스터 그림 보기'}
+              title={spriteOpen ? '그림 접기' : '그림 보기'}
+              className={`ghost-button h-8 w-8 shrink-0 ${
+                spriteOpen ? 'text-brand' : ''
+              }`}
+            >
+              <ImageIcon className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       }
     >
       <div className="space-y-4">
@@ -87,6 +111,13 @@ export default function MonsterPanel({
           onSelect={onMonsterSelect}
           regionOrder={REGION_ORDER}
         />
+
+        {spriteOpen && selectedPreset && (
+          <MonsterSprite
+            monsterId={selectedPreset.id}
+            name={selectedPreset.name}
+          />
+        )}
 
         <div className="grid grid-cols-2 gap-3">
           {numericFields.map((field) => (
@@ -158,6 +189,76 @@ export default function MonsterPanel({
                 </span>
               )}
             </div>
+            {/*
+              몹 스킬은 데미지 계산에 안 들어가지만, 걸린 동안 화면값이 왜 안 맞는지를
+              설명해 주는 정보다. 방컷을 직접 나쁘게 만드는 것(방어업 · 물리 무효 ·
+              회복)은 경고색으로 갈라서, 칩만 훑어도 "이 몹은 계산대로 안 잡힐 수
+              있다"가 읽히게 한다.
+            */}
+            {selectedPreset.mobSkills &&
+              selectedPreset.mobSkills.length > 0 && (
+                <div className="space-y-1.5">
+                  <span className="field-label">몹 스킬</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedPreset.mobSkills.map((skill) => {
+                      const info = getMobSkillInfo(skill.id);
+                      const value =
+                        skill.x !== undefined && info.value
+                          ? info.value(skill.x)
+                          : null;
+
+                      return (
+                        <span
+                          key={`${skill.id}-${skill.x ?? ''}`}
+                          title={info.detail}
+                          className={`chip ${
+                            info.impact === 'kill'
+                              ? 'border-danger/40 bg-danger/10 text-danger'
+                              : info.impact === 'player'
+                                ? 'border-crit/40 bg-crit/10 text-crit'
+                                : ''
+                          }`}
+                        >
+                          {info.name}
+                          {value && (
+                            <b className="ml-1 tabular-nums font-semibold">
+                              {value}
+                            </b>
+                          )}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  {/*
+                    소환은 "무엇을 부르는지"까지 알아야 쓸모가 있다. 칩 안에 넣으면
+                    줄이 터지므로 아래에 한 줄로 편다.
+                  */}
+                  {selectedPreset.mobSkills
+                    .filter((skill) => skill.summons?.length)
+                    .map((skill) => (
+                      <p
+                        key={`summons-${skill.id}`}
+                        className="text-xs text-muted"
+                      >
+                        <b className="text-ink">소환</b>{' '}
+                        {skill
+                          .summons!.map(
+                            (target) =>
+                              `${target.name}${target.count > 1 ? ` x${target.count}` : ''}`
+                          )
+                          .join(' · ')}
+                      </p>
+                    ))}
+                  {selectedPreset.mobSkills.some(
+                    (skill) => getMobSkillInfo(skill.id).impact === 'kill'
+                  ) && (
+                    <p className="text-xs text-muted">
+                      빨간 스킬은 걸린 동안 방컷 확률이 화면값보다 나빠진다
+                    </p>
+                  )}
+                </div>
+              )}
+
             {venomBlocked && (
               <p className="flex items-start gap-1.5 rounded-lg border border-crit/30 bg-crit/10 px-2.5 py-2 text-xs text-crit">
                 <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />

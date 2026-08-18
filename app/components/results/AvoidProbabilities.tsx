@@ -57,17 +57,24 @@ export default function AvoidProbabilities({
       entry: avoidBreakdown.physical,
       note: physicalClamp && `도적 ${physicalClamp}에 걸렸다`,
     },
-    {
-      key: 'magic',
-      label: '마법',
-      hint: '몹 마법 공격',
-      entry: avoidBreakdown.magic,
-      note: null,
-    },
+    // 마법 공격이 없는 몹은 마법으로 맞을 일이 없으니 흘릴 확률도 뜻이 없다.
+    // 피격 데미지 쪽과 같은 기준으로 뺀다.
+    ...(monster.hasMagicAttack === false
+      ? []
+      : [
+          {
+            key: 'magic',
+            label: '마법',
+            hint: '몹 마법 공격',
+            entry: avoidBreakdown.magic,
+            note: null,
+          },
+        ]),
   ];
 
   // 조건이 맞을 때만 붙는 각주라, 남는 게 없으면 문단째로 뺀다.
   const footnotes = [
+    monster.hasMagicAttack === false ? '마법 공격이 없는 몹이다' : null,
     stats.avoid === undefined ? '회피율 미입력 시 0으로 본다' : null,
     shadowShifterProp === 0 && skills.shadowShifter > 0
       ? '페이크를 켜면 함께 반영한다'
@@ -91,7 +98,11 @@ export default function AvoidProbabilities({
         물리와 마법은 원작 공식부터 다른 별개의 값이라 어느 쪽도 부속으로 밀지 않고
         같은 크기로 나란히 놓는다.
       */}
-      <div className="grid grid-cols-2 gap-3 rounded-xl border border-line bg-sunken/50 px-3 py-2.5">
+      <div
+        className={`grid gap-3 rounded-xl border border-line bg-sunken/50 px-3 py-2.5 ${
+          columns.length > 1 ? 'grid-cols-2' : 'grid-cols-1'
+        }`}
+      >
         {columns.map((column) => {
           const shown = column.entry.withShadowShifter * 100;
           const gain =
