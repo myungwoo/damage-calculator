@@ -231,12 +231,23 @@ export const lineTotalOf = (
   /** 방어업 배율 (1이면 안 걸린 상태) */
   multiplier: number = 1
 ): number => {
+  // 원작은 방어업을 곱한 뒤 클램프하고, 파트너는 그렇게 확정된 값에서 나온다.
+  const damage = lineDamageOf(s, crit, u, v, multiplier);
+  return damage + partnerLine(damage, s.shadow);
+};
+
+/** 라인 하나의 본체 데미지 (파트너 제외). 넉백 판정은 이 값 단위로 본다. */
+export const lineDamageOf = (
+  s: KillScenario,
+  crit: boolean,
+  u: number,
+  v: number,
+  multiplier: number = 1
+): number => {
   const range = crit ? s.crit : s.basic;
   const beta = Math.max(0, range.defenseBand ?? 0);
   const base = range.min + u * statSpanOf(range) + v * beta;
-  // 원작은 방어업을 곱한 뒤 클램프하고, 파트너는 그렇게 확정된 값에서 나온다.
-  const damage = clampLine(lineValueOf(range, base, multiplier));
-  return damage + partnerLine(damage, s.shadow);
+  return clampLine(lineValueOf(range, base, multiplier));
 };
 
 /** 시전 1회의 총 데미지를 굴린다. 난수 소비 순서가 곧 결합 모델이다. */
@@ -276,6 +287,60 @@ export const rollUseDamage = (
     }
   }
   return total;
+};
+
+/**
+ * 시전 1회에 몹이 넉백될 확률을 굴린다.
+ *
+ * 결합 모델(어느 난수가 어느 판정을 정하는지)은 `rollUseDamage`와 같고
+ * 판정만 바꾼다 — "합계가 HP 이상"이 아니라 **"라인 하나가 넉백 수치 이상"** 이다.
+ * 쉐도우 파트너 라인도 각각 따로 본다(배포 코드는 파트너가 본체를 넘을 수 없다는
+ * 이유로 아예 보지 않으므로, 여기서 같이 굴려야 그 논증까지 검산이 된다).
+ */
+export const simulateKnockbackProbability = (
+  s: KillScenario,
+  threshold: number,
+  trials: number,
+  seed: number
+): number => {
+  const random = createRandom(seed);
+  let knocked = 0;
+
+  /** 이 라인이 넉백을 일으키는지. 파트너 라인도 단독으로 본다. */
+  const pushes = (damage: number): boolean =>
+    damage >= threshold || partnerLine(damage, s.shadow) >= threshold;
+
+  for (let trial = 0; trial < trials; trial++) {
+    let pushed = false;
+    if (s.rngCycling === true && s.hits === 3) {
+      const aHit = random() < s.hitProb;
+      const aCrit = random() < s.critChance;
+      const aU = random();
+      const aV = random();
+      const bHit = random() < s.hitProb;
+      const bCrit = random() < s.critChance;
+      const bU = random();
+      const bV = random();
+      const cHit = random() < s.hitProb;
+      const cU = random();
+      const cV = random();
+      if (aHit && pushes(lineDamageOf(s, aCrit, aU, aV))) pushed = true;
+      if (bHit && pushes(lineDamageOf(s, bCrit, bU, bV))) pushed = true;
+      if (cHit && pushes(lineDamageOf(s, bU < s.critChance, cU, cV)))
+        pushed = true;
+    } else {
+      for (let hit = 0; hit < s.hits; hit++) {
+        const landed = random() < s.hitProb;
+        const crit = random() < s.critChance;
+        const u = random();
+        const v = random();
+        if (landed && pushes(lineDamageOf(s, crit, u, v))) pushed = true;
+      }
+    }
+    if (pushed) knocked++;
+  }
+
+  return knocked / trials;
 };
 
 /** 게임 진행을 그대로 흉내 내는 몬테카를로 시뮬레이션 */

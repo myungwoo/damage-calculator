@@ -15,6 +15,7 @@ import HitProbabilityNotice from './HitProbabilityNotice';
 import AvoidProbabilities from './AvoidProbabilities';
 import HitDamage from './HitDamage';
 import MobSkillNotice from './MobSkillNotice';
+import KnockbackProbability from './KnockbackProbability';
 
 interface ResultsPanelProps {
   result: DamageResult;
@@ -171,19 +172,30 @@ export default function ResultsPanel({
 
         {/* 여기부터 데미지 값들. 구분자로 방컷 확률과 성격을 갈라 준다. */}
         <div className="space-y-4 border-t border-line pt-4">
-          <div className="flex items-baseline justify-between gap-2 rounded-xl border border-line px-3 py-2.5">
-            <span className="whitespace-nowrap text-xs font-medium text-muted">
-              총 데미지 범위
-            </span>
-            <span className="text-right">
-              <span className="block text-base font-bold tabular-nums text-ink">
-                {fmt(result.totalDamageRange.min)} ~{' '}
-                {fmt(result.totalDamageRange.max)}
+          {/*
+            넉백은 라인 하나짜리 판정이라 총 데미지 범위(합계)와 눈금이 다르지만,
+            곁다리 정보라 카드를 따로 세우면 제 중요도보다 커 보인다.
+            같은 카드 안에 구분선으로 갈라 한 줄만 얹는다.
+          */}
+          <div className="rounded-xl border border-line">
+            <div className="flex items-baseline justify-between gap-2 px-3 py-2.5">
+              <span className="whitespace-nowrap text-xs font-medium text-muted">
+                총 데미지 범위
               </span>
-              <span className="block text-[0.7rem] tabular-nums text-muted">
-                기댓값 {fmt(result.totalDamageRange.expected ?? 0)}
+              <span className="text-right">
+                <span className="block text-base font-bold tabular-nums text-ink">
+                  {fmt(result.totalDamageRange.min)} ~{' '}
+                  {fmt(result.totalDamageRange.max)}
+                </span>
+                <span className="block text-[0.7rem] tabular-nums text-muted">
+                  기댓값 {fmt(result.totalDamageRange.expected ?? 0)}
+                </span>
               </span>
-            </span>
+            </div>
+            <KnockbackProbability
+              probability={result.knockbackProbability}
+              monster={monster}
+            />
           </div>
 
           <div className="space-y-2">

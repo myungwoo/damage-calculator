@@ -33,6 +33,8 @@ const DEFAULT_STATE = {
     hasMagicAttack: monsterPresets[0].hasMagicAttack ?? false,
     poisonAttribute: monsterPresets[0].poisonAttribute,
     isBoss: monsterPresets[0].isBoss,
+    minimumPushDamage: monsterPresets[0].minimumPushDamage,
+    cannotMove: monsterPresets[0].cannotMove,
   } as Monster,
   stats: {
     level: 10,
@@ -114,6 +116,10 @@ const resolveMonsterSelection = (savedMonster: Monster) => {
         : true,
       poisonAttribute: matchingPreset?.poisonAttribute,
       isBoss: matchingPreset?.isBoss,
+      // 넉백 수치와 이동 능력도 프리셋에만 있는 정보라 항상 다시 붙인다.
+      // 직접 입력 몬스터면 넉백 수치를 모르는 상태로 두어 화면에서 빠지게 한다.
+      minimumPushDamage: matchingPreset?.minimumPushDamage,
+      cannotMove: matchingPreset?.cannotMove,
     },
     selectedMonsterId: matchingPreset?.id || 'custom',
     isCustomMonster: !matchingPreset,
@@ -182,7 +188,13 @@ export const useCalculatorState = () => {
         isCustomMonster: true,
         selectedMonsterId: 'custom',
         // 직접 입력은 마법 공격 유무를 알 수 없으니, 마법 공격력을 넣으면 보이게 둔다.
-        monster: { ...prev.monster, hasMagicAttack: true },
+        // 넉백 수치는 반대로 추정할 근거가 없어 비운다(= 넉백 확률을 그리지 않는다).
+        monster: {
+          ...prev.monster,
+          hasMagicAttack: true,
+          minimumPushDamage: undefined,
+          cannotMove: undefined,
+        },
       }));
     } else {
       const selectedPreset = monsterPresets.find(
@@ -207,6 +219,8 @@ export const useCalculatorState = () => {
             hasMagicAttack: selectedPreset.hasMagicAttack ?? false,
             poisonAttribute: selectedPreset.poisonAttribute,
             isBoss: selectedPreset.isBoss,
+            minimumPushDamage: selectedPreset.minimumPushDamage,
+            cannotMove: selectedPreset.cannotMove,
           },
         }));
       }

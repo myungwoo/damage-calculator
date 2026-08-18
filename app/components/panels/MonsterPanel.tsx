@@ -246,9 +246,18 @@ export default function MonsterPanel({
                 selectedPreset.magicAttack > 0 && (
                   <span className="chip">마법 공격 없음</span>
                 )}
-              <span className="chip">
-                넉백 {selectedPreset.minimumPushDamage}
-              </span>
+              {/*
+                이동 능력이 없는 몹은 넉백 수치를 넘겨도 밀리지 않는다.
+                수치를 그대로 띄우면 "넘기면 밀린다"로 읽히므로 아예 갈아 끼운다.
+              */}
+              {selectedPreset.cannotMove === true ? (
+                <span className="chip">넉백 불가</span>
+              ) : (
+                <span className="chip">
+                  넉백{' '}
+                  {selectedPreset.minimumPushDamage.toLocaleString('ko-KR')}
+                </span>
+              )}
               {selectedPreset.exp !== undefined && (
                 <span className="chip">
                   EXP {selectedPreset.exp.toLocaleString('ko-KR')}
