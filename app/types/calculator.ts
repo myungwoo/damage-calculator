@@ -48,7 +48,7 @@ export interface Monster {
    * 마법 공격(원작 `attack{n}/info/magic`)을 가진 몹인지.
    *
    * 마법 공격이 없으면 마법 공격력이 0보다 커도 마법 피격은 들어오지 않는다.
-   * 프리셋 368종 중 73종이 여기 해당한다.
+   * 프리셋 438종 중 97종이 여기 해당한다.
    */
   hasMagicAttack?: boolean;
   /**
@@ -347,11 +347,11 @@ export interface MonsterPreset extends Monster {
   exp?: number;
   /**
    * 넉백에 필요한 라인 하나의 최소 데미지 (원작 Mob.wz `info/pushed`).
-   * 프리셋은 368종 전부 값을 갖고 있어 Monster와 달리 필수다.
+   * 프리셋은 438종 전부 값을 갖고 있어 Monster와 달리 필수다.
    */
   minimumPushDamage: number;
   /**
-   * 이동 능력이 없는 몹 (원작 MoveAbility 0). 프리셋 368종 중 31종.
+   * 이동 능력이 없는 몹 (원작 MoveAbility 0). 프리셋 438종 중 63종.
    *
    * 원작 `MobTemplate::RegisterMob`이 Mob.wz 루트의 `fly` / `jump` / `move` 노드
    * 유무로 이동 능력을 정하는데, 셋 다 없으면 0(정지)이다. 값이 없으면
