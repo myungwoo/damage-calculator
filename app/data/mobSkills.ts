@@ -221,10 +221,23 @@ export const MOB_SKILLS: Record<number, MobSkillInfo> = {
   201: { name: '큐브 소환', impact: 'player', detail: '큐브를 불러낸다' },
 };
 
-/** 프리셋에 없는 스킬 ID가 나와도 화면이 깨지지 않게 이름만이라도 준다. */
-export const getMobSkillInfo = (id: number): MobSkillInfo =>
-  MOB_SKILLS[id] ?? {
+/**
+ * 프리셋에 없는 스킬 ID가 나와도 화면이 깨지지 않게 이름만이라도 준다.
+ *
+ * **방어업(102 / 112)은 `x`를 같이 봐야 한다.** `x`는 곱하는 배율이라 100이면 데미지가
+ * 하나도 안 줄어드는데, WZ에 그 슬롯을 쓰는 몹이 실제로 있다(크림슨우드 성채 보스 4종).
+ * 배율을 안 보면 아무 효과 없는 스킬에 빨간 칩과 방컷 경고가 붙는다.
+ */
+export const getMobSkillInfo = (id: number, x?: number): MobSkillInfo => {
+  const info = MOB_SKILLS[id] ?? {
     name: `스킬 ${id}`,
-    impact: 'info',
+    impact: 'info' as const,
     detail: '아직 정리하지 않은 몹 스킬이다',
   };
+
+  if ((id === 102 || id === 112) && x !== undefined && x >= 100) {
+    return { ...info, impact: 'info' };
+  }
+
+  return info;
+};

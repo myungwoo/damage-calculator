@@ -16,7 +16,7 @@ interface MobSkillNoticeProps {
  */
 export default function MobSkillNotice({ preset }: MobSkillNoticeProps) {
   const risky = (preset?.mobSkills ?? [])
-    .map((skill) => ({ skill, info: getMobSkillInfo(skill.id) }))
+    .map((skill) => ({ skill, info: getMobSkillInfo(skill.id, skill.x) }))
     .filter(({ info }) => info.impact === 'kill');
 
   if (risky.length === 0) {
