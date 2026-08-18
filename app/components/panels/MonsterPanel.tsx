@@ -164,66 +164,65 @@ export default function MonsterPanel({
 
         {/*
           방어업은 몹 수치가 아니라 "이 상황을 가정하고 계산해 달라"는 입력이라
-          잠긴 프리셋 칸과 섞이지 않게 아래에 따로 둔다. 걸린 뒤로는 방컷 확률이
-          통째로 달라지므로 결과가 아니라 입력 쪽에 있어야 한다.
+          잠긴 프리셋 칸과 섞이지 않게 선 하나로 갈라 둔다. 자주 만지는 값이 아니라서
+          한 줄짜리 좁은 형태로 두고, 몹이 실제로 쓰는 배율은 라벨 옆 빈 자리에 적는다.
         */}
-        <div className="space-y-2 rounded-xl border border-line bg-sunken/40 p-3">
-          <Field
-            label="방어업"
-            hint={
-              defenseUpPercent >= 100
-                ? '몹이 방어업을 건 상황을 가정해서 방컷 확률을 다시 계산한다'
-                : `걸린 뒤로는 내 데미지가 ${defenseUpPercent}%가 된다. 쉐도우 파트너 몫도 같이 줄어든다`
+        <div className="space-y-1.5 border-t border-line pt-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="field-label">방어업</span>
+            {selectedPreset && (
+              <span className="text-[0.7rem] text-muted">
+                {ownDefenseUp.length > 0
+                  ? `이 몹은 ${ownDefenseUp
+                      .map((percent) => `-${100 - percent}%`)
+                      .join(' · ')}`
+                  : '이 몹은 안 쓴다'}
+              </span>
+            )}
+          </div>
+
+          <SegmentedControl
+            ariaLabel="몹 방어업 단계"
+            columns={3}
+            dense
+            value={String(defenseUpPercent)}
+            onChange={(value) =>
+              setMonster((prev) => ({
+                ...prev,
+                defenseUpPercent: Number(value),
+              }))
             }
-          >
-            <SegmentedControl
-              ariaLabel="몹 방어업 단계"
-              columns={4}
-              value={String(defenseUpPercent)}
-              onChange={(value) =>
-                setMonster((prev) => ({
-                  ...prev,
-                  defenseUpPercent: Number(value),
-                }))
-              }
-              options={[
-                { value: '100', label: '없음' },
-                ...MOB_DEFENSE_UP_TIERS.map((tier) => ({
-                  value: String(tier.percent),
-                  label: `${tier.stage}단계`,
-                  meta: `-${100 - tier.percent}%`,
-                })),
-              ]}
-            />
-          </Field>
+            options={[
+              { value: '100', label: '없음' },
+              ...MOB_DEFENSE_UP_TIERS.map((tier) => ({
+                value: String(tier.percent),
+                label: `${tier.stage}단계`,
+                meta: `-${100 - tier.percent}%`,
+              })),
+            ]}
+          />
 
           {defenseUpPercent < 100 && (
-            <Field
-              label="적용 시작"
-              hint="이 방수부터 방어업이 걸린 것으로 본다"
-            >
-              <NumberInput
-                value={monster.defenseUpFromHit ?? 1}
-                ariaLabel="방어업 적용 시작 방"
-                onChange={(value) =>
-                  setMonster((prev) => ({
-                    ...prev,
-                    defenseUpFromHit: Math.max(1, value ?? 1),
-                  }))
-                }
-                suffix="방부터"
-              />
-            </Field>
-          )}
-
-          {selectedPreset && (
-            <p className="text-xs text-muted">
-              {ownDefenseUp.length > 0
-                ? `이 몹은 방어업 ${ownDefenseUp
-                    .map((percent) => `-${100 - percent}%`)
-                    .join(' · ')}를 쓴다`
-                : '이 몹은 방어업을 쓰지 않는다'}
-            </p>
+            <div className="flex items-center gap-1.5 text-xs text-muted">
+              {/* 입력칸은 w-full이라 폭은 바깥에서 잡아 준다 */}
+              <div className="w-14 shrink-0">
+                <NumberInput
+                  value={monster.defenseUpFromHit ?? 1}
+                  ariaLabel="방어업 적용 시작 방"
+                  onChange={(value) =>
+                    setMonster((prev) => ({
+                      ...prev,
+                      defenseUpFromHit: Math.max(1, value ?? 1),
+                    }))
+                  }
+                  className="px-2 py-1.5 text-center"
+                />
+              </div>
+              <span>
+                방부터 내 데미지가{' '}
+                <b className="text-ink">{defenseUpPercent}%</b>가 된다
+              </span>
+            </div>
           )}
         </div>
 
