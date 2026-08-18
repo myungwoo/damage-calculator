@@ -29,6 +29,26 @@ export interface Monster {
   avoid: number;
   /** 몬스터 명중률. 캐릭터 회피율과 맞물려 회피 확률을 정한다. */
   accuracy: number;
+  /** 몬스터 물리 공격력. 몸박 피격 데미지의 기준값이다. */
+  physicalAttack: number;
+  /**
+   * 몸박보다 센 물리 공격들의 공격력 (오름차순, 중복 제거).
+   *
+   * 원작은 공격마다 자기 `PADamage`를 가질 수 있고 `max(몹 기본, 공격별)`을 쓴다.
+   * 몸박만 보여주면 실제로 맞는 값을 놓친다(블러드붐은 몸박의 2.2배다).
+   * 몸박 이하인 공격은 몸박과 값이 같아지므로 넣지 않는다. 그래서 이 목록이
+   * 없으면 물리는 몸박 하나뿐이라는 뜻이다.
+   */
+  physicalAttackPowers?: number[];
+  /** 몬스터 마법 공격력. 마법 피격 데미지의 기준값이다. */
+  magicAttack: number;
+  /**
+   * 마법 공격(원작 `attack{n}/info/magic`)을 가진 몹인지.
+   *
+   * 마법 공격이 없으면 마법 공격력이 0보다 커도 마법 피격은 들어오지 않는다.
+   * 프리셋 368종 중 73종이 여기 해당한다.
+   */
+  hasMagicAttack?: boolean;
   /**
    * 독 속성 저항 (원작 Mob.wz elemAttr의 S 항목).
    * 1 = 무효, 2 = 반감, 3 = 약점. 1과 2에는 베놈이 걸리지 않는다.
@@ -46,9 +66,20 @@ export interface Stats {
   additionalStr: number;
   additionalDex: number;
   additionalLuk: number;
+  /**
+   * 장비·버프로 붙은 INT.
+   *
+   * 순수 INT는 4로 고정이라(LUK 순 스탯 역산도 같은 가정을 쓴다) 추가분만 받는다.
+   * 공격 데미지에는 안 들어가고 **물리 피격 데미지의 감면량에만** 들어간다.
+   */
+  additionalInt: number;
   hitRatio?: number;
   /** 캐릭터 회피율. 비워 두면 0으로 본다. */
   avoid?: number;
+  /** 캐릭터 물리 방어력. 비워 두면 0으로 본다. */
+  physicalDefense?: number;
+  /** 캐릭터 마법 방어력. 비워 두면 0으로 본다. */
+  magicalDefense?: number;
 }
 
 export interface Equipment {
@@ -281,10 +312,6 @@ export interface MonsterPreset extends Monster {
   id: string;
   name: string;
   exp?: number;
-  /** 몬스터 물리 공격력 */
-  physicalAttack: number;
-  /** 몬스터 마법 공격력 */
-  magicAttack: number;
   /** 넉백에 필요한 최소 누적 데미지 */
   minimumPushDamage: number;
   /** 언데드 여부 */

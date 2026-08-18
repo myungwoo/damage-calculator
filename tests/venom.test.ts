@@ -32,6 +32,7 @@ const makeStats = (overrides: Partial<Stats> = {}): Stats => ({
   additionalStr: 0,
   additionalDex: 0,
   additionalLuk: 0,
+  additionalInt: 0,
   ...overrides,
 });
 
@@ -42,6 +43,8 @@ const makeMonster = (overrides: Partial<Monster> = {}): Monster => ({
   magicalDefense: 0,
   avoid: 0,
   accuracy: 0,
+  physicalAttack: 0,
+  magicAttack: 0,
   ...overrides,
 });
 

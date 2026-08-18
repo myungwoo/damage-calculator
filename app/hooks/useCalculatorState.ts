@@ -27,6 +27,10 @@ const DEFAULT_STATE = {
     magicalDefense: monsterPresets[0].magicalDefense,
     avoid: monsterPresets[0].avoid,
     accuracy: monsterPresets[0].accuracy,
+    physicalAttack: monsterPresets[0].physicalAttack,
+    physicalAttackPowers: monsterPresets[0].physicalAttackPowers,
+    magicAttack: monsterPresets[0].magicAttack,
+    hasMagicAttack: monsterPresets[0].hasMagicAttack,
     poisonAttribute: monsterPresets[0].poisonAttribute,
     isBoss: monsterPresets[0].isBoss,
   } as Monster,
@@ -38,8 +42,11 @@ const DEFAULT_STATE = {
     additionalStr: 0,
     additionalDex: 0,
     additionalLuk: 0,
+    additionalInt: 0,
     hitRatio: undefined,
     avoid: undefined,
+    physicalDefense: undefined,
+    magicalDefense: undefined,
   } as Stats,
   equipment: {
     weaponAttack: 10,
@@ -80,7 +87,7 @@ const getInitialState = (): State => {
 
 // 저장 데이터에는 몬스터 수치만 들어 있고 어느 프리셋인지가 없다.
 // 프리셋 값은 UI에서 잠겨 있어 그대로 저장되므로 수치로 되찾을 수 있다.
-// 독 속성 / 보스 여부 / 명중률은 저장 데이터에 없을 수 있으므로 프리셋에서 다시 붙인다.
+// 독 속성 / 보스 여부 / 명중률 / 공격력은 저장 데이터에 없을 수 있으므로 프리셋에서 다시 붙인다.
 const resolveMonsterSelection = (savedMonster: Monster) => {
   const matchingPreset = monsterPresets.find(
     (preset) =>
@@ -94,6 +101,13 @@ const resolveMonsterSelection = (savedMonster: Monster) => {
       ...savedMonster,
       // 회피 확률을 붙이기 전에 저장된 데이터에는 명중률이 없다.
       accuracy: savedMonster.accuracy ?? matchingPreset?.accuracy ?? 0,
+      // 피격 데미지를 붙이기 전에 저장된 데이터에는 공격력이 없다.
+      physicalAttack:
+        savedMonster.physicalAttack ?? matchingPreset?.physicalAttack ?? 0,
+      magicAttack: savedMonster.magicAttack ?? matchingPreset?.magicAttack ?? 0,
+      // 공격별 공격력과 마법 공격 유무는 프리셋에만 있는 정보라 항상 다시 붙인다.
+      physicalAttackPowers: matchingPreset?.physicalAttackPowers,
+      hasMagicAttack: matchingPreset?.hasMagicAttack,
       poisonAttribute: matchingPreset?.poisonAttribute,
       isBoss: matchingPreset?.isBoss,
     },
@@ -144,7 +158,8 @@ export const useCalculatorState = () => {
         setState((prev) => ({
           ...prev,
           ...resolveMonsterSelection(parsedData.monster),
-          stats: parsedData.stats,
+          // 예전 저장 데이터에는 추가 INT / 방어력 필드가 없으므로 기본값으로 채운다.
+          stats: { ...DEFAULT_STATE.stats, ...parsedData.stats },
           equipment: parsedData.equipment,
           // 예전 저장 데이터에는 베놈 관련 필드가 없으므로 기본값으로 채운다.
           skills: {
@@ -180,6 +195,10 @@ export const useCalculatorState = () => {
             magicalDefense: selectedPreset.magicalDefense,
             avoid: selectedPreset.avoid,
             accuracy: selectedPreset.accuracy,
+            physicalAttack: selectedPreset.physicalAttack,
+            physicalAttackPowers: selectedPreset.physicalAttackPowers,
+            magicAttack: selectedPreset.magicAttack,
+            hasMagicAttack: selectedPreset.hasMagicAttack,
             poisonAttribute: selectedPreset.poisonAttribute,
             isBoss: selectedPreset.isBoss,
           },
@@ -316,7 +335,8 @@ export const useCalculatorState = () => {
           ...prev,
           // 드롭다운 표시와 프리셋 잠금이 불러온 몬스터를 따라가야 한다.
           ...resolveMonsterSelection(parsedData.monster),
-          stats: parsedData.stats,
+          // 예전 저장 데이터에는 추가 INT / 방어력 필드가 없으므로 기본값으로 채운다.
+          stats: { ...DEFAULT_STATE.stats, ...parsedData.stats },
           equipment: parsedData.equipment,
           // 예전 저장 데이터에는 베놈 관련 필드가 없으므로 기본값으로 채운다.
           skills: { ...DEFAULT_STATE.skills, ...parsedData.skills },

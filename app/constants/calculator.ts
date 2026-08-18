@@ -3,6 +3,14 @@ export const STORAGE_KEY_PREFIX = 'damage-calculator-save-';
 export const MIN_LEVEL = 1;
 export const MAX_LEVEL = 250;
 
+/**
+ * 순수 INT.
+ *
+ * 나이트로드는 INT에 AP를 주지 않으므로 시작 스탯 4에서 그대로 멈춘다.
+ * LUK 순 스탯 역산과 물리 피격 데미지가 같은 가정을 쓰므로 여기서만 정한다.
+ */
+export const PURE_INT = 4;
+
 /** 입력 후 방컷 확률을 다시 계산하기까지의 디바운스 시간 (ms) */
 export const CALCULATION_DEBOUNCE_MS = 100;
 

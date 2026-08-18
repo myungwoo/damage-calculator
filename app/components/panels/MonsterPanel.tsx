@@ -59,6 +59,16 @@ export default function MonsterPanel({
       value: monster.accuracy,
       apply: (value: number) => ({ accuracy: value }),
     },
+    {
+      label: '물리 공격력',
+      value: monster.physicalAttack,
+      apply: (value: number) => ({ physicalAttack: value }),
+    },
+    {
+      label: '마법 공격력',
+      value: monster.magicAttack,
+      apply: (value: number) => ({ magicAttack: value }),
+    },
   ];
 
   return (
@@ -107,12 +117,19 @@ export default function MonsterPanel({
           <div className="space-y-2">
             <span className="field-label">몹 정보</span>
             <div className="flex flex-wrap gap-1.5">
-              <span className="chip">
-                공격력 {selectedPreset.physicalAttack}
-              </span>
-              {selectedPreset.magicAttack > 0 && (
-                <span className="chip">마공 {selectedPreset.magicAttack}</span>
+              {/*
+                입력칸의 물리 공격력은 몸박 기준이라, 그보다 센 공격이 따로 있으면
+                여기서 알려 준다. 피격 데미지가 그 값을 대표값으로 쓴다.
+              */}
+              {selectedPreset.physicalAttackPowers !== undefined && (
+                <span className="chip">
+                  물리 공격 {selectedPreset.physicalAttackPowers.join(' · ')}
+                </span>
               )}
+              {selectedPreset.hasMagicAttack !== true &&
+                selectedPreset.magicAttack > 0 && (
+                  <span className="chip">마법 공격 없음</span>
+                )}
               <span className="chip">
                 넉백 {selectedPreset.minimumPushDamage}
               </span>

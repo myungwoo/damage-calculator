@@ -12,6 +12,7 @@ import { findHeadlineKill } from '../../utils/calculatorUtils';
 import KillProbabilityChart from './KillProbabilityChart';
 import HitProbabilityNotice from './HitProbabilityNotice';
 import AvoidProbabilities from './AvoidProbabilities';
+import HitDamage from './HitDamage';
 
 interface ResultsPanelProps {
   result: DamageResult;
@@ -211,8 +212,13 @@ export default function ResultsPanel({
           </div>
         </div>
 
-        <div className="border-t border-line pt-4">
+        {/*
+          몹이 나를 때리는 쪽. 흘릴 확률과 흘리지 못했을 때의 데미지는 한 질문의
+          앞뒤라서 붙여 둔다.
+        */}
+        <div className="space-y-4 border-t border-line pt-4">
           <AvoidProbabilities monster={monster} stats={stats} skills={skills} />
+          <HitDamage monster={monster} stats={stats} />
         </div>
       </div>
     </div>
