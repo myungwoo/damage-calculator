@@ -7,6 +7,7 @@ import {
 } from '../app/utils/damageCalculator';
 import { getStandardPhysicalDefense } from '../app/data/standardPDD';
 import { MOB_ATTACK_UP_TIERS } from '../app/data/mobBuffs';
+import { MOB_SKILLS } from '../app/data/mobSkills';
 import { monsterPresets } from '../app/data/monsterPresets';
 import { PURE_INT } from '../app/constants/calculator';
 import { createRandom } from './helpers/reference';
@@ -509,5 +510,39 @@ describe('피격 데미지', () => {
 
     // 몹 레벨이 캐릭터보다 높으면 감면이 더 크게 깎여서 더 아프다.
     assert.ok(higherMonster.body.damage.max > sameLevel.body.damage.max);
+  });
+});
+
+describe('몬스터 프리셋의 몹 스킬', () => {
+  it('스킬 목록은 정리된 ID만 담는다', () => {
+    for (const preset of monsterPresets) {
+      for (const skill of preset.mobSkills ?? []) {
+        assert.ok(
+          MOB_SKILLS[skill.id] !== undefined,
+          `${preset.name}의 스킬 ${skill.id}가 mobSkills.ts에 없다`
+        );
+      }
+    }
+  });
+
+  it('수치가 있는 스킬만 x를 갖는다', () => {
+    // x를 못 읽는 스킬에 값을 넣어 두면 칩에 근거 없는 숫자가 붙는다.
+    for (const preset of monsterPresets) {
+      for (const skill of preset.mobSkills ?? []) {
+        if (skill.x === undefined) continue;
+        assert.ok(
+          MOB_SKILLS[skill.id].value !== undefined,
+          `${preset.name}의 스킬 ${skill.id}에 뜻 없는 x가 들어 있다`
+        );
+      }
+    }
+  });
+
+  it('공격업 칩 수치가 피격 데미지 표의 단계와 같은 값을 가리킨다', () => {
+    // 칩은 +15%, 표는 x1.15로 같은 배율을 쓴다. 둘이 갈리면 화면끼리 어긋난다.
+    const powerUp = MOB_SKILLS[110];
+    for (const tier of MOB_ATTACK_UP_TIERS) {
+      assert.equal(powerUp.value?.(tier.percent), `+${tier.percent - 100}%`);
+    }
   });
 });

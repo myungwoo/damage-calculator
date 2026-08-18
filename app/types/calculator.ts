@@ -322,6 +322,17 @@ export interface MonsterPreset extends Monster {
    * 숫자는 1 무효, 2 반감, 3 약점.
    */
   elementAttributes?: string;
+  /**
+   * 몹이 쓰는 스킬 (원작 `Mob.wz`의 `info/skill`).
+   *
+   * 데미지 계산에는 안 들어간다 — 스킬이 걸린 동안에만 달라지는 값이라
+   * 상시 반영하면 오히려 틀린 숫자가 된다. 대신 "이 몹은 방어업을 건다"처럼
+   * 화면값이 언제 나빠지는지를 알려 주는 데 쓴다.
+   *
+   * `x`는 그 몹이 쓰는 레벨의 효과 수치다(공격업 115 = +15%, 회복 3000 = HP 3000).
+   * 뜻이 정해진 스킬에만 들어 있다.
+   */
+  mobSkills?: { id: number; x?: number }[];
   region: string;
 }
 

@@ -4,6 +4,7 @@ import {
   DamageRange,
   DamageResult,
   Monster,
+  MonsterPreset,
   Skills,
   Stats,
 } from '../../types/calculator';
@@ -13,12 +14,15 @@ import KillProbabilityChart from './KillProbabilityChart';
 import HitProbabilityNotice from './HitProbabilityNotice';
 import AvoidProbabilities from './AvoidProbabilities';
 import HitDamage from './HitDamage';
+import MobSkillNotice from './MobSkillNotice';
 
 interface ResultsPanelProps {
   result: DamageResult;
   monster: Monster;
   stats: Stats;
   skills: Skills;
+  /** 프리셋에만 있는 몹 스킬 정보. 직접 입력 몬스터면 없다 */
+  selectedPreset: MonsterPreset | null | undefined;
 }
 
 const floor = (value: number) => Math.floor(value);
@@ -92,6 +96,7 @@ export default function ResultsPanel({
   monster,
   stats,
   skills,
+  selectedPreset,
 }: ResultsPanelProps) {
   const shadowActive = skills.shadowPartnerEnabled && skills.shadowPartner > 0;
 
@@ -160,6 +165,8 @@ export default function ResultsPanel({
           <KillProbabilityChart killProbabilities={result.killProbabilities} />
           {/* 타격 확률이 100%에 못 미칠 때만 뜬다. 위 막대가 그만큼 내려간 이유다. */}
           <HitProbabilityNotice monster={monster} stats={stats} />
+          {/* 몹 스킬은 걸린 동안에만 확률을 깎으므로 숫자 대신 경고로 알린다. */}
+          <MobSkillNotice preset={selectedPreset} />
         </div>
 
         {/* 여기부터 데미지 값들. 구분자로 방컷 확률과 성격을 갈라 준다. */}

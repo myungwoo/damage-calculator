@@ -90,6 +90,7 @@ export default function DamageCalculator() {
       monster={monster}
       stats={stats}
       skills={skills}
+      selectedPreset={selectedPreset}
     />
   );
 

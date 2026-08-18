@@ -353,6 +353,7 @@ export const monsterPresets: MonsterPreset[] = [
     physicalAttack: 80,
     magicAttack: 0,
     minimumPushDamage: 300,
+    mobSkills: [{ id: 110, x: 115 }, { id: 123 }],
     region: '빅토리아 아일랜드',
   },
   {
@@ -434,6 +435,7 @@ export const monsterPresets: MonsterPreset[] = [
     physicalAttack: 90,
     magicAttack: 0,
     minimumPushDamage: 500,
+    mobSkills: [{ id: 120 }, { id: 124 }],
     region: '빅토리아 아일랜드',
   },
   {
@@ -515,6 +517,7 @@ export const monsterPresets: MonsterPreset[] = [
     physicalAttack: 95,
     magicAttack: 0,
     minimumPushDamage: 100,
+    mobSkills: [{ id: 100, x: 115 }],
     region: '빅토리아 아일랜드',
   },
   {
@@ -639,6 +642,10 @@ export const monsterPresets: MonsterPreset[] = [
     physicalAttack: 180,
     magicAttack: 0,
     minimumPushDamage: 1000,
+    mobSkills: [
+      { id: 100, x: 115 },
+      { id: 102, x: 85 },
+    ],
     region: '빅토리아 아일랜드',
   },
   {
@@ -671,6 +678,10 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 0,
     minimumPushDamage: 1500,
     elementAttributes: 'H3',
+    mobSkills: [
+      { id: 100, x: 130 },
+      { id: 102, x: 60 },
+    ],
     region: '빅토리아 아일랜드',
   },
   {
@@ -851,6 +862,10 @@ export const monsterPresets: MonsterPreset[] = [
     physicalAttack: 200,
     magicAttack: 190,
     minimumPushDamage: 1100,
+    mobSkills: [
+      { id: 100, x: 115 },
+      { id: 102, x: 85 },
+    ],
     region: '미출시',
   },
   {
@@ -920,6 +935,7 @@ export const monsterPresets: MonsterPreset[] = [
     isUndead: true,
     elementAttributes: 'H3I2S1',
     poisonAttribute: 1,
+    mobSkills: [{ id: 131, x: 200 }],
     region: '미출시',
   },
   {
@@ -1084,6 +1100,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 155,
     hasMagicAttack: true,
     minimumPushDamage: 200,
+    mobSkills: [{ id: 103, x: 85 }],
     region: '오르비스',
   },
   {
@@ -1118,6 +1135,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 500,
     elementAttributes: 'I2F2L2H2',
+    mobSkills: [{ id: 101, x: 130 }],
     region: '오르비스',
   },
   {
@@ -1296,6 +1314,7 @@ export const monsterPresets: MonsterPreset[] = [
     physicalAttack: 145,
     magicAttack: 0,
     minimumPushDamage: 500,
+    mobSkills: [{ id: 100, x: 115 }],
     region: '엘나스',
   },
   {
@@ -1434,6 +1453,10 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 270,
     minimumPushDamage: 2000,
     elementAttributes: 'I2F3',
+    mobSkills: [
+      { id: 100, x: 115 },
+      { id: 102, x: 85 },
+    ],
     region: '엘나스',
   },
   {
@@ -1451,6 +1474,10 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 290,
     minimumPushDamage: 2000,
     elementAttributes: 'H3',
+    mobSkills: [
+      { id: 100, x: 130 },
+      { id: 102, x: 60 },
+    ],
     region: '엘나스',
   },
   {
@@ -1483,6 +1510,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 380,
     hasMagicAttack: true,
     minimumPushDamage: 1500,
+    mobSkills: [{ id: 102, x: 60 }],
     region: '엘나스',
   },
   {
@@ -1517,6 +1545,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 5000,
     elementAttributes: 'I2F3',
+    mobSkills: [{ id: 101, x: 130 }, { id: 103, x: 60 }, { id: 200 }],
     region: '엘나스',
   },
   {
@@ -1626,6 +1655,7 @@ export const monsterPresets: MonsterPreset[] = [
     physicalAttack: 124,
     magicAttack: 0,
     minimumPushDamage: 1,
+    mobSkills: [{ id: 100, x: 115 }],
     region: '장난감 공장',
   },
   {
@@ -1887,6 +1917,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 5500,
     elementAttributes: 'L2',
+    mobSkills: [{ id: 123 }],
     region: '시계탑',
   },
   {
@@ -2049,6 +2080,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 5500,
     isUndead: true,
     elementAttributes: 'H3I2',
+    mobSkills: [{ id: 120 }, { id: 121 }, { id: 124 }, { id: 125, x: 15 }],
     region: '시계탑',
   },
   {
@@ -2422,6 +2454,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 0,
     minimumPushDamage: 450,
     elementAttributes: 'F2I3',
+    mobSkills: [{ id: 126, x: 80 }],
     region: '아랫마을',
   },
   {
@@ -2439,6 +2472,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 500,
     elementAttributes: 'F3H3',
+    mobSkills: [{ id: 124 }],
     region: '아랫마을',
   },
   {
@@ -2456,6 +2490,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 900,
     elementAttributes: 'F2I2H3',
+    mobSkills: [{ id: 102, x: 85 }],
     region: '아랫마을',
   },
   {
@@ -2510,6 +2545,7 @@ export const monsterPresets: MonsterPreset[] = [
     elementAttributes: 'S1',
     poisonAttribute: 1,
     isBoss: true,
+    mobSkills: [{ id: 131, x: 150 }],
     region: '아랫마을',
   },
   {
@@ -2660,6 +2696,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 155,
     minimumPushDamage: 300,
     isBoss: true,
+    mobSkills: [{ id: 121 }, { id: 140 }],
     region: '아쿠아리움',
   },
   {
@@ -2828,6 +2865,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 4200,
     isUndead: true,
     elementAttributes: 'F2H3',
+    mobSkills: [{ id: 140 }, { id: 141 }],
     region: '아쿠아리움',
   },
   {
@@ -2845,6 +2883,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 4000,
     elementAttributes: 'F2I2L2S2',
     poisonAttribute: 2,
+    mobSkills: [{ id: 140 }],
     region: '아쿠아리움',
   },
   {
@@ -2862,6 +2901,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 5500,
     elementAttributes: 'F2',
+    mobSkills: [{ id: 101, x: 130 }, { id: 127 }],
     region: '아쿠아리움',
   },
   {
@@ -2879,6 +2919,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 5500,
     elementAttributes: 'F2I2',
+    mobSkills: [{ id: 126, x: 80 }],
     region: '아쿠아리움',
   },
   {
@@ -2896,6 +2937,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 4200,
     elementAttributes: 'S2F2',
     poisonAttribute: 2,
+    mobSkills: [{ id: 131, x: 150 }],
     region: '아쿠아리움',
   },
   {
@@ -2930,6 +2972,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 1450,
     elementAttributes: 'S3',
     poisonAttribute: 3,
+    mobSkills: [{ id: 122 }],
     region: '리프레',
   },
   {
@@ -2948,6 +2991,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 1550,
     elementAttributes: 'S2',
     poisonAttribute: 2,
+    mobSkills: [{ id: 124 }],
     region: '리프레',
   },
   {
@@ -2965,6 +3009,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 310,
     minimumPushDamage: 2000,
     elementAttributes: 'L2',
+    mobSkills: [{ id: 126, x: 80 }],
     region: '리프레',
   },
   {
@@ -2982,6 +3027,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 2000,
     elementAttributes: 'L2',
+    mobSkills: [{ id: 122 }],
     region: '리프레',
   },
   {
@@ -2999,6 +3045,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 2000,
     elementAttributes: 'F3S3',
     poisonAttribute: 3,
+    mobSkills: [{ id: 100, x: 130 }],
     region: '리프레',
   },
   {
@@ -3049,6 +3096,10 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 0,
     minimumPushDamage: 3200,
     elementAttributes: 'H2I3',
+    mobSkills: [
+      { id: 100, x: 130 },
+      { id: 103, x: 60 },
+    ],
     region: '리프레',
   },
   {
@@ -3067,6 +3118,10 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 3700,
     elementAttributes: 'H2S2',
     poisonAttribute: 2,
+    mobSkills: [
+      { id: 101, x: 130 },
+      { id: 102, x: 60 },
+    ],
     region: '리프레',
   },
   {
@@ -3155,6 +3210,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 2000,
     elementAttributes: 'S2',
     poisonAttribute: 2,
+    mobSkills: [{ id: 200 }],
     region: '리프레',
   },
   {
@@ -3172,6 +3228,10 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 0,
     minimumPushDamage: 5000,
     elementAttributes: 'F3I2',
+    mobSkills: [
+      { id: 100, x: 115 },
+      { id: 102, x: 85 },
+    ],
     region: '리프레',
   },
   {
@@ -3189,6 +3249,10 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 0,
     minimumPushDamage: 5000,
     elementAttributes: 'F2I3',
+    mobSkills: [
+      { id: 100, x: 115 },
+      { id: 102, x: 85 },
+    ],
     region: '리프레',
   },
   {
@@ -3260,6 +3324,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 5000,
     elementAttributes: 'S2',
     poisonAttribute: 2,
+    mobSkills: [{ id: 100, x: 130 }],
     region: '리프레',
   },
   {
@@ -3359,6 +3424,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 5000,
     isUndead: true,
     elementAttributes: 'H3',
+    mobSkills: [{ id: 112, x: 85 }],
     region: '리프레',
   },
   {
@@ -3377,6 +3443,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 5000,
     isUndead: true,
     elementAttributes: 'H3',
+    mobSkills: [{ id: 110, x: 130 }],
     region: '리프레',
   },
   {
@@ -3530,6 +3597,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 600,
     elementAttributes: 'S3',
     poisonAttribute: 3,
+    mobSkills: [{ id: 103, x: 85 }],
     region: '무릉',
   },
   {
@@ -3561,6 +3629,7 @@ export const monsterPresets: MonsterPreset[] = [
     physicalAttack: 155,
     magicAttack: 0,
     minimumPushDamage: 400,
+    mobSkills: [{ id: 110, x: 115 }],
     region: '무릉',
   },
   {
@@ -3577,6 +3646,7 @@ export const monsterPresets: MonsterPreset[] = [
     physicalAttackPowers: [235],
     magicAttack: 270,
     minimumPushDamage: 1000,
+    mobSkills: [{ id: 103, x: 60 }],
     region: '무릉',
   },
   {
@@ -3997,6 +4067,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 220,
     minimumPushDamage: 1000,
     isBoss: true,
+    mobSkills: [{ id: 129 }],
     region: '마가티아',
   },
   {
@@ -4474,6 +4545,12 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 0,
     minimumPushDamage: 1,
     isBoss: true,
+    mobSkills: [
+      { id: 112, x: 85 },
+      { id: 113, x: 85 },
+      { id: 126, x: 80 },
+      { id: 200 },
+    ],
     region: '빅토리아 아일랜드',
   },
   {
@@ -4491,6 +4568,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 0,
     minimumPushDamage: 1,
     isBoss: true,
+    mobSkills: [
+      { id: 112, x: 85 },
+      { id: 113, x: 85 },
+      { id: 114, x: 700 },
+    ],
     region: '빅토리아 아일랜드',
   },
   {
@@ -4508,6 +4590,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 0,
     minimumPushDamage: 1,
     isBoss: true,
+    mobSkills: [{ id: 112, x: 85 }],
     region: '아리안트',
   },
   {
@@ -4523,6 +4606,7 @@ export const monsterPresets: MonsterPreset[] = [
     physicalAttack: 95,
     magicAttack: 0,
     minimumPushDamage: 100,
+    mobSkills: [{ id: 100, x: 115 }],
     region: '기타',
   },
   {
@@ -4557,6 +4641,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 0,
     elementAttributes: 'I2L2F2H2',
+    mobSkills: [{ id: 200 }],
     region: '에오스탑',
   },
   {
@@ -4604,6 +4689,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 400,
     isUndead: true,
     isBoss: true,
+    mobSkills: [{ id: 129 }],
     region: '빅토리아 아일랜드',
   },
   {
@@ -4620,6 +4706,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 190,
     minimumPushDamage: 600,
     isBoss: true,
+    mobSkills: [{ id: 129 }],
     region: '무릉',
   },
   {
@@ -4654,6 +4741,14 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 175,
     minimumPushDamage: 1000,
     isBoss: true,
+    mobSkills: [
+      { id: 110, x: 115 },
+      { id: 112, x: 85 },
+      { id: 113, x: 85 },
+      { id: 114, x: 700 },
+      { id: 123 },
+      { id: 200 },
+    ],
     region: '빅토리아 아일랜드',
   },
   {
@@ -4687,6 +4782,14 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 0,
     minimumPushDamage: 600,
     isBoss: true,
+    mobSkills: [
+      { id: 110, x: 115 },
+      { id: 112, x: 85 },
+      { id: 113, x: 85 },
+      { id: 114, x: 3000 },
+      { id: 140 },
+      { id: 200 },
+    ],
     region: '빅토리아 아일랜드',
   },
   {
@@ -4704,6 +4807,15 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 1100,
     isBoss: true,
+    mobSkills: [
+      { id: 110, x: 115 },
+      { id: 112, x: 85 },
+      { id: 113, x: 85 },
+      { id: 114, x: 5000 },
+      { id: 123 },
+      { id: 140 },
+      { id: 141 },
+    ],
     region: '장난감 공장',
   },
   {
@@ -4767,6 +4879,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 1000,
     isUndead: true,
     isBoss: true,
+    mobSkills: [{ id: 114, x: 5000 }, { id: 129 }],
     region: '엘나스',
   },
   {
@@ -4783,6 +4896,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 230,
     minimumPushDamage: 800,
     isBoss: true,
+    mobSkills: [{ id: 129 }],
     region: '엘나스',
   },
   {
@@ -4800,6 +4914,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 1300,
     isUndead: true,
     isBoss: true,
+    mobSkills: [{ id: 129 }],
     region: '기타',
   },
   {
@@ -4817,6 +4932,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 700,
     isUndead: true,
     isBoss: true,
+    mobSkills: [{ id: 129 }],
     region: '아랫마을',
   },
   {
@@ -4850,6 +4966,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 300,
     minimumPushDamage: 100,
     elementAttributes: 'H2',
+    mobSkills: [{ id: 110, x: 115 }, { id: 123 }],
     region: '기타',
   },
   {
@@ -4882,6 +4999,13 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 200,
     minimumPushDamage: 1500,
     isBoss: true,
+    mobSkills: [
+      { id: 110, x: 115 },
+      { id: 112, x: 85 },
+      { id: 113, x: 85 },
+      { id: 114, x: 5000 },
+      { id: 140 },
+    ],
     region: '빅토리아 아일랜드',
   },
   {
@@ -5037,6 +5161,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 1500,
     isUndead: true,
     isBoss: true,
+    mobSkills: [{ id: 129 }],
     region: '마가티아',
   },
   {
@@ -5054,6 +5179,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 1500,
     isUndead: true,
+    mobSkills: [{ id: 131, x: 150 }],
     region: '마가티아',
   },
   {
@@ -5089,6 +5215,13 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 1500,
     isBoss: true,
+    mobSkills: [
+      { id: 110, x: 115 },
+      { id: 112, x: 85 },
+      { id: 113, x: 85 },
+      { id: 140 },
+      { id: 200 },
+    ],
     region: '무릉',
   },
   {
@@ -5106,6 +5239,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 310,
     minimumPushDamage: 1500,
     isBoss: true,
+    mobSkills: [{ id: 114, x: 700 }, { id: 121 }, { id: 122 }, { id: 123 }],
     region: '아랫마을',
   },
   {
@@ -5123,6 +5257,13 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 2500,
     isBoss: true,
+    mobSkills: [
+      { id: 110, x: 115 },
+      { id: 112, x: 85 },
+      { id: 113, x: 85 },
+      { id: 114, x: 700 },
+      { id: 140 },
+    ],
     region: '무릉',
   },
   {
@@ -5139,6 +5280,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 410,
     minimumPushDamage: 2800,
     isBoss: true,
+    mobSkills: [{ id: 129 }],
     region: '마가티아',
   },
   {
@@ -5231,6 +5373,12 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 3000,
     isBoss: true,
+    mobSkills: [
+      { id: 101, x: 115 },
+      { id: 111, x: 115 },
+      { id: 121 },
+      { id: 200 },
+    ],
     region: '오르비스',
   },
   {
@@ -5247,6 +5395,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 430,
     minimumPushDamage: 3000,
     isBoss: true,
+    mobSkills: [{ id: 123 }, { id: 131, x: 500 }, { id: 200 }],
     region: '엘나스',
   },
   {
@@ -5263,6 +5412,14 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 430,
     minimumPushDamage: 3000,
     isBoss: true,
+    mobSkills: [
+      { id: 101, x: 115 },
+      { id: 103, x: 60 },
+      { id: 111, x: 140 },
+      { id: 114, x: 1000 },
+      { id: 140 },
+      { id: 200 },
+    ],
     region: '마가티아',
   },
   {
@@ -5281,6 +5438,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 10000,
     elementAttributes: 'F2I2',
     isBoss: true,
+    mobSkills: [{ id: 122 }, { id: 132 }, { id: 200 }],
     region: '리프레',
   },
   {
@@ -5315,6 +5473,13 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 10000,
     isBoss: true,
+    mobSkills: [
+      { id: 114, x: 30000 },
+      { id: 123 },
+      { id: 126, x: 80 },
+      { id: 127 },
+      { id: 200 },
+    ],
     region: '기타',
   },
   {
@@ -5367,6 +5532,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 10000,
     elementAttributes: 'F2I3',
     isBoss: true,
+    mobSkills: [{ id: 100, x: 130 }],
     region: '기타',
   },
   {
@@ -5385,6 +5551,14 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 10000,
     elementAttributes: 'F3',
     isBoss: true,
+    mobSkills: [
+      { id: 114, x: 30000 },
+      { id: 120 },
+      { id: 127 },
+      { id: 140 },
+      { id: 141 },
+      { id: 200 },
+    ],
     region: '아쿠아리움',
   },
   {
@@ -5421,6 +5595,14 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 10000,
     elementAttributes: 'F3',
     isBoss: true,
+    mobSkills: [
+      { id: 114, x: 30000 },
+      { id: 120 },
+      { id: 127 },
+      { id: 140 },
+      { id: 141 },
+      { id: 200 },
+    ],
     region: '기타',
   },
   {
@@ -5438,6 +5620,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 50000,
     isBoss: true,
+    mobSkills: [{ id: 114, x: 30000 }, { id: 140 }, { id: 141 }, { id: 200 }],
     region: '기타',
   },
   {
@@ -5455,6 +5638,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 50000,
     isBoss: true,
+    mobSkills: [{ id: 114, x: 30000 }, { id: 140 }, { id: 141 }, { id: 200 }],
     region: '기타',
   },
   {
@@ -5472,6 +5656,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 50000,
     isBoss: true,
+    mobSkills: [{ id: 114, x: 30000 }, { id: 140 }, { id: 141 }, { id: 200 }],
     region: '엘나스',
   },
   {
@@ -5525,6 +5710,7 @@ export const monsterPresets: MonsterPreset[] = [
     elementAttributes: 'F2I3S1',
     poisonAttribute: 1,
     isBoss: true,
+    mobSkills: [{ id: 131, x: 800 }],
     region: '기타',
   },
   {
@@ -5559,6 +5745,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 515,
     minimumPushDamage: 50000,
     isBoss: true,
+    mobSkills: [{ id: 120 }, { id: 121 }, { id: 122 }, { id: 124 }],
     region: '기타',
   },
   {
@@ -5575,6 +5762,13 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 515,
     minimumPushDamage: 50000,
     isBoss: true,
+    mobSkills: [
+      { id: 110, x: 115 },
+      { id: 111, x: 115 },
+      { id: 112, x: 85 },
+      { id: 113, x: 85 },
+      { id: 114, x: 50000 },
+    ],
     region: '기타',
   },
   {
@@ -5625,6 +5819,7 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 540,
     hasMagicAttack: true,
     minimumPushDamage: 5000,
+    mobSkills: [{ id: 114, x: 100000 }],
     region: '기타',
   },
   {
