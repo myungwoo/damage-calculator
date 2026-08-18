@@ -19,6 +19,8 @@ export type Region =
   | '마가티아'
   | '시간의 신전'
   | '일본'
+  | '뉴리프시티'
+  | '크림슨우드'
   | '기타';
 
 export interface Monster {

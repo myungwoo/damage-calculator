@@ -295,7 +295,7 @@ export default function MonsterPanel({
                   <span className="field-label">몹 스킬</span>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedPreset.mobSkills.map((skill) => {
-                      const info = getMobSkillInfo(skill.id);
+                      const info = getMobSkillInfo(skill.id, skill.x);
                       const value =
                         skill.x !== undefined && info.value
                           ? info.value(skill.x)
@@ -362,7 +362,8 @@ export default function MonsterPanel({
                       </p>
                     ))}
                   {selectedPreset.mobSkills.some(
-                    (skill) => getMobSkillInfo(skill.id).impact === 'kill'
+                    (skill) =>
+                      getMobSkillInfo(skill.id, skill.x).impact === 'kill'
                   ) && (
                     <p className="text-xs text-muted">
                       빨간 스킬은 걸린 동안 방컷 확률이 화면값보다 나빠진다
