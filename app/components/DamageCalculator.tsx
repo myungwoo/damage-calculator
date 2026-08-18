@@ -28,6 +28,7 @@ const EMPTY_RESULT: DamageResult = {
   hpAbsorption: { min: 0, max: 0 },
   venomTickDamage: null,
   venomApplied: false,
+  knockbackProbability: null,
 };
 
 export default function DamageCalculator() {

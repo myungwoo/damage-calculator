@@ -15,6 +15,7 @@ import HitProbabilityNotice from './HitProbabilityNotice';
 import AvoidProbabilities from './AvoidProbabilities';
 import HitDamage from './HitDamage';
 import MobSkillNotice from './MobSkillNotice';
+import KnockbackProbability from './KnockbackProbability';
 
 interface ResultsPanelProps {
   result: DamageResult;
@@ -185,6 +186,15 @@ export default function ResultsPanel({
               </span>
             </span>
           </div>
+
+          {/*
+            넉백은 라인 하나짜리 판정이라 바로 위 총 데미지 범위(합계)와 눈금이
+            다르다. 두 줄을 붙여 둬서 어느 눈금으로 읽는 값인지 헷갈리지 않게 한다.
+          */}
+          <KnockbackProbability
+            probability={result.knockbackProbability}
+            monster={monster}
+          />
 
           <div className="space-y-2">
             <StatLine

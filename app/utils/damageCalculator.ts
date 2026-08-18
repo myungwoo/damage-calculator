@@ -248,6 +248,116 @@ export const calculateTotalDamageRange = (
   };
 };
 
+/**
+ * 라인 값이 threshold에 못 미칠 확률.
+ *
+ * 데미지 난수(스탯 롤)를 [uFrom, uTo)로 제한한 상태에서 본다. 그 구간에서
+ * 스탯 롤은 폭 alpha, 방어 롤은 폭 beta인 균등분포이고 둘의 차는 사다리꼴이라
+ * `trapezoidCdf`가 닫힌 식으로 CDF를 준다.
+ *
+ * 라인 값은 d에 대해 단조 증가(계단)라 "threshold를 넘기는 d"는 반드시
+ * 위쪽 꼬리 하나로 뭉친다. 그 경계 d를 이분 탐색으로 찾아 CDF를 한 번 읽으면 된다.
+ * 계단 때문에 닿지 않는 정수가 생기는 것도 `damageLineValue`를 그대로 써서 반영된다.
+ */
+const lineBelowProbability = (
+  raw: DamageRangeInput,
+  uFrom: number,
+  uTo: number,
+  threshold: number
+): number => {
+  const skill = raw.skillMultiplier ?? 1;
+  const critAdd = raw.criticalAdd ?? 0;
+  const beta = Math.max(0, raw.defenseBand ?? 0);
+  const fullAlpha = statRollSpan(raw);
+  const alpha = fullAlpha * Math.max(0, uTo - uFrom);
+  const origin = raw.min + fullAlpha * uFrom;
+  const ceiling = origin + alpha + beta;
+
+  const value = (base: number): number =>
+    Math.max(
+      MIN_DAMAGE_PER_LINE,
+      Math.min(MAX_DAMAGE_PER_LINE, damageLineValue(base, skill, critAdd))
+    );
+
+  // 하한 클램프 때문에 명중한 라인은 항상 1 이상이다.
+  // 넉백 수치가 1 이하면 맞기만 하면 넘고, 상한을 넘으면 어떤 난수로도 못 넘는다.
+  if (value(origin) >= threshold) return 0;
+  if (value(ceiling) < threshold) return 1;
+
+  let below = origin;
+  let above = ceiling;
+  // 배정밀도로는 50회면 구간이 더 이상 좁아지지 않는다.
+  for (let step = 0; step < 60; step++) {
+    const mid = (below + above) / 2;
+    if (value(mid) >= threshold) {
+      above = mid;
+    } else {
+      below = mid;
+    }
+  }
+  return trapezoidCdf(alpha, beta)(above - origin);
+};
+
+/**
+ * 시전 1회에 몹이 넉백될 확률.
+ *
+ * 원작 Mob.wz의 `pushed`(프리셋 `minimumPushDamage`)를 **타격 하나가 단독으로**
+ * 넘겨야 밀린다고 본다. 그래서 시전 1회 확률은 "라인 중 하나라도 넘길 확률"이다.
+ *
+ * 쉐도우 파트너 라인은 볼 필요가 없다. 파트너는 본체의 확정 데미지에 1보다 작은
+ * 비율을 곱해 내림한 값이라 **항상 본체 이하**이고, 본체가 하한 1에 눌린 경우에도
+ * 파트너 역시 1이라 본체를 넘지 못한다. 본체가 못 넘긴 넉백을 파트너가 넘기는
+ * 경우는 존재하지 않는다.
+ *
+ * 빗나간 타격은 데미지 라인 자체가 없으므로 넉백도 없다.
+ *
+ * 난수 순환이 걸리면 라인 B의 데미지 난수가 라인 C의 크리티컬을 정하므로
+ * 세 라인이 독립이 아니다. 방컷 확률 쪽과 같은 분해를 쓴다.
+ *   P(넉백 없음) = A * [ p * (B|난수<p) * (C=크리) + (1-p) * (B|난수>=p) * (C=일반) ]
+ *
+ * 몹 방어업은 반영하지 않는다. 화면의 총 데미지 범위와 같은 기준(안 걸린 상태)이라
+ * 두 값이 서로 어긋나지 않게 맞춘 것이다.
+ */
+export const calculateKnockbackProbability = (
+  basicDamage: DamageRangeInput,
+  criticalDamage: DamageRangeInput,
+  /** 넉백에 필요한 라인 하나의 최소 데미지 */
+  threshold: number,
+  /** 크리티컬 확률 0~1 */
+  criticalProb: number,
+  /** 타격 하나가 명중할 확률 0~1 */
+  hitProb: number,
+  hitCount: number,
+  coupled: boolean
+): number => {
+  /** 타격 하나가 넉백을 일으키지 **못할** 확률 (빗나가는 경우 포함) */
+  const quiet = (
+    uFrom: number,
+    uTo: number,
+    basicWeight: number,
+    critWeight: number
+  ): number =>
+    1 -
+    hitProb +
+    hitProb *
+      (basicWeight * lineBelowProbability(basicDamage, uFrom, uTo, threshold) +
+        critWeight *
+          lineBelowProbability(criticalDamage, uFrom, uTo, threshold));
+
+  const p = criticalProb;
+
+  if (!coupled) {
+    return 1 - Math.pow(quiet(0, 1, 1 - p, p), hitCount);
+  }
+
+  const lineA = quiet(0, 1, 1 - p, p);
+  // 난수 < p: C가 크리티컬이고 B의 데미지 난수는 아래 구간에 갇힌다.
+  const low = quiet(0, p, 1 - p, p) * quiet(0, 1, 0, 1);
+  // 난수 >= p: C가 일반이고 B의 데미지 난수는 위 구간에 갇힌다.
+  const high = quiet(p, 1, 1 - p, p) * quiet(0, 1, 1, 0);
+  return 1 - lineA * (p * low + (1 - p) * high);
+};
+
 export const calculateTotalStats = (
   stats: Stats
 ): { totalStr: number; totalDex: number; totalLuk: number } => {
@@ -1312,14 +1422,45 @@ export const calculateDamage = (
   // "모든 라인이 동시에 극값"인 조합이 나오지 않는다. 방컷 확률 막대는 이걸 이미
   // 반영하므로 총 데미지 범위도 같은 조건을 봐야 한다.
   const criticalProb = criticalChance / 100;
+  const hitCount = getHitCount(skills.type);
+  const coupled = isRngCyclingCoupled(
+    skills.type,
+    criticalProb,
+    skills.rngCyclingEnabled
+  );
   const { min: totalMin, max: totalMax } = calculateTotalDamageRange(
     basicLine,
     criticalLine,
     shadowMultiplier,
     criticalProb,
-    getHitCount(skills.type),
-    isRngCyclingCoupled(skills.type, criticalProb, skills.rngCyclingEnabled)
+    hitCount,
+    coupled
   );
+
+  // 넉백 확률
+  //
+  // 넉백 수치는 프리셋에만 있는 값이라 직접 입력 몬스터에서는 알 수 없다.
+  // 그때는 0으로 두지 않고 null로 넘겨 화면에서 아예 빼 버린다.
+  // 이동 능력이 없는 몹은 수치를 넘겨도 밀려날 자리가 없으므로 0이다.
+  const knockbackProbability =
+    monster.minimumPushDamage === undefined
+      ? null
+      : monster.cannotMove === true
+        ? 0
+        : calculateKnockbackProbability(
+            basicLine,
+            criticalLine,
+            monster.minimumPushDamage,
+            criticalProb,
+            calculateHitProbability(
+              stats.hitRatio,
+              monster.level,
+              stats.level,
+              monster.avoid
+            ),
+            hitCount,
+            coupled
+          );
 
   // 베놈 설정
   //
@@ -1388,7 +1529,7 @@ export const calculateDamage = (
     Math.floor(
       expectedBasicDamage * (1 - criticalProb) +
         expectedCriticalDamage * criticalProb
-    ) * getHitCount(skills.type);
+    ) * hitCount;
 
   // Calculate HP absorption range for Drain skill
   let hpAbsorption = { min: 0, max: 0, expected: 0 };
@@ -1421,5 +1562,6 @@ export const calculateDamage = (
     hpAbsorption,
     venomTickDamage,
     venomApplied: venomConfig !== null,
+    knockbackProbability,
   };
 };

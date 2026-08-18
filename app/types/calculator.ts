@@ -57,6 +57,20 @@ export interface Monster {
   /** 보스 여부. 보스에게는 베놈이 걸리지 않는다. */
   isBoss?: boolean;
   /**
+   * 넉백에 필요한 라인 하나의 최소 데미지 (원작 Mob.wz `info/pushed`).
+   *
+   * 프리셋에만 있는 값이라 직접 입력 몬스터에서는 비어 있다 — 그때는 "0"이 아니라
+   * **모른다**는 뜻이라 넉백 확률을 아예 그리지 않는다.
+   */
+  minimumPushDamage?: number;
+  /**
+   * 이동 능력이 없는 몹인지 (원작 MoveAbility 0).
+   *
+   * 넉백은 몹을 밀어내는 것이라 자리에 고정된 몹에게는 일어나지 않는다.
+   * 자쿰처럼 넉백 수치를 넘길 수 있는 세팅에서도 밀리지 않으므로 따로 가른다.
+   */
+  cannotMove?: boolean;
+  /**
    * 몹 방어업이 걸렸다고 보고 계산할 배율 (%). 100이면 안 걸린 상태다.
    *
    * 원작 `PGuardUp_` 값을 그대로 쓴다(1단계 85 = 내 데미지 -15%).
@@ -168,6 +182,13 @@ export interface DamageResult {
   venomTickDamage: DamageRange | null;
   /** 베놈이 실제로 계산에 반영됐는지 (보스 / 독 무효·반감이면 false) */
   venomApplied: boolean;
+  /**
+   * 시전 1회에 타격 하나라도 넉백 수치를 넘길 확률 (0~1).
+   *
+   * 넉백 수치를 모르는 직접 입력 몬스터면 null이다.
+   * 이동 불가 몹은 넘겨도 밀리지 않으므로 0이 들어간다.
+   */
+  knockbackProbability: number | null;
 }
 
 // 스킬 효과 인터페이스
@@ -322,8 +343,19 @@ export interface MonsterPreset extends Monster {
   id: string;
   name: string;
   exp?: number;
-  /** 넉백에 필요한 최소 누적 데미지 */
+  /**
+   * 넉백에 필요한 라인 하나의 최소 데미지 (원작 Mob.wz `info/pushed`).
+   * 프리셋은 368종 전부 값을 갖고 있어 Monster와 달리 필수다.
+   */
   minimumPushDamage: number;
+  /**
+   * 이동 능력이 없는 몹 (원작 MoveAbility 0). 프리셋 368종 중 31종.
+   *
+   * 원작 `MobTemplate::RegisterMob`이 Mob.wz 루트의 `fly` / `jump` / `move` 노드
+   * 유무로 이동 능력을 정하는데, 셋 다 없으면 0(정지)이다. 값이 없으면
+   * "모른다"가 아니라 **움직일 수 있다**는 뜻이다.
+   */
+  cannotMove?: true;
   /** 언데드 여부 */
   isUndead?: boolean;
   /**
