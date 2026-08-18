@@ -229,6 +229,26 @@ export default function MonsterPanel({
                       );
                     })}
                   </div>
+                  {/*
+                    소환은 "무엇을 부르는지"까지 알아야 쓸모가 있다. 칩 안에 넣으면
+                    줄이 터지므로 아래에 한 줄로 편다.
+                  */}
+                  {selectedPreset.mobSkills
+                    .filter((skill) => skill.summons?.length)
+                    .map((skill) => (
+                      <p
+                        key={`summons-${skill.id}`}
+                        className="text-xs text-muted"
+                      >
+                        <b className="text-ink">소환</b>{' '}
+                        {skill
+                          .summons!.map(
+                            (target) =>
+                              `${target.name}${target.count > 1 ? ` x${target.count}` : ''}`
+                          )
+                          .join(' · ')}
+                      </p>
+                    ))}
                   {selectedPreset.mobSkills.some(
                     (skill) => getMobSkillInfo(skill.id).impact === 'kill'
                   ) && (

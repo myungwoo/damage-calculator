@@ -332,7 +332,17 @@ export interface MonsterPreset extends Monster {
    * `x`는 그 몹이 쓰는 레벨의 효과 수치다(공격업 115 = +15%, 회복 3000 = HP 3000).
    * 뜻이 정해진 스킬에만 들어 있다.
    */
-  mobSkills?: { id: number; x?: number }[];
+  mobSkills?: {
+    id: number;
+    x?: number;
+    /**
+     * 소환 스킬(200)이 불러내는 몹과 한 번에 나오는 마리 수.
+     *
+     * 원작은 스킬 레벨마다 소환 대상이 다르고 한 몹이 소환 스킬을 여러 개 갖기도
+     * 해서(자쿰은 HP 구간마다 다른 몹을 부른다), 그 몹이 부르는 대상을 전부 모아 둔다.
+     */
+    summons?: { name: string; count: number }[];
+  }[];
   region: string;
 }
 

@@ -1545,7 +1545,11 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 5000,
     elementAttributes: 'I2F3',
-    mobSkills: [{ id: 101, x: 130 }, { id: 103, x: 60 }, { id: 200 }],
+    mobSkills: [
+      { id: 101, x: 130 },
+      { id: 103, x: 60 },
+      { id: 200, summons: [{ name: '웨어울프', count: 1 }] },
+    ],
     region: '엘나스',
   },
   {
@@ -3210,7 +3214,7 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 2000,
     elementAttributes: 'S2',
     poisonAttribute: 2,
-    mobSkills: [{ id: 200 }],
+    mobSkills: [{ id: 200, summons: [{ name: '가시덤불', count: 1 }] }],
     region: '리프레',
   },
   {
@@ -4549,7 +4553,14 @@ export const monsterPresets: MonsterPreset[] = [
       { id: 112, x: 85 },
       { id: 113, x: 85 },
       { id: 126, x: 80 },
-      { id: 200 },
+      {
+        id: 200,
+        summons: [
+          { name: '달팽이', count: 2 },
+          { name: '파란 달팽이', count: 2 },
+          { name: '빨간 달팽이', count: 2 },
+        ],
+      },
     ],
     region: '빅토리아 아일랜드',
   },
@@ -4641,7 +4652,7 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 0,
     elementAttributes: 'I2L2F2H2',
-    mobSkills: [{ id: 200 }],
+    mobSkills: [{ id: 200, summons: [{ name: '바나드 그레이', count: 1 }] }],
     region: '에오스탑',
   },
   {
@@ -4747,7 +4758,13 @@ export const monsterPresets: MonsterPreset[] = [
       { id: 113, x: 85 },
       { id: 114, x: 700 },
       { id: 123 },
-      { id: 200 },
+      {
+        id: 200,
+        summons: [
+          { name: '로랑', count: 2 },
+          { name: '클랑', count: 3 },
+        ],
+      },
     ],
     region: '빅토리아 아일랜드',
   },
@@ -4788,7 +4805,7 @@ export const monsterPresets: MonsterPreset[] = [
       { id: 113, x: 85 },
       { id: 114, x: 3000 },
       { id: 140 },
-      { id: 200 },
+      { id: 200, summons: [{ name: '좀비루팡', count: 3 }] },
     ],
     region: '빅토리아 아일랜드',
   },
@@ -5220,7 +5237,7 @@ export const monsterPresets: MonsterPreset[] = [
       { id: 112, x: 85 },
       { id: 113, x: 85 },
       { id: 140 },
-      { id: 200 },
+      { id: 200, summons: [{ name: '달곰', count: 3 }] },
     ],
     region: '무릉',
   },
@@ -5377,7 +5394,7 @@ export const monsterPresets: MonsterPreset[] = [
       { id: 101, x: 115 },
       { id: 111, x: 115 },
       { id: 121 },
-      { id: 200 },
+      { id: 200, summons: [{ name: '주니어 루이넬', count: 5 }] },
     ],
     region: '오르비스',
   },
@@ -5395,7 +5412,11 @@ export const monsterPresets: MonsterPreset[] = [
     magicAttack: 430,
     minimumPushDamage: 3000,
     isBoss: true,
-    mobSkills: [{ id: 123 }, { id: 131, x: 500 }, { id: 200 }],
+    mobSkills: [
+      { id: 123 },
+      { id: 131, x: 500 },
+      { id: 200, summons: [{ name: '주니어 예티', count: 2 }] },
+    ],
     region: '엘나스',
   },
   {
@@ -5418,7 +5439,13 @@ export const monsterPresets: MonsterPreset[] = [
       { id: 111, x: 140 },
       { id: 114, x: 1000 },
       { id: 140 },
-      { id: 200 },
+      {
+        id: 200,
+        summons: [
+          { name: 'Degraded Rumo', count: 3 },
+          { name: 'Reinforced Roid', count: 3 },
+        ],
+      },
     ],
     region: '마가티아',
   },
@@ -5438,7 +5465,18 @@ export const monsterPresets: MonsterPreset[] = [
     minimumPushDamage: 10000,
     elementAttributes: 'F2I2',
     isBoss: true,
-    mobSkills: [{ id: 122 }, { id: 132 }, { id: 200 }],
+    mobSkills: [
+      { id: 122 },
+      { id: 132 },
+      {
+        id: 200,
+        summons: [
+          { name: '레드 와이번', count: 2 },
+          { name: '블루 와이번', count: 2 },
+          { name: '다크 와이번', count: 2 },
+        ],
+      },
+    ],
     region: '리프레',
   },
   {
@@ -5478,7 +5516,13 @@ export const monsterPresets: MonsterPreset[] = [
       { id: 123 },
       { id: 126, x: 80 },
       { id: 127 },
-      { id: 200 },
+      {
+        id: 200,
+        summons: [
+          { name: '로우 다크스타', count: 4 },
+          { name: '하이 다크스타', count: 4 },
+        ],
+      },
     ],
     region: '기타',
   },
@@ -5557,7 +5601,7 @@ export const monsterPresets: MonsterPreset[] = [
       { id: 127 },
       { id: 140 },
       { id: 141 },
-      { id: 200 },
+      { id: 200, summons: [{ name: '블러드붐', count: 5 }] },
     ],
     region: '아쿠아리움',
   },
@@ -5601,7 +5645,7 @@ export const monsterPresets: MonsterPreset[] = [
       { id: 127 },
       { id: 140 },
       { id: 141 },
-      { id: 200 },
+      { id: 200, summons: [{ name: '블러드붐', count: 5 }] },
     ],
     region: '기타',
   },
@@ -5620,7 +5664,20 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 50000,
     isBoss: true,
-    mobSkills: [{ id: 114, x: 30000 }, { id: 140 }, { id: 141 }, { id: 200 }],
+    mobSkills: [
+      { id: 114, x: 30000 },
+      { id: 140 },
+      { id: 141 },
+      {
+        id: 200,
+        summons: [
+          { name: '부기', count: 5 },
+          { name: '푸코', count: 5 },
+          { name: '푼코', count: 5 },
+          { name: '쿠스코', count: 5 },
+        ],
+      },
+    ],
     region: '기타',
   },
   {
@@ -5638,7 +5695,20 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 50000,
     isBoss: true,
-    mobSkills: [{ id: 114, x: 30000 }, { id: 140 }, { id: 141 }, { id: 200 }],
+    mobSkills: [
+      { id: 114, x: 30000 },
+      { id: 140 },
+      { id: 141 },
+      {
+        id: 200,
+        summons: [
+          { name: '푸코', count: 5 },
+          { name: '푼코', count: 5 },
+          { name: '쿠스코', count: 5 },
+          { name: '오파츠', count: 5 },
+        ],
+      },
+    ],
     region: '기타',
   },
   {
@@ -5656,7 +5726,19 @@ export const monsterPresets: MonsterPreset[] = [
     hasMagicAttack: true,
     minimumPushDamage: 50000,
     isBoss: true,
-    mobSkills: [{ id: 114, x: 30000 }, { id: 140 }, { id: 141 }, { id: 200 }],
+    mobSkills: [
+      { id: 114, x: 30000 },
+      { id: 140 },
+      { id: 141 },
+      {
+        id: 200,
+        summons: [
+          { name: '푼코', count: 5 },
+          { name: '쿠스코', count: 5 },
+          { name: '오파츠', count: 5 },
+        ],
+      },
+    ],
     region: '엘나스',
   },
   {

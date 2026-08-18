@@ -29,9 +29,6 @@ const fmt = (value: number) => value.toLocaleString('ko-KR');
 export default function HitDamage({ monster, stats }: HitDamageProps) {
   const breakdown = calculateHitDamageBreakdown(monster, stats);
 
-  // 마법 공격이 없는 몹은 마법 공격력이 0보다 커도 마법으로는 안 맞는다.
-  const hasMagic = monster.hasMagicAttack !== false && monster.magicAttack > 0;
-
   const rows: { key: string; label: string; entry: HitDamageEntry }[] = [
     ...(monster.physicalAttack > 0
       ? [{ key: 'body', label: '몸박', entry: breakdown.body }]
@@ -44,7 +41,9 @@ export default function HitDamage({ monster, stats }: HitDamageProps) {
         breakdown.attacks.length > 1 ? `물리 공격 ${index + 1}` : '물리 공격',
       entry,
     })),
-    ...(hasMagic
+    // 마법 공격이 없는 몹은 마법 공격력이 0보다 커도 마법으로 맞을 일이 없어서
+    // breakdown.magic이 아예 null로 온다.
+    ...(breakdown.magic
       ? [{ key: 'magic', label: '마법 공격', entry: breakdown.magic }]
       : []),
   ];
@@ -54,7 +53,7 @@ export default function HitDamage({ monster, stats }: HitDamageProps) {
     monster.physicalAttack > 0 && !breakdown.body.atMinimum
       ? `물리방어력 +1 → -${breakdown.body.reducePerDefense.toFixed(2)}`
       : null,
-    hasMagic && !breakdown.magic.atMinimum
+    breakdown.magic && !breakdown.magic.atMinimum
       ? `마법방어력 +1 → -${breakdown.magic.reducePerDefense.toFixed(2)}`
       : null,
   ].filter((note): note is string => note !== null);

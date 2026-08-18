@@ -35,6 +35,7 @@ const makeMonster = (overrides: Partial<Monster> = {}): Monster => ({
   accuracy: 140,
   physicalAttack: 300,
   magicAttack: 350,
+  hasMagicAttack: true,
   ...overrides,
 });
 
@@ -221,9 +222,9 @@ describe('피격 데미지', () => {
           `물리 ${physical}이 ${breakdown.body.damage.min}~${breakdown.body.damage.max} 밖이다`
         );
         assert.ok(
-          magic >= breakdown.magic.damage.min &&
-            magic <= breakdown.magic.damage.max,
-          `마법 ${magic}이 ${breakdown.magic.damage.min}~${breakdown.magic.damage.max} 밖이다`
+          magic >= breakdown.magic!.damage.min &&
+            magic <= breakdown.magic!.damage.max,
+          `마법 ${magic}이 ${breakdown.magic!.damage.min}~${breakdown.magic!.damage.max} 밖이다`
         );
       }
 
@@ -238,7 +239,7 @@ describe('피격 데미지', () => {
           tier.damage.max
         );
       }
-      for (const tier of breakdown.magic.poweredUp) {
+      for (const tier of breakdown.magic!.poweredUp) {
         assert.equal(
           referenceMagicDamage(monster, stats, 0, tier.percent),
           tier.damage.min
@@ -260,11 +261,11 @@ describe('피격 데미지', () => {
       );
       assert.equal(
         referenceMagicDamage(monster, stats, 0),
-        breakdown.magic.damage.min
+        breakdown.magic!.damage.min
       );
       assert.equal(
         referenceMagicDamage(monster, stats, 1),
-        breakdown.magic.damage.max
+        breakdown.magic!.damage.max
       );
     }
   });
@@ -273,7 +274,7 @@ describe('피격 데미지', () => {
     const breakdown = calculateHitDamageBreakdown(makeMonster(), makeStats());
 
     assert.deepEqual(breakdown.body.damage, { min: 453, max: 498 });
-    assert.deepEqual(breakdown.magic.damage, { min: 797, max: 858 });
+    assert.deepEqual(breakdown.magic!.damage, { min: 797, max: 858 });
 
     assert.deepEqual(
       breakdown.body.poweredUp.map((tier) => tier.damage),
@@ -283,7 +284,7 @@ describe('피격 데미지', () => {
       ]
     );
     assert.deepEqual(
-      breakdown.magic.poweredUp.map((tier) => tier.damage),
+      breakdown.magic!.poweredUp.map((tier) => tier.damage),
       [
         { min: 917, max: 987 },
         { min: 1036, max: 1116 },
@@ -344,9 +345,9 @@ describe('피격 데미지', () => {
     );
 
     assert.ok(next.body.damage.max < here.body.damage.max);
-    assert.ok(next.magic.damage.max < here.magic.damage.max);
+    assert.ok(next.magic!.damage.max < here.magic!.damage.max);
     // 마법은 방어력 1당 정확히 0.25씩 깎인다 (감면 계수가 그대로 곱해진다).
-    assert.ok(Math.abs(here.magic.reducePerDefense - 0.25) < 1e-9);
+    assert.ok(Math.abs(here.magic!.reducePerDefense - 0.25) < 1e-9);
     assert.ok(here.body.reducePerDefense > 0);
   });
 
@@ -361,7 +362,7 @@ describe('피격 데미지', () => {
     );
 
     assert.deepEqual(beyond.body.damage, capped.body.damage);
-    assert.deepEqual(beyond.magic.damage, capped.magic.damage);
+    assert.deepEqual(beyond.magic!.damage, capped.magic!.damage);
   });
 
   it('물리 공격이 여럿이면 각각 한 줄씩 나온다', () => {
@@ -417,7 +418,7 @@ describe('피격 데미지', () => {
     for (const entry of [
       breakdown.body,
       ...breakdown.attacks,
-      breakdown.magic,
+      breakdown.magic!,
     ]) {
       for (const tier of entry.poweredUp) {
         const expected = entry.damage.max * (tier.percent / 100);
@@ -462,7 +463,7 @@ describe('피격 데미지', () => {
     assert.deepEqual(breakdown.body.damage, { min: 2613, max: 2821 });
     assert.deepEqual(breakdown.attacks[0].damage, { min: 3204, max: 3449 });
     assert.deepEqual(breakdown.attacks[1].damage, { min: 3845, max: 4130 });
-    assert.deepEqual(breakdown.magic.damage, { min: 3732, max: 3995 });
+    assert.deepEqual(breakdown.magic!.damage, { min: 3732, max: 3995 });
   });
 
   it('방어력이 아주 높으면 하한 1에서 멈춘다', () => {
@@ -476,12 +477,12 @@ describe('피격 데미지', () => {
       min: MIN_HIT_DAMAGE,
       max: MIN_HIT_DAMAGE,
     });
-    assert.deepEqual(breakdown.magic.damage, {
+    assert.deepEqual(breakdown.magic!.damage, {
       min: MIN_HIT_DAMAGE,
       max: MIN_HIT_DAMAGE,
     });
     assert.ok(breakdown.body.atMinimum);
-    assert.ok(breakdown.magic.atMinimum);
+    assert.ok(breakdown.magic!.atMinimum);
   });
 
   it('INT는 물리 피격 데미지만 움직인다', () => {
@@ -493,7 +494,7 @@ describe('피격 데미지', () => {
     );
 
     assert.ok(withInt.body.damage.max < withoutInt.body.damage.max);
-    assert.deepEqual(withInt.magic.damage, withoutInt.magic.damage);
+    assert.deepEqual(withInt.magic!.damage, withoutInt.magic!.damage);
   });
 
   it('방어력이 표준보다 낮으면 레벨 차이가 개입한다', () => {
@@ -538,11 +539,75 @@ describe('몬스터 프리셋의 몹 스킬', () => {
     }
   });
 
+  it('소환 목록은 소환 스킬에만 붙는다', () => {
+    const SUMMON = 200;
+    for (const preset of monsterPresets) {
+      for (const skill of preset.mobSkills ?? []) {
+        if (skill.summons === undefined) continue;
+        assert.equal(
+          skill.id,
+          SUMMON,
+          `${preset.name}의 스킬 ${skill.id}에 소환 목록이 붙어 있다`
+        );
+        assert.ok(skill.summons.length > 0);
+        assert.ok(
+          skill.summons.every(
+            (target) => target.name.length > 0 && target.count >= 1
+          ),
+          `${preset.name}의 소환 목록에 빈 값이 있다`
+        );
+      }
+    }
+  });
+
   it('공격업 칩 수치가 피격 데미지 표의 단계와 같은 값을 가리킨다', () => {
     // 칩은 +15%, 표는 x1.15로 같은 배율을 쓴다. 둘이 갈리면 화면끼리 어긋난다.
     const powerUp = MOB_SKILLS[110];
     for (const tier of MOB_ATTACK_UP_TIERS) {
       assert.equal(powerUp.value?.(tier.percent), `+${tier.percent - 100}%`);
+    }
+  });
+});
+
+describe('마법 공격이 없는 몹', () => {
+  const asMonster = (preset: (typeof monsterPresets)[number]): Monster => ({
+    ...preset,
+    // 프리셋은 마법 공격 유무를 다 알고 있다 — 값이 없으면 "없다"는 뜻이다.
+    hasMagicAttack: preset.hasMagicAttack ?? false,
+  });
+
+  it('마법 공격력이 있어도 마법 피격 데미지를 만들지 않는다', () => {
+    const stats = makeStats();
+    const suppressed = monsterPresets.filter(
+      (preset) => preset.magicAttack > 0 && preset.hasMagicAttack !== true
+    );
+
+    // 예전에는 프리셋에 값이 없으면 "모른다"로 보고 그려서, 이 몹들에 실제로는
+    // 들어올 수 없는 마법 데미지가 화면에 떴다 (파풀라투스 등 73종).
+    assert.ok(suppressed.length > 0);
+    for (const preset of suppressed) {
+      const breakdown = calculateHitDamageBreakdown(asMonster(preset), stats);
+      assert.equal(
+        breakdown.magic,
+        null,
+        `${preset.name}에 마법 피격 데미지가 만들어졌다`
+      );
+    }
+  });
+
+  it('마법 공격이 있는 몹은 그대로 나온다', () => {
+    const stats = makeStats();
+    const withMagic = monsterPresets.filter(
+      (preset) => preset.hasMagicAttack === true && preset.magicAttack > 0
+    );
+
+    assert.ok(withMagic.length > 0);
+    for (const preset of withMagic) {
+      assert.notEqual(
+        calculateHitDamageBreakdown(asMonster(preset), stats).magic,
+        null,
+        `${preset.name}의 마법 피격 데미지가 사라졌다`
+      );
     }
   });
 });
