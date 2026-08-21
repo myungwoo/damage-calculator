@@ -58,14 +58,14 @@ jobs:
         with:
           node-version: '20'
           cache: ${{ steps.detect-package-manager.outputs.manager }}
+      # static_site_generator: next 를 쓰지 않는 이유:
+      # 그 옵션은 액션이 next.config.js 를 새로 만들어 basePath 와 output 을 주입하는데,
+      # Next 는 next.config.js 를 next.config.ts 보다 먼저 읽으므로 이 리포의
+      # next.config.ts 가 조용히 무시된다. 설정이 두 곳으로 갈라지지 않도록
+      # basePath / 정적 내보내기는 next.config.ts 가 직접 관리하고,
+      # 하위 경로만 아래 빌드 단계에서 환경변수로 넘긴다.
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          # Automatically inject basePath in your Next.js configuration file and disable
-          # server side image optimization (https://nextjs.org/docs/api-reference/next/image#unoptimized).
-          #
-          # You may remove this line if you want to manage the configuration yourself.
-          static_site_generator: next
       - name: Restore cache
         uses: actions/cache@v4
         with:
@@ -79,6 +79,9 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Build with Next.js
+        env:
+          # 프로젝트 페이지는 /<repo> 하위 경로에 붙는다.
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
