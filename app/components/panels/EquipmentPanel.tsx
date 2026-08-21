@@ -6,11 +6,11 @@ import NumberInput from '../NumberInput';
 import Card from '../ui/Card';
 import Field from '../ui/Field';
 
-/** 효율은 나눗셈 결과라 정수로 떨어지지 않는다. 소수 두 자리로 반올림해 적는다. */
+/** 효율은 나눗셈 결과라 정수로 떨어지지 않는다. 소수 다섯 자리로 반올림해 적는다. */
 function formatEfficiency(value: number): string {
   return value.toLocaleString('ko-KR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5,
   });
 }
 
