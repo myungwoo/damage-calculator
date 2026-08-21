@@ -18,6 +18,7 @@ import {
   MIN_LEVEL,
   MAX_LEVEL,
 } from '../constants/calculator';
+import { migrateLegacySaveSlots } from '../utils/saveStorage';
 
 const DEFAULT_STATE = {
   monster: {
@@ -146,6 +147,8 @@ export const useCalculatorState = () => {
   // localStorage에서 데이터 로드
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      migrateLegacySaveSlots();
+
       // Load saved data from localStorage
       const loadedSaves = Array(3)
         .fill(null)

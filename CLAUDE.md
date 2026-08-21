@@ -1190,6 +1190,31 @@ ms079를 고른 근거는 이렇다.
 
 ## 개발 규칙
 
+### localStorage 키 (오리진 공유)
+
+이 앱은 **다른 유틸들과 브라우저 저장소를 공유한다.**
+
+- `https://myungwoo.github.io/damage-calculator/` — 다른 프로젝트 페이지들과 오리진
+  (`myungwoo.github.io`)이 같다.
+- `https://mapleland.myungwoo.kr/damage/` —
+  [메이플랜드 유틸 모음](https://github.com/myungwoo/mapleland-utils)이 유틸 다섯 개를
+  한 도메인의 하위 경로로 함께 배포한다.
+
+**localStorage 는 오리진 단위다. 경로로 갈라지지 않는다.** `/damage` 와 `/hunt` 는 같은
+저장소를 본다. 그래서 접두어 없는 키는 다른 유틸의 값을 조용히 덮어쓴다.
+
+- **앱 전용 값은 `ml:damage:` 로 시작한다.** 저장 슬롯은 `ml:damage:save:N`
+  (`app/constants/calculator.ts`).
+- **테마는 일부러 공유한다.** 키는 `ml:theme`, 값은 `'light' | 'dark' | 'system'`
+  (`app/constants/theme.ts`). 값 집합을 앱마다 다르게 해석하면 안 된다 —
+  예전에 이 앱이 `'system'` 을 무효 값으로 보고 덮어써서, 사냥 타이머에서 고른
+  "시스템 설정"을 지우는 버그가 있었다. **모르는 값은 시스템 설정으로 보고 덮어쓰지
+  않는다**가 규칙이다. `app/layout.tsx` 의 프리-페인트 스크립트와 `ThemeToggle` 이
+  같은 규칙을 지켜야 한다.
+- **키 이름을 바꿀 때 예전 키를 지우지 않는다.** 새 키가 비어 있을 때만 한 번 복사한다
+  (`app/utils/saveStorage.ts`). 배포를 되돌려도 저장이 남아 있어야 하고, 그래야
+  마이그레이션이 여러 번 돌아도 결과가 같다. `tests/saveStorage.test.ts` 가 이걸 지킨다.
+
 ### 코드 스타일
 포맷 규칙의 단일 출처는 `.prettierrc.json`이다. ESLint의 `prettier/prettier` 규칙도
 옵션을 따로 적지 않고 이 파일을 읽으므로, 규칙을 바꿀 땐 여기만 고친다.
