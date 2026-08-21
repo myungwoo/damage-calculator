@@ -166,6 +166,7 @@ export default function DamageCalculator() {
                 <EquipmentPanel
                   equipment={equipment}
                   setEquipment={setEquipment}
+                  totalLuk={stats.luk + stats.additionalLuk}
                 />
                 <SkillsPanel
                   skills={skills}
