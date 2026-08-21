@@ -1,5 +1,14 @@
 export const SAVE_SLOTS = 3;
-export const STORAGE_KEY_PREFIX = 'damage-calculator-save-';
+/**
+ * 저장 슬롯 키.
+ *
+ * mapleland.myungwoo.kr 은 유틸 여러 개가 한 오리진을 공유한다(myungwoo.github.io 도
+ * 마찬가지다). 앱 전용 값에 접두어를 안 붙이면 다른 유틸과 부딪힌다.
+ */
+export const STORAGE_KEY_PREFIX = 'ml:damage:save:';
+
+/** 접두어를 붙이기 전에 쓰던 키. 새 키가 없을 때 한 번 복사해 온다. */
+export const LEGACY_STORAGE_KEY_PREFIX = 'damage-calculator-save-';
 export const MIN_LEVEL = 1;
 export const MAX_LEVEL = 250;
 
