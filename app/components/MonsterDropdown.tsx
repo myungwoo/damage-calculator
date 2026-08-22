@@ -1,6 +1,11 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo, ReactNode } from 'react';
 import { Check, ChevronsUpDown, Pencil, Search, X } from 'lucide-react';
 import { MonsterPreset, Region } from '../types/calculator';
+import {
+  createHangulMatcher,
+  HangulMatch,
+  HangulMatcher,
+} from '../utils/hangulSearch';
 
 interface MonsterDropdownProps {
   selectedMonsterId: string;
@@ -12,6 +17,76 @@ interface MonsterDropdownProps {
 
 interface GroupedMonsters {
   [key: string]: MonsterPreset[];
+}
+
+/**
+ * 검색어가 걸린 자리를 이름 안에서 표시한다.
+ *
+ * 부분 수열 검색은 **왜 걸렸는지가 이름만 봐서는 안 보인다** — "ㅅㅎ"에 걸린 몹들을
+ * 늘어놓으면 목록이 무작위로 뽑힌 것처럼 읽힌다. 걸린 글자를 짚어 주면 그 줄이
+ * 왜 여기 있는지가 바로 읽힌다.
+ *
+ * 붙어 있는 자리는 한 덩어리로 묶어 그린다. 글자마다 상자를 두르면 "자쿰"처럼
+ * 통째로 걸린 이름이 낱글자로 잘려 보인다.
+ */
+function MatchedName({
+  name,
+  matcher,
+  className,
+}: {
+  name: string;
+  matcher: HangulMatcher;
+  className?: string;
+}) {
+  const hit = matcher.match(name);
+  // 목록에 있는 이름은 이미 걸린 것이지만, 검색어가 비면 강조할 자리가 없다.
+  if (!hit || hit.indices.length === 0) {
+    return <span className={className}>{hit ? hit.text : name}</span>;
+  }
+
+  return (
+    <span className={className}>
+      {toRuns(hit).map(({ start, end, matched }) =>
+        matched ? (
+          <mark
+            key={start}
+            className="rounded bg-brand/20 font-semibold text-brand"
+          >
+            {hit.text.slice(start, end)}
+          </mark>
+        ) : (
+          (hit.text.slice(start, end) as ReactNode)
+        )
+      )}
+    </span>
+  );
+}
+
+/** 일치한 자리를 붙어 있는 구간 단위로 접어 이름을 토막낸다. */
+function toRuns(
+  hit: HangulMatch
+): { start: number; end: number; matched: boolean }[] {
+  const runs: { start: number; end: number; matched: boolean }[] = [];
+  let at = 0;
+  for (const index of hit.indices) {
+    if (index < at) {
+      continue;
+    }
+    if (index > at) {
+      runs.push({ start: at, end: index, matched: false });
+    }
+    const last = runs[runs.length - 1];
+    if (last?.matched && last.end === index) {
+      last.end = index + 1;
+    } else {
+      runs.push({ start: index, end: index + 1, matched: true });
+    }
+    at = index + 1;
+  }
+  if (at < hit.text.length) {
+    runs.push({ start: at, end: hit.text.length, matched: false });
+  }
+  return runs;
 }
 
 export default function MonsterDropdown({
@@ -65,10 +140,22 @@ export default function MonsterDropdown({
     selected?.scrollIntoView({ block: 'center' });
   }, [isOpen, selectedMonsterId]);
 
+  /**
+   * 검색어는 붙어 있지 않아도 순서만 맞으면 통과한다(부분 수열). 초성만 쳐도 걸린다 —
+   * "후회수호" · "ㅎㅎㅅㅎ" 둘 다 "후회의 수호대장"을 찾는다. 규칙은 `hangulSearch`에 있다.
+   *
+   * 판정 함수는 검색어당 한 번만 만든다. 이름마다 검색어를 다시 해석하면
+   * 몹 438종 x 매 타자만큼 같은 일을 반복한다.
+   */
+  const matcher = useMemo(
+    () => createHangulMatcher(searchQuery),
+    [searchQuery]
+  );
+
   // 몬스터 그룹핑 및 정렬
   const groupedMonsters = (() => {
     const filtered = monsterPresets.filter((preset) =>
-      preset.name.toLowerCase().includes(searchQuery.toLowerCase())
+      matcher.matches(preset.name)
     );
 
     // 지역별로 그룹핑
@@ -281,13 +368,13 @@ export default function MonsterDropdown({
                       <span className="w-12 shrink-0 text-[0.7rem] font-bold tabular-nums text-muted">
                         Lv.{monster.level}
                       </span>
-                      <span
+                      <MatchedName
+                        name={monster.name}
+                        matcher={matcher}
                         className={`truncate text-sm ${
                           isSelected ? 'font-semibold text-brand' : 'text-ink'
                         }`}
-                      >
-                        {monster.name}
-                      </span>
+                      />
                       <span className="ml-auto shrink-0 text-[0.7rem] tabular-nums text-muted">
                         {monster.hp.toLocaleString('ko-KR')}
                       </span>
