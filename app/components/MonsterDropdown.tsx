@@ -1,6 +1,7 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { Check, ChevronsUpDown, Pencil, Search, X } from 'lucide-react';
 import { MonsterPreset, Region } from '../types/calculator';
+import { createHangulMatcher } from '../utils/hangulSearch';
 
 interface MonsterDropdownProps {
   selectedMonsterId: string;
@@ -65,11 +66,21 @@ export default function MonsterDropdown({
     selected?.scrollIntoView({ block: 'center' });
   }, [isOpen, selectedMonsterId]);
 
+  /**
+   * 검색어는 붙어 있지 않아도 순서만 맞으면 통과한다(부분 수열). 초성만 쳐도 걸린다 —
+   * "후회수호" · "ㅎㅎㅅㅎ" 둘 다 "후회의 수호대장"을 찾는다. 규칙은 `hangulSearch`에 있다.
+   *
+   * 판정 함수는 검색어당 한 번만 만든다. 이름마다 검색어를 다시 해석하면
+   * 몹 438종 x 매 타자만큼 같은 일을 반복한다.
+   */
+  const matches = useMemo(
+    () => createHangulMatcher(searchQuery),
+    [searchQuery]
+  );
+
   // 몬스터 그룹핑 및 정렬
   const groupedMonsters = (() => {
-    const filtered = monsterPresets.filter((preset) =>
-      preset.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filtered = monsterPresets.filter((preset) => matches(preset.name));
 
     // 지역별로 그룹핑
     const groups = filtered.reduce<GroupedMonsters>((acc, monster) => {
