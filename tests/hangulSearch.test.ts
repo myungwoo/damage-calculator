@@ -128,8 +128,17 @@ test('붙어 있는 일치는 붙은 채로 짚는다', () => {
   assert.deepEqual(indicesOf('가가나', '가나'), [1, 2]);
   assert.deepEqual(indicesOf('자쿰 자쿰팔', '자쿰'), [0, 1]);
   assert.deepEqual(indicesOf('주니어 그림자', 'ㄱㅈ'), [4, 6]);
-  // 자리를 당기는 것은 끝 위치를 유지하는 선에서만 한다.
   assert.deepEqual(indicesOf('수호 수호대장', '수호'), [0, 1]);
+});
+
+test('붙은 정도를 지키면서 되도록 앞을 짚는다', () => {
+  // 뒤에서부터 당기기만 하면 "후"가 아니라 "회"에 붙는다.
+  assert.deepEqual(indicesOf(후회, 'ㅎㅅㅎ'), [0, 4, 5]);
+  // 덩어리는 통째로 앞으로 옮긴다. 글자마다 당기면 붙여 놓은 구간이 다시 흩어진다.
+  assert.deepEqual(indicesOf('가나가나', '가나'), [0, 1]);
+  assert.deepEqual(indicesOf('가나가나', '가나가'), [0, 1, 2]);
+  // 앞 덩어리를 밀어내면서까지 당기지는 않는다.
+  assert.deepEqual(indicesOf('나가나', '나나'), [0, 2]);
 });
 
 test('돌려준 자리는 같이 준 글자열 기준이다', () => {

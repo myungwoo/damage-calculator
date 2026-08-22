@@ -234,11 +234,10 @@ export function createHangulMatcher(query: string): HangulMatcher {
       }
 
       /**
-       * 끝 위치에서 **거꾸로 다시 맞춰** 강조할 자리를 정한다.
-       * 앞에서부터 맞춘 자리를 그대로 쓰면 붙어 있는 일치를 흩어 놓는다 —
-       * "가가나"에서 "가나"를 찾으면 0 · 2를 잡아 사이 글자를 건너뛴 것처럼 보인다.
-       * 같은 끝 위치에서 뒤에서부터 당기면 그 안에서 폭이 가장 좁은 일치가 되므로,
-       * 붙어 있는 구간은 항상 붙은 채로 강조된다(1 · 2).
+       * 끝 위치에서 **거꾸로 다시 맞춘다.** 앞에서부터 맞춘 자리를 그대로 쓰면 붙어
+       * 있는 일치를 흩어 놓는다 — "가가나"에서 "가나"를 찾으면 0 · 2를 잡아 사이
+       * 글자를 건너뛴 것처럼 보인다. 같은 끝 위치에서 뒤에서부터 당기면 그 안에서
+       * 폭이 가장 좁은 일치가 되므로 붙어 있는 구간은 붙은 채로 남는다(1 · 2).
        */
       const indices = new Array<number>(units.length);
       let at = end - 1;
@@ -253,9 +252,48 @@ export function createHangulMatcher(query: string): HangulMatcher {
         indices[u] = at;
         at -= 1;
       }
+      tightenToFront(units, text, indices);
       return { text, indices };
     },
   };
+}
+
+/**
+ * 붙어 있는 자리를 **덩어리째 앞으로 당긴다.** 뒤에서부터 당긴 자리는 폭이 가장 좁긴
+ * 하지만 필요 이상으로 뒤에 놓인다 — "후회의 수호대장"에서 `ㅅㅎ` 앞의 `ㅎ`이 "후"가
+ * 아니라 "회"에 붙고, "가나가나"에서 "가나"가 뒤쪽을 짚는다.
+ *
+ * 덩어리를 통째로 옮기는 것이 요점이다. 글자를 하나씩 당기면 방금 붙여 놓은 구간이
+ * 다시 흩어진다. **붙어 있는 정도를 지키면서 되도록 앞을 짚는 자리**가 이 둘의 답이다.
+ */
+function tightenToFront(
+  units: QueryUnit[],
+  text: string,
+  indices: number[]
+): void {
+  let from = 0;
+  while (from < indices.length) {
+    // 붙어 있는 구간을 하나의 덩어리로 잡는다.
+    let to = from + 1;
+    while (to < indices.length && indices[to] === indices[to - 1] + 1) {
+      to += 1;
+    }
+    // 앞 덩어리를 밀어내지 않는 선까지만 당긴다.
+    const floor = from === 0 ? 0 : indices[from - 1] + 1;
+    while (indices[from] > floor) {
+      let movable = true;
+      for (let u = from; u < to && movable; u += 1) {
+        movable = unitMatches(units[u], text.charCodeAt(indices[u] - 1));
+      }
+      if (!movable) {
+        break;
+      }
+      for (let u = from; u < to; u += 1) {
+        indices[u] -= 1;
+      }
+    }
+    from = to;
+  }
 }
 
 /** 한 번만 쓸 때를 위한 감싸개. 목록을 거를 때는 `createHangulMatcher`를 쓴다. */
