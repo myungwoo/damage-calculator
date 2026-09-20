@@ -479,6 +479,7 @@ describe('크리티컬 가산항', () => {
       gloveAttack: 30,
       otherAttack: 20,
       buff: 0,
+      echoOfHero: 'none',
     };
     const skills: Skills = {
       type: 'tripleThrow',
@@ -1112,6 +1113,7 @@ describe('calculateDamage', () => {
     gloveAttack: 30,
     otherAttack: 20,
     buff: 0,
+    echoOfHero: 'none',
   };
 
   const makeSkills = (overrides: Partial<Skills> = {}): Skills => ({

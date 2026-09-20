@@ -57,6 +57,7 @@ const DEFAULT_STATE = {
     gloveAttack: 0,
     otherAttack: 0,
     buff: 0,
+    echoOfHero: 'none',
   } as Equipment,
   skills: {
     type: 'lucky7' as AttackSkillType,
@@ -173,7 +174,8 @@ export const useCalculatorState = () => {
           ...resolveMonsterSelection(parsedData.monster),
           // 예전 저장 데이터에는 추가 INT / 방어력 필드가 없으므로 기본값으로 채운다.
           stats: { ...DEFAULT_STATE.stats, ...parsedData.stats },
-          equipment: parsedData.equipment,
+          // 예전 저장 데이터에는 영웅의 메아리 · 항목 목록이 없으므로 기본값으로 채운다.
+          equipment: { ...DEFAULT_STATE.equipment, ...parsedData.equipment },
           // 예전 저장 데이터에는 베놈 관련 필드가 없으므로 기본값으로 채운다.
           skills: {
             ...DEFAULT_STATE.skills,
@@ -360,7 +362,8 @@ export const useCalculatorState = () => {
           ...resolveMonsterSelection(parsedData.monster),
           // 예전 저장 데이터에는 추가 INT / 방어력 필드가 없으므로 기본값으로 채운다.
           stats: { ...DEFAULT_STATE.stats, ...parsedData.stats },
-          equipment: parsedData.equipment,
+          // 예전 저장 데이터에는 영웅의 메아리 · 항목 목록이 없으므로 기본값으로 채운다.
+          equipment: { ...DEFAULT_STATE.equipment, ...parsedData.equipment },
           // 예전 저장 데이터에는 베놈 관련 필드가 없으므로 기본값으로 채운다.
           skills: { ...DEFAULT_STATE.skills, ...parsedData.skills },
         }));
