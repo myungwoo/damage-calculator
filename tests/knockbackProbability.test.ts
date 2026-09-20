@@ -306,6 +306,7 @@ const EQUIPMENT: Equipment = {
   gloveAttack: 30,
   otherAttack: 20,
   buff: 0,
+  echoOfHero: 'none',
 };
 
 const makeSkills = (overrides: Partial<Skills> = {}): Skills => ({

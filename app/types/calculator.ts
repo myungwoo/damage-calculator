@@ -1,3 +1,7 @@
+import { EchoOfHeroType } from '../data/echoOfHero';
+
+export type { EchoOfHeroType };
+
 export type StatType = 'str' | 'dex' | 'luk';
 export type AttackSkillType = 'lucky7' | 'avenger' | 'drain' | 'tripleThrow';
 
@@ -108,12 +112,44 @@ export interface Stats {
   magicalDefense?: number;
 }
 
+/**
+ * 공격력 합을 이루는 항목 하나 (벨트 · 정령의 축복 · 전사의 비약 …).
+ *
+ * "기타 공격력"과 "도핑"은 원래 여러 부위·물약의 합을 손으로 더해 적는 칸이라,
+ * 부위마다 입력칸을 세우면 패널이 그만큼 길어지고 없는 부위는 빈 칸으로 남는다.
+ * 그래서 칸은 하나로 두고, 그 칸의 값을 만드는 항목들을 이 목록으로 펼쳐 둔다.
+ *
+ * `enabled`가 요점이다 — 도핑은 켰다 껐다 하며 방컷을 비교하는 값이라,
+ * 지웠다가 다시 적게 하면 비교할 때마다 숫자를 다시 외워야 한다.
+ */
+export interface AttackItem {
+  /** 목록에서 줄을 구분하는 키. 이름은 비어 있거나 겹칠 수 있어 따로 둔다 */
+  id: string;
+  name: string;
+  value: number;
+  enabled: boolean;
+}
+
 export interface Equipment {
   weaponAttack: number;
   selectedWeaponId: string;
   gloveAttack: number;
   otherAttack: number;
   buff: number;
+  /**
+   * 영웅의 메아리 종류. 공격력 합 전체에 배율로 걸린다.
+   * 자세한 근거는 `data/echoOfHero.ts`에 있다.
+   */
+  echoOfHero: EchoOfHeroType;
+  /**
+   * "기타 공격력" 칸을 이루는 항목들.
+   *
+   * 비어 있으면 "항목을 안 나눴다"는 뜻이고 `otherAttack`을 그대로 쓴다.
+   * 하나라도 있으면 `otherAttack`은 켜진 항목의 합으로 정해진다(그 칸은 잠긴다).
+   */
+  otherAttackItems?: AttackItem[];
+  /** "도핑" 칸을 이루는 항목들. 규칙은 `otherAttackItems`와 같다 */
+  buffItems?: AttackItem[];
 }
 
 export interface Skills {

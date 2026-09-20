@@ -16,6 +16,7 @@ app/
     DamageCalculator.tsx   # 레이아웃 오케스트레이터 (헤더 + 입력 2열 + 결과 레일)
     MonsterDropdown.tsx    # 몬스터 선택 드롭다운 (부분 수열 · 초성 검색 + 일치 구간 강조, 검색어 유지, 지역 그룹, 키보드 조작)
     MonsterSprite.tsx      # 몬스터 그림 (maplestory.io 렌더 API, 접었다 편다)
+    AttackBreakdown.tsx    # 기타 공격력 · 도핑을 항목별로 나눠 적는 편집기
     NumberInput.tsx        # 숫자 입력 컴포넌트
     SaveSlots.tsx          # 헤더의 저장 슬롯 팝오버
     ThemeToggle.tsx        # 다크/라이트 모드 토글
@@ -41,6 +42,7 @@ app/
       Toggle.tsx
   data/                # 정적 데이터
     monsterPresets.ts      # 몬스터 프리셋 데이터 (id = 원작 Mob.wz 몹 ID)
+    echoOfHero.ts          # 영웅의 메아리 종류별 공격력 배율
     skillEffects.ts        # 스킬 효과 데이터
     mobBuffs.ts            # 몹 공격업 단계별 배율
     mobSkills.ts           # 몹 스킬 ID -> 이름 · 영향 · 설명
@@ -54,6 +56,7 @@ app/
   types/               # TypeScript 타입 정의
     calculator.ts
   utils/               # 유틸리티 함수
+    attackItems.ts         # 공격력 항목 목록의 합계와 유효값 판정
     calculatorUtils.ts     # 계산기 헬퍼 함수
     damageCalculator.ts    # 데미지 계산 로직
     fft.ts                 # FFT 알고리즘
@@ -73,6 +76,7 @@ tests/                 # 유닛 테스트 (node --test)
   fft.test.ts
   hangulSearch.test.ts
   hitDamage.test.ts
+  totalAttack.test.ts
   venom.test.ts
 public/                # 정적 파일
 ```
@@ -152,6 +156,27 @@ public/                # 정적 파일
   바로 나오는 값이다. 카드를 따로 세우면 제 중요도보다 커 보이고, 멀리 떼면 어느 합에서
   나온 값인지가 안 보인다. **더 자주 찾는 "공격력 1당 LUK"을 먼저 세운다.**
   어느 한쪽 합이 0이면 나눌 수 없으므로 줄째로 뺀다 — 0으로 적으면 "효율이 0"으로 읽힌다.
+- **여러 부위의 합을 적는 칸은 항목으로 펼칠 수 있게 한다.** 기타 공격력과 도핑이
+  여기 해당한다. 벨트 · 정령의 축복 · 전사의 비약처럼 **부위마다 입력칸을 세우면**
+  패널이 그만큼 길어지고, 안 쓰는 부위가 전부 0으로 남아 화면의 대부분이 빈 칸이 된다.
+  그렇다고 합계만 받으면 유저가 매번 암산을 해야 한다. 그래서 칸은 하나로 두고
+  **라벨 옆 빈 자리의 작은 버튼**으로 `이름 + 값 + 스위치` 목록을 펼친다.
+  항목을 안 쓰는 사람에게는 숫자 하나만 적는 예전 모습 그대로다.
+  - **떠 있는 팝오버가 아니라 카드 안에서 펼친다.** `Card`가 `overflow-hidden`이라
+    카드 밖으로 나가는 레이어는 잘린다. 펼치는 형태는 카드 폭을 그대로 써서
+    한 줄에 이름 · 값 · 스위치를 같이 놓을 수 있다는 이점도 있다.
+  - **한 번에 하나만 펼친다.** 둘 다 열면 아래 입력칸이 화면 밖으로 밀린다.
+  - **줄을 지우는 것과 끄는 것을 가른다.** 도핑은 껐다 켰다 하며 방컷을 비교하는
+    값이라, 끄기가 없으면 비교할 때마다 숫자를 다시 외워서 타이핑해야 한다.
+  - 항목이 하나라도 있으면 숫자 칸은 합계로 잠긴다(`disabled`). 둘 다 고칠 수 있으면
+    어느 쪽이 참인지가 화면에서 안 보인다. 계산도 `resolveAttackPart`로 **항목 쪽을
+    다시 합치므로**, 숫자 칸이 어긋난 예전 저장 데이터를 불러와도 값이 틀어지지 않는다.
+- **영웅의 메아리는 스킬 패널이 아니라 장비 패널에 둔다.** 하는 일이 공격력 합에
+  배율을 거는 것뿐이라, 스킬 패널로 보내면 장비 카드의 합계가 그 카드 안 입력들의
+  합과 안 맞아서 계산이 틀린 것처럼 보인다. 레벨이 1뿐이고 고르는 것은 종류(모험가 /
+  시그너스)라서 `SegmentedControl`의 `dense` 한 줄을 쓴다. 배율이 걸리면 공격력 합
+  상자의 내역 줄에 **배율 전 합과 증가분을 같이** 적는다 — 그러지 않으면 내역의
+  덧셈과 큰 숫자가 안 맞는다.
 - **방컷 확률 막대의 숫자는 막대 밖 고정 열에 둔다.** 막대 위에 얹으면 채워진 구간과
   빈 구간에서 대비가 달라져 글자가 읽히지 않는다.
 - **결과 레일의 순서는 "방컷 요약 -> 방컷 확률 막대 -> 구분자 -> 데미지 값들 -> 회피 확률 -> 피격 데미지"이다.**
@@ -965,6 +990,68 @@ v0.77 안에서도 경로마다 식이 다르다.
 수치를 담는다. 물리 무효처럼 `x`가 플래그(1)인 스킬은 숫자를 안 적는다 —
 뜻 모르는 숫자를 칩에 붙이면 근거 없는 정보가 된다.
 
+## 공격력 합
+
+화면의 "공격력 합"은 원작 `CalcDamage`의 `nPAD`와 같은 값이다.
+`calculateTotalAttack`이 그 계산을 담당한다.
+
+```
+nPAD = min(1999, max(0, 무기 + 표창 + 장갑 + 기타 + 도핑))
+if (MaxLevelBuff) nPAD = min(1999, nPAD + nPAD * MaxLevelBuff / 100)
+```
+
+- **상한은 1999다.** 원작이 `min(1999, ...)`로 자른다. 나이트로드가 실제로 닿는
+  값은 아니지만, 자르지 않으면 원작에 없는 구간을 계산하게 된다.
+- **기타 공격력과 도핑은 항목 목록으로 나눌 수 있다**(`utils/attackItems.ts`).
+  목록이 비어 있으면 숫자 칸 값이, 하나라도 있으면 **켜진 항목의 합**이 그 칸의 값이다.
+  판정은 `resolveAttackPart`가 단일 출처다 — 화면과 계산이 서로 다른 값을 보면 안 된다.
+
+### 영웅의 메아리
+
+원작 Skill.wz의 `1005`(모험가 초보자)와 `10001005`(시그너스 노블레스)다.
+이름도 아이콘도 같지만 **배율이 다르다**.
+
+| 스킬 | ID | `x` | 지속 |
+| --- | --- | --- | --- |
+| 모험가 영웅의 메아리 | 1005 | **4** (+4%) | 2400초 |
+| 시그너스 영웅의 메아리 | 10001005 | **2** (+2%) | 2400초 |
+
+v079(`mrzhqiang/ms079`)와 v083(`akhuting/gms083`) 덤프가 같은 값을 준다.
+
+**적용 자리는 데미지 공식이 아니라 공격력 그 자체다.** 두 유출본이 같은 구조다.
+
+```cpp
+// mnwvs077 CalcDamage.cpp (v0.77 IDA 전사본)
+int nPAD = min(1999, max(0, ss->nPAD + ss->nPAD_ + nBulletPAD));
+if (ss->nMaxLevelBuff_)
+    nPAD = min(1999, nPAD + nPAD * ss->nMaxLevelBuff_ / 100);
+```
+
+```java
+// iw2d/kinoko CalcDamage.java
+if (totalPadR > 0) pad += pad * totalPadR / 100;
+return clamp(pad, 0, PAD_MAX);
+```
+
+- 영웅의 메아리가 넣는 상태이상이 `MaxLevelBuff`(CTS 47)라는 것은 kinoko의
+  `SkillProcessor`에서 확인했다 — `Beginner.ECHO_OF_HERO`(1005) /
+  `Noblesse.ECHO_OF_HERO`(10001005)가 그 스탯에 스킬의 `x`를 그대로 넣는다.
+  mnwvs077에는 `nMaxLevelBuff_`를 **읽는 쪽만** 있고 걸어 주는 코드가 없다.
+- **표창 공격력(`nBulletPAD`)까지 더한 뒤에 곱한다.** 그래서 배율은 공격력 합 전체에
+  걸리고, 화면의 "공격력 합"이 곧 `nPAD`라는 관계가 유지된다.
+- **정수 나눗셈이라 증가분이 버려진다.** 공격력 137에 4%면 137 + 5 = 142지 142.48이
+  아니다. 소수로 곱하면 방컷 경계에서 한 칸씩 어긋난다.
+- 데미지 공식보다 앞에 있으므로 스킬 데미지% · 크리티컬 · 방어력 감산과 섞이지 않는다.
+  **베놈과 피격 데미지에는 영향이 없다** — 베놈은 스킬 자체의 공격력(`mad`)을 쓰고,
+  피격은 몹 공격력에서 나온다.
+
+`mnwvs077`의 물리 쪽 한 줄은 `nPAD + nPAD / ss->nMaxLevelBuff_ * 100`으로 적혀 있는데,
+같은 파일의 마법 쪽(`nMAD + nMAD * ss->nMaxLevelBuff_ / 100`)과 kinoko가 모두 반대이므로
+IDA 전사 과정에서 뒤집힌 것으로 본다. 그대로 읽으면 배율 4%가 공격력을 25배로 만든다.
+
+**실측은 아직 없다.** 다만 데미지 범위로 역산할 수 있는 값이라(듀얼 비틀 방어력을
+역산했던 것과 같은 방법), 확인되면 이 절과 `data/echoOfHero.ts`를 같이 고치면 된다.
+
 ## 공격 스킬별 특성
 
 이 계산기는 나이트로드(표창) 기준이다.
@@ -1104,11 +1191,11 @@ GMS/KMS 버전 차이가 있을 수 있으니 수치는 항상 교차검증한�
 | [`CMob__OnMobStatChangeSkill.txt`](https://drive.google.com/file/d/1AipXS7vutfhrNALtJxvTcQjBZgvIrgQU/view) | 몹 상태이상 스킬 전반 | 브라질(BMS) 빅뱅 전 공식 서버를 IDA로 디컴파일한 **진짜 넥슨 코드**. 베놈·쇼다운·닌자 앰부시·독 안개 등의 적용 조건과 공식이 전부 들어 있다. 신뢰도 최상 |
 | [tnsc4502/mnwvs077](https://github.com/tnsc4502/mnwvs077) | 도트 틱 처리, 공격 처리 흐름, 회피 판정과 **피격 데미지**(`WvsGame/CalcDamage.cpp`의 `CheckPDamageMiss` / `CheckMDamageMiss` / `PDamage` / `MDamage`) | 원작 v0.77 구조를 그대로 옮긴 C++ 재구현. `WvsGame/Mob.cpp`의 `UpdateMobStatChange`가 1초 틱과 HP 하한 1을, `WvsGame/LifePool.cpp`의 `ApplyUserAttack`이 베놈이 붙는 스킬 목록을 보여준다. **재구현이라 세부는 원본과 다를 수 있다**(중첩 조건이 원본과 다르게 단순화돼 있음) |
 | [67-6f-64/Rebirth95.Server](https://github.com/67-6f-64/Rebirth95.Server) | 대조용 | v95 기반 C# 재구현. 도트 틱을 몹 단위 자유진행 1초 클럭으로 돌린다. mnwvs077과 구조가 달라 두 방식을 비교할 때 쓴다. 회피 판정의 난수 범위(0~100)를 확인한 곳이기도 한데, **공식 자체는 빅뱅 이후 것**이라 그대로 가져오면 안 된다 |
-| [iw2d/kinoko](https://github.com/iw2d/kinoko) | 난수 소비 순서 대조 | `world/user/stat/CalcDamage.java`. 쓰지 않는 난수까지 `counter++`로 세어 클라이언트와 인덱스를 맞춘다. 7칸 순환이 실재한다는 강한 증거 |
+| [iw2d/kinoko](https://github.com/iw2d/kinoko) | 난수 소비 순서 대조, **스킬 -> 상태이상(CTS) 대응** | `world/user/stat/CalcDamage.java`. 쓰지 않는 난수까지 `counter++`로 세어 클라이언트와 인덱스를 맞춘다. 7칸 순환이 실재한다는 강한 증거. `world/skill/SkillProcessor.java`는 어느 스킬이 어느 CTS를 거는지 보여줘서, mnwvs077에 읽는 쪽만 있는 스탯(영웅의 메아리의 `MaxLevelBuff` 등)의 출처를 찾을 때 쓴다 |
 | [Kaioru/Edelstein](https://github.com/Kaioru/Edelstein) | 난수 소비 순서 대조 | C# 재구현. `RndSize = 7` + `Rotational<uint>` |
 | [maplestory.io 몹 API](https://maplestory.io/api/gms/83/mob/100100) | **몹 수치 1차 출처** | `GMS/83`이 기준 버전이다. `/mob/`로 그 버전의 몹 목록을, `/mob/{id}`로 `info` 전 항목과 출현 맵(`foundAt`)을 준다. 아래 "기준 버전" 절 참고 |
 | [mrzhqiang/ms079](https://github.com/mrzhqiang/ms079) | **API가 안 주는 노드의 1순위 덤프** | v0.79 기준 `wz/Mob.wz/*.img.xml`. API v83과 **359종 전 항목이 일치**한다(비교 가능한 기존 프리셋 전부). 예외는 크림슨우드 성채 보스 5종뿐인데, 그쪽은 이 덤프가 **더 나중 상태**를 담고 있다 — 아래 "크림슨우드 성채 보스" 절 참고 |
-| [akhuting/gms083](https://github.com/akhuting/gms083) | 스킬 WZ 데이터, 영문 몹 이름, ms079에 없는 몹 노드 | GMS v83의 `wz/Skill.wz/*.img.xml`(베놈 `mad`/`prop`/`time`의 출처), `wz/String.wz/Mob.img.xml`(영문명, 몹 ID 검증용), `wz/Mob.wz/*.img.xml`. **이 덤프는 API v83과 9종이 어긋난다**(루루모 HP 760만, 셰이드 · 선인인형 · 리치 · 대나무 무사 · 자동경비시스템 · 디트와 로이 등 회피 999 계열) **+ 9400589는 아예 다른 몹이다.** ms079에 파일이 없을 때만 쓰고, `info` 수치가 API와 맞는지 확인하고 쓴다 |
+| [akhuting/gms083](https://github.com/akhuting/gms083) | 스킬 WZ 데이터, 영문 몹 이름, ms079에 없는 몹 노드 | GMS v83의 `wz/Skill.wz/*.img.xml`(베놈 `mad`/`prop`/`time`과 영웅의 메아리 `x`의 출처. 초보자는 `000.img`, 시그너스 노블레스는 `1000.img`다), `wz/String.wz/Mob.img.xml`(영문명, 몹 ID 검증용), `wz/Mob.wz/*.img.xml`. **이 덤프는 API v83과 9종이 어긋난다**(루루모 HP 760만, 셰이드 · 선인인형 · 리치 · 대나무 무사 · 자동경비시스템 · 디트와 로이 등 회피 999 계열) **+ 9400589는 아예 다른 몹이다.** ms079에 파일이 없을 때만 쓰고, `info` 수치가 API와 맞는지 확인하고 쓴다 |
 | 두 저장소의 `wz/Skill.wz/MobSkill.img.xml` | 몹 스킬 수치 | 공격업(110 / 111) 배율과 프리셋 `mobSkills`의 `x` 출처. v079와 v083 값이 같다 |
 | 두 저장소의 `wz/Base.wz/StandardPDD.img.xml` | 표준 물리 방어력 표 | 피격 물리 데미지가 읽는 직업군 x 레벨 표. v079와 v083 값이 완전히 같은 것을 확인했다 |
 | [Sajandora/Mapleland-Discord-InfoBot](https://github.com/Sajandora/Mapleland-Discord-InfoBot) | 한글 몹 이름 ↔ 몹 ID | `data/mobs.json`. WZ는 영문명이라 프리셋(한글명)과 몹 ID를 잇는 데 필요하다. 메이플랜드에 실제로 있는 몹 목록 역할도 한다 |

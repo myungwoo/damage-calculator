@@ -398,6 +398,7 @@ describe('베놈 적용 조건', () => {
     gloveAttack: 30,
     otherAttack: 20,
     buff: 0,
+    echoOfHero: 'none',
   };
 
   const makeSkills = (overrides: Partial<Skills> = {}): Skills => ({

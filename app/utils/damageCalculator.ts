@@ -17,6 +17,8 @@ import {
 } from '../types/calculator';
 import { getSkillEffect } from '../data/skillEffects';
 import { throwingStars } from '../data/weapons';
+import { getEchoOfHeroPercent, MAX_TOTAL_ATTACK } from '../data/echoOfHero';
+import { resolveAttackPart } from './attackItems';
 import { getStandardPhysicalDefense } from '../data/standardPDD';
 import { MOB_ATTACK_UP_TIERS } from '../data/mobBuffs';
 import { PURE_INT } from '../constants/calculator';
@@ -368,6 +370,17 @@ export const calculateTotalStats = (
   };
 };
 
+/**
+ * 원작 `CalcDamage`의 `nPAD`를 그대로 만든다.
+ *
+ * ```
+ * nPAD = min(1999, max(0, 장비·버프 공격력 + 표창 공격력))
+ * if (MaxLevelBuff) nPAD = min(1999, nPAD + nPAD * MaxLevelBuff / 100)
+ * ```
+ *
+ * 영웅의 메아리(`MaxLevelBuff`)가 **표창까지 더한 합 전체에** 걸리고, 정수
+ * 나눗셈이라 증가분이 버려진다. 자세한 근거는 `data/echoOfHero.ts`에 있다.
+ */
 export const calculateTotalAttack = (equipment: Equipment): number => {
   const selectedStar = throwingStars.find(
     (star) => star.id === equipment.selectedWeaponId
@@ -375,12 +388,25 @@ export const calculateTotalAttack = (equipment: Equipment): number => {
   if (!selectedStar) {
     throw new Error('Invalid throwing star selected');
   }
-  return (
-    equipment.weaponAttack +
-    selectedStar.attack +
-    equipment.gloveAttack +
-    equipment.otherAttack +
-    equipment.buff
+
+  const baseAttack = Math.min(
+    MAX_TOTAL_ATTACK,
+    Math.max(
+      0,
+      equipment.weaponAttack +
+        selectedStar.attack +
+        equipment.gloveAttack +
+        resolveAttackPart(equipment.otherAttack, equipment.otherAttackItems) +
+        resolveAttackPart(equipment.buff, equipment.buffItems)
+    )
+  );
+
+  const echoPercent = getEchoOfHeroPercent(equipment.echoOfHero);
+  if (echoPercent === 0) return baseAttack;
+
+  return Math.min(
+    MAX_TOTAL_ATTACK,
+    baseAttack + Math.floor((baseAttack * echoPercent) / 100)
   );
 };
 
