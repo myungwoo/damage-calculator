@@ -52,5 +52,6 @@ export const REGION_ORDER = [
   '일본',
   '뉴리프시티',
   '크림슨우드',
+  '말레이시아',
   '기타',
 ] as const;

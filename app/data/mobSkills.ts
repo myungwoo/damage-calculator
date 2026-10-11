@@ -227,6 +227,9 @@ export const MOB_SKILLS: Record<number, MobSkillInfo> = {
  * **방어업(102 / 112)은 `x`를 같이 봐야 한다.** `x`는 곱하는 배율이라 100이면 데미지가
  * 하나도 안 줄어드는데, WZ에 그 슬롯을 쓰는 몹이 실제로 있다(크림슨우드 성채 보스 4종).
  * 배율을 안 보면 아무 효과 없는 스킬에 빨간 칩과 방컷 경고가 붙는다.
+ *
+ * 공격업(100 / 101 / 110 / 111)도 같다. 말레이시아의 야바 두 · 부퍼 스칼리온이
+ * `x`가 100인 슬롯을 써서, 그대로 두면 아무 일도 안 하는 스킬이 경고색 칩으로 뜬다.
  */
 export const getMobSkillInfo = (id: number, x?: number): MobSkillInfo => {
   const info = MOB_SKILLS[id] ?? {
@@ -236,6 +239,10 @@ export const getMobSkillInfo = (id: number, x?: number): MobSkillInfo => {
   };
 
   if ((id === 102 || id === 112) && x !== undefined && x >= 100) {
+    return { ...info, impact: 'info' };
+  }
+
+  if ([100, 101, 110, 111].includes(id) && x !== undefined && x <= 100) {
     return { ...info, impact: 'info' };
   }
 
