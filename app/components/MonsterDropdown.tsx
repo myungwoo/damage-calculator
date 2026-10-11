@@ -145,7 +145,7 @@ export default function MonsterDropdown({
    * "후회수호" · "ㅎㅎㅅㅎ" 둘 다 "후회의 수호대장"을 찾는다. 규칙은 `hangulSearch`에 있다.
    *
    * 판정 함수는 검색어당 한 번만 만든다. 이름마다 검색어를 다시 해석하면
-   * 몹 438종 x 매 타자만큼 같은 일을 반복한다.
+   * 몹 458종 x 매 타자만큼 같은 일을 반복한다.
    */
   const matcher = useMemo(
     () => createHangulMatcher(searchQuery),
